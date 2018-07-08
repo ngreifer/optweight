@@ -15,3 +15,8 @@ Zubizarreta (2015).
 
 In addition to binary point treatments, `optmatch` can handle
 multinomial treatments; longitudinal treatments are coming soon.
+
+If you are using a recent version of `WeightIt` that supports
+user-defined methods, you can enter `method = optmatch.fit` to use the
+method with binary, multinomial, and longitudinal treatments. Please let
+me know if you find any bugs or would like to see additional features.
