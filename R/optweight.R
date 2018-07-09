@@ -1,4 +1,4 @@
-optweight <- function(formula, data, tols = .0001, estimand = "ATE", s.weights = NULL, focal = NULL, pairwise = TRUE, full.output = TRUE) {
+optweight <- function(formula, data = NULL, tols = .0001, estimand = "ATE", s.weights = NULL, focal = NULL) {
 
   #Process treat and covs from formula and data
   t.c <- get.covs.and.treat.from.formula(formula, data)
@@ -31,32 +31,30 @@ optweight <- function(formula, data, tols = .0001, estimand = "ATE", s.weights =
   reported.estimand <- f.e.r[["reported.estimand"]]
 
   #Process s.weights
-  s.weights <- process.s.weights(s.weights, data)
-  if (is_null(s.weights)) sw <- rep(1, n)
-  else sw <- s.weights
+  sw <- process.s.weights(s.weights, data)
 
   ###Run optweight.fit
-  w <- optweight.fit(t.list = treat, covs.list = covs,
-                       tols.list = tols, estimand = estimand,
+  w <- optweight.fit(treat = treat, covs = covs,
+                       tols = tols, estimand = estimand,
                        focal = focal,
                        s.weights = sw, std.binary = FALSE)
 
+
   warn <- FALSE
-  test.w <- w*sw
+  test.w <- if (is_null(sw)) w else w*sw
   if (treat.type == "continuous") {if (sd(test.w)/mean(test.w) > 4) warn <- TRUE}
   else if (any(sapply(unique(treat), function(x) sd(test.w[treat == x])/mean(test.w[treat == x]) > 4))) warn <- TRUE
   if (warn) warning("Some extreme weights were generated. Examine them with summary() and maybe trim them with trim().", call. = FALSE)
+  call <- match.call()
 
-  if (full.output) {
-    out <- list(treat = treat,
-                covs = reported.covs,
-                weights = w,
-                s.weights = if (is_null(s.weights)) NULL else sw,
-                estimand = reported.estimand,
-                focal = focal)
-  }
-  else {
-    out <- w
-  }
+  out <- list(weights = w,
+              treat = treat,
+              covs = reported.covs,
+              s.weights = sw,
+              estimand = reported.estimand,
+              focal = focal,
+              call = call)
+
+  class(out) <- "optweight"
   return(out)
 }
