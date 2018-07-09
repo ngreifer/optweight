@@ -8,10 +8,9 @@ optweight.fit <- function(treat, covs, tols = .0001, estimand = "ATE", focal = N
   t.list <- lapply(t.list, as.character)
   covs.list <- lapply(covs.list, as.matrix)
   times <- seq_along(covs.list)
-  if (is.numeric(tols.list)) {
-    if (length(tols.list) == length(covs.list)) tols.list <- lapply(times, function(i) rep(tols.list[[i]], ncol(covs.list[[i]])))
-    else tols.list <- lapply(times, function(i) rep(tols.list[[1]], ncol(covs.list[[i]])))
-  }
+  if (is.atomic(tols.list)) tols.list <- list(tols.list)
+  if (length(tols.list) == 1) replicate(max(times), tols.list[[1]], simplify = FALSE)
+  tols.list <- lapply(times, function(i) if (length(tols.list[[i]] == 1)) rep(tols.list[[i]], ncol(covs.list[[i]])) else tols.list[[i]])
 
   unique.treats <- lapply(t.list, unique)
   N <- nrow(covs.list[[1]])
@@ -43,10 +42,10 @@ optweight.fit <- function(treat, covs, tols = .0001, estimand = "ATE", focal = N
   }
 
   A = diag(N)%*%diag(sw)
-  B = matrix(1, nrow = N, ncol = 1)
+  B = rep(1, N)
   E = do.call("rbind", lapply(times, function(i) do.call("rbind", lapply(unique.treats[[i]], function(t) t(as.numeric(t.list[[i]] == t))%*%diag(sw)))))
   F = unlist(n)
-  if (is_not_null(focal)) {
+  if (is_not_null(focal) && is_not_null(s.weights)) {
     E0 <- do.call("rbind", lapply(times, function(i) diag(as.numeric(t.list[[i]] == focal[i]))))
     F0 <- do.call("c", lapply(times, function(i) as.numeric(t.list[[i]] == focal[i])))
     E <- rbind(E, E0)
@@ -62,7 +61,8 @@ optweight.fit <- function(treat, covs, tols = .0001, estimand = "ATE", focal = N
                                                           n[[i]][t]*(-tols[[i]]-means[[i]]))))
   }), list(rep(0, N))))
 
-  out <- lsei(A = A, B = B, E = E, F = F, G = G, H = H)
+  out <- tryCatch(lsei(A = A, B = B, E = E, F = F, G = G, H = H),
+                  warning = function(w) stop("There is no solution with the given constraints.", call. = FALSE))
 
   return(out$X)
 }
