@@ -1,4 +1,4 @@
 import(stats)
-importFrom("limSolve", "lsei")
 export(optweight, optweight.fit)
 
+S3method(print, optweight)
