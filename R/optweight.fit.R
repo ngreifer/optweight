@@ -61,7 +61,7 @@ optweight.fit <- function(treat, covs, tols = .0001, estimand = "ATE", focal = N
                                                           n[[i]][t]*(-tols[[i]]-means[[i]]))))
   }), list(rep(0, N))))
 
-  out <- tryCatch(lsei(A = A, B = B, E = E, F = F, G = G, H = H),
+  out <- tryCatch(limSolve::lsei(A = A, B = B, E = E, F = F, G = G, H = H),
                   warning = function(w) stop("There is no solution with the given constraints.", call. = FALSE))
 
   return(out$X)
