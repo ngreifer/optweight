@@ -218,14 +218,17 @@ nunique.gt <- function(x, n, na.rm = TRUE) {
   }
 }
 is_binary <- function(x) !nunique.gt(x, 2)
-is.formula <- function(f, sides = NULL) {
-  res <- is.name(f[[1]])  && deparse(f[[1]]) %in% c( '~', '!') &&
-    length(f) >= 2
-  if (is_not_null(sides) && is.numeric(sides) && sides %in% c(1,2)) {
-    res <- res && length(f) == sides + 1
-  }
-  return(res)
+all_the_same <- function(x) !nunique.gt(x, 1)
+check_if_zero_base <- function(x) {
+  # this is the default tolerance used in all.equal
+  tolerance <- .Machine$double.eps^0.5
+  # If the absolute deviation between the number and zero is less than
+  # the tolerance of the floating point arithmetic, then return TRUE.
+  # This means, to me, that I can treat the number as 0 rather than
+  # -3.20469e-16 or some such.
+  abs(x - 0) < tolerance
 }
+check_if_zero <- Vectorize(check_if_zero_base)
 is_null <- function(x) length(x) == 0L
 is_not_null <- function(x) !is_null(x)
 is_null_or_error <- function(x) {is_null(x) || class(x) == "try-error"}
@@ -260,3 +263,11 @@ col.w.v <- function(mat, w = NULL, na.rm = TRUE) {
   return(colSums(t((t(mat) - col.w.m(mat, w, na.rm = na.rm))^2) * w, na.rm = na.rm) / w.cov.scale(w))
 }
 `%nin%` <- function(x, table) is.na(match(x, table, nomatch = NA_integer_))
+is.formula <- function(f, sides = NULL) {
+  res <- is.name(f[[1]])  && deparse(f[[1]]) %in% c( '~', '!') &&
+    length(f) >= 2
+  if (is_not_null(sides) && is.numeric(sides) && sides %in% c(1,2)) {
+    res <- res && length(f) == sides + 1
+  }
+  return(res)
+}
