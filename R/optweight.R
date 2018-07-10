@@ -12,8 +12,8 @@ optweight <- function(formula, data = NULL, tols = .0001, estimand = "ATE", s.we
 
   n <- length(treat)
 
-  if (any(is.na(reported.covs)) || nrow(reported.covs) != n) {
-    stop("No missing values are allowed in the covariates.", call. = FALSE)
+  if (any(!sapply(reported.covs, is.finite)) || nrow(reported.covs) != n) {
+    stop("No missing or non-finite values are allowed in the covariates.", call. = FALSE)
   }
   if (any(is.na(treat))) {
     stop("No missing values are allowed in the treatment variable.", call. = FALSE)
@@ -57,4 +57,11 @@ optweight <- function(formula, data = NULL, tols = .0001, estimand = "ATE", s.we
 
   class(out) <- "optweight"
   return(out)
+}
+
+print.optweight <- function(x, ...) {
+  cat("An optweight object\n")
+  cat(paste0(" - number of obs.: ", length(x[["weights"]]), "\n"))
+  if (is_not_null(x[["estimand"]])) cat(paste0(" - estimand: ", x[["estimand"]], ifelse(is_not_null(x[["focal"]]), paste0(" (focal: ", x[["focal"]], ")"), ""), "\n"))
+  cat(paste0(" - sampling weights: ", ifelse(all_the_same(x[["s.weights"]]),"none", "present"), "\n"))
 }
