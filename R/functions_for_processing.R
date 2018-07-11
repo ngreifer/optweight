@@ -122,20 +122,21 @@ get.treat.type <- function(treat) {
   attr(treat, "treat.type") <- treat.type
   return(treat)
 }
-process.estimand <- function(estimand, method, treat.type) {
+process.focal.and.estimand <- function(focal, estimand, treat, treat.type) {
+  if (length(estimand) != 1 || !is.character(estimand)) {
+    stop("estimand must be a character vector of length 1.", call. = FALSE)
+  }
+  estimand <- toupper(estimand)[[1]]
+
   #Allowable estimands
   AE <- list(binary =  c("ATT", "ATC", "ATE"),
              multinomial = c("ATT", "ATE"))
-  if (treat.type != "continuous" &&
-      toupper(estimand) %nin% AE[[treat.type]]) {
+
+  if (treat.type != "continuous" && estimand %nin% AE[[treat.type]]) {
     stop(paste0("\"", estimand, "\" is not an allowable estimand with ", treat.type, " treatments. Only ", word.list(AE[[treat.type]], quotes = TRUE, and.or = "and", is.are = TRUE),
                 " allowed."), call. = FALSE)
   }
-  else {
-    return(toupper(estimand))
-  }
-}
-process.focal.and.estimand <- function(focal, estimand, treat, treat.type) {
+
   reported.estimand <- estimand
 
   #Check focal
@@ -146,7 +147,7 @@ process.focal.and.estimand <- function(focal, estimand, treat, treat.type) {
           stop("When estimand = \"ATT\" for multinomial treatments, an argument must be supplied to focal.", call. = FALSE)
         }
       }
-      else if (length(focal) > 1L || !any(unique(treat) == focal)) {
+      else if (length(focal) > 1L || !is.atomic(focal) || !any(unique(treat) == focal)) {
         stop("The argument supplied to focal must be the name of a level of treat.", call. = FALSE)
       }
     }
