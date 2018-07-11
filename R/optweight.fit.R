@@ -9,7 +9,7 @@ optweight.fit <- function(treat, covs, tols = .0001, estimand = "ATE", focal = N
   covs.list <- lapply(covs.list, as.matrix)
   times <- seq_along(covs.list)
   if (is.atomic(tols.list)) tols.list <- list(tols.list)
-  if (length(tols.list) == 1) replicate(max(times), tols.list[[1]], simplify = FALSE)
+  if (length(tols.list) == 1) tols.list <- replicate(max(times), tols.list[[1]], simplify = FALSE)
   tols.list <- lapply(times, function(i) if (length(tols.list[[i]] == 1)) rep(tols.list[[i]], ncol(covs.list[[i]])) else tols.list[[i]])
 
   unique.treats <- lapply(t.list, unique)
