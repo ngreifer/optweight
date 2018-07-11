@@ -1,6 +1,5 @@
 \name{optweight}
 \alias{optweight}
-\alias{optweightMSM}
 \alias{print.optweight}
 \alias{print.optweightMSM}
 \title{Estimate Balancing Weights Using Optimization}
