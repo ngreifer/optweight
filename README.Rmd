@@ -22,8 +22,34 @@ knitr::opts_chunk$set(
 [![CRAN_Downloads_Badge](http://cranlogs.r-pkg.org/badges/optweight?color=0047ab
 )](https://cran.r-project.org/package=optweight)
 
-I'll provide a better description later but for now, `optweight` contains the function `optweight()` which generates weights to balance treatments to given balance thresholds. It solves a quadratic programming problem to minimize the variance of the weights using `lsei()` in the `limSolve` package. This is the method described in Zubizarreta (2015).
+`optweight` contains functions to estimate weights that balance treatments to given balance thresholds. It solves a quadratic programming problem to minimize the variance of the weights using `lsei()` in the `limSolve` package. This is the method described in Zubizarreta (2015). `optweight` extends the method to multinomial and longitudinal treatments and provides a simple user interface and compatibility with packages `cobalt` and `WeightIt`.
 
-In addition to binary point treatments, `optmatch` can handle multinomial treatments; longitudinal treatments are coming soon.
+Below is an example of estimating weights wih `optweight` and assessing balance on the covariates with `cobalt`.
 
-If you are using a recent version of `WeightIt` that supports user-defined methods, you can enter `method = optmatch.fit` to use the method with binary, multinomial, and longitudinal treatments. Please let me know if you find any bugs or would like to see additional features.
+```{r, eval = FALSE}
+devtools::install_github("ngreifer/optweight")
+library("optweight")
+devtools::install_github("ngreifer/cobalt") #Newest version required
+library("cobalt")
+```
+```{r, include = FALSE}
+library("optweight")
+library("cobalt")
+```
+```{r}
+data("lalonde")
+
+#Estimate weights
+ow <- optweight(treat ~ age + educ + race + nodegree + married +
+                  re74 + re75 + I(re74 == 0) + I(re75 == 0),
+                data = lalonde, estimand = "ATT", tols = .01)
+ow
+bal.tab(ow)
+
+#Estimate a treatment effect
+library("jtools")
+summ(lm(re78 ~ treat, data = lalonde, weights = ow$weights),
+     confint = TRUE, robust = TRUE, model.fit = FALSE)
+```
+
+The lower-level function `optweight.fit` operates on the covariates and treatment variables directly and can handle longitdunal treatments given as lists of treatment statuses and covariates (like the `time.list` method for `bal.tab` in `cobalt`).
