@@ -1,4 +1,4 @@
-optweight.fit <- function(treat, covs, tols = .0001, estimand = "ATE", focal = NULL, s.weights = NULL, std.binary = FALSE) {
+optweight.fit <- function(treat, covs, tols = .001, estimand = "ATE", s.weights = NULL, focal = NULL, std.binary = FALSE) {
  #treat, covs, tols can be lists (for different times), or vec, mat, vec (respectively)
   if (!missing(treat)) t.list <- treat
   if (!missing(covs)) covs.list <- covs
@@ -6,6 +6,7 @@ optweight.fit <- function(treat, covs, tols = .0001, estimand = "ATE", focal = N
   if (is.atomic(t.list)) t.list <- list(t.list)
   if (is.matrix(covs.list) || is.data.frame(covs.list)) covs.list <- list(covs.list)
   t.list <- lapply(t.list, as.character)
+  if (!all(sapply(covs.list, function(c) all(apply(c, 2, is.numeric))))) stop("All covariates must be numeric.", call. = FALSE)
   covs.list <- lapply(covs.list, as.matrix)
   times <- seq_along(covs.list)
   if (is.atomic(tols.list)) tols.list <- list(tols.list)
