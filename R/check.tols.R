@@ -24,7 +24,7 @@ check.tols <- function(formula, data = NULL, tols, stop = FALSE) {
   if (is_null(model.covs)) stop("No covariates were specified.", call. = FALSE)
 
   if (any(bad.covs <- !sapply(formula.covs, is.finite)) || nrow(formula.covs) != nrow(model.covs)) {
-    stop(paste0("No missing or non-finite values are allowed in the covariates. Missing or non-finite values were found in the following covariates:\n", paste(names(reported.covs)[bad.covs], collapse = ", ")), call. = FALSE)
+    stop(paste0("No missing or non-finite values are allowed in the covariates. Missing or non-finite values were found in the following covariates:\n", paste(names(formula.covs)[bad.covs], collapse = ", ")), call. = FALSE)
   }
 
   if (length(tols) != length(formula.vars)) {
