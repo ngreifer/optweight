@@ -15,9 +15,17 @@ optweight(formula,
 
 \method{print}{optweightMSM}(x, ...)
 
+optweight.fit(treat,
+              covs,
+              tols = .001,
+              estimand = "ATE",
+              s.weights = NULL,
+              focal = NULL,
+              std.binary = FALSE)
 }
 \description{
-Estimate balancing weights for treatments and covariates specified in \code{formula}. The degree of balance for each covariate is specified by \code{tols}.
+Estimate balancing weights for treatments and covariates specified in \code{formula}. The degree of balance for each covariate is specified by \code{tols}. \code{optweight.fit} performs the optimization (via \pkg{limSolve}) and outputs a vector of weights, and \code{optweight} prepares input for processing and outputs an object that includes the estimated weights and other values. Users should use \code{optweight} for most purposes.
+
 }
 \arguments{
   \item{formula}{
@@ -37,6 +45,15 @@ a vector of sampling weights or the name of a variable in \code{data} that conta
 }
   \item{focal}{
 when multinomial treatments are used and the "ATT" is requested, which group to consider the "treated" or focal group. This group will not be weighted, and the other groups will be weighted to be more like the focal group.
+}
+  \item{treat}{
+a vector of treatment statuses for each unit or a list thereof. Non-numeric (i.e., factor or character) values are allowed.
+}
+  \item{covs}{
+a data frame or matrix of covariates to be balanced. All variables must be numeric. Does not have to be full rank.
+}
+  \item{std.binary}{
+whether the tolerances are in standardized mean units (\code{TRUE}) or raw units (\code{FALSE}) for binary variables. The default is \code{FALSE} because raw proportion differences make more sense than standardized mean difference for binary variables. This argument is analogous to the \code{binary} argument in \code{bal.tab} in \pkg{cobalt}.
 }
   \item{x}{
 an \code{optweight} or \code{optweightMSM} object; the output of a call to \code{optweight()}.
