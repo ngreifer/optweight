@@ -1,12 +1,13 @@
 \name{optweight}
 \alias{optweight}
+\alias{optweight.fit}
 \alias{print.optweight}
 \alias{print.optweightMSM}
 \title{Estimate Balancing Weights Using Optimization}
 \usage{
 optweight(formula,
           data = NULL,
-          tols = .0001,
+          tols = .001,
           estimand = "ATE",
           s.weights = NULL,
           focal = NULL)
@@ -24,7 +25,7 @@ optweight.fit(treat,
               std.binary = FALSE)
 }
 \description{
-Estimate balancing weights for treatments and covariates specified in \code{formula}. The degree of balance for each covariate is specified by \code{tols}. \code{optweight.fit} performs the optimization (via \pkg{limSolve}) and outputs a vector of weights, and \code{optweight} prepares input for processing and outputs an object that includes the estimated weights and other values. Users should use \code{optweight} for most purposes.
+Estimate balancing weights for treatments and covariates specified in \code{formula}. The degree of balance for each covariate is specified by \code{tols}. \code{optweight.fit} performs the optimization (via \pkg{limSolve}; Soetaert, Van den Meersche, & van Oevelen, 2009) and outputs a vector of weights, and \code{optweight} prepares input for processing and outputs an object that includes the estimated weights and other values. Users should use \code{optweight} for most purposes. See Zubizarreta (2015), Wang & Zubizarreta (2017), and Yiu & Su (2018) for details in the properties of these weights and the methods used to fit them.
 
 }
 \arguments{
@@ -35,7 +36,7 @@ a formula with a treatment variable on the left hand side and the covariates to 
 an optional data set in the form of a data frame that contains the variables in \code{formula}.
 }
   \item{tols}{
-a vector of balance tolerance values in standardized mean difference units for each covariate, or a list thereof. The resulting weighted standardized mean differences will be at least as small as these values. If only one value is supplied, it will be applied to all covariates. For binary variables, the values correspond to raw difference in proportion rather than standardized mean differences.
+a vector of balance tolerance values in standardized mean difference units for each covariate, or a list thereof. The resulting weighted standardized mean differences will be at least as small as these values. If only one value is supplied, it will be applied to all covariates. For binary variables, the values correspond to raw difference in proportion rather than standardized mean differences. Can also but the output of a call to \code{\link{check.tols}} for point treatments.
 }
   \item{estimand}{
 the desired estimand. For binary treatments, can be "ATE", "ATT", "ATC". For multinomial treatments, can be "ATE" or "ATT". The default for both is "ATE". For longitudinal treatments, only "ATE" is supported.
@@ -53,7 +54,7 @@ a vector of treatment statuses for each unit or a list thereof. Non-numeric (i.e
 a data frame or matrix of covariates to be balanced. All variables must be numeric. Does not have to be full rank.
 }
   \item{std.binary}{
-whether the tolerances are in standardized mean units (\code{TRUE}) or raw units (\code{FALSE}) for binary variables. The default is \code{FALSE} because raw proportion differences make more sense than standardized mean difference for binary variables. This argument is analogous to the \code{binary} argument in \code{bal.tab} in \pkg{cobalt}.
+whether the tolerances are in standardized mean units (\code{TRUE}) or raw units (\code{FALSE}) for binary variables. The default is \code{FALSE} because raw proportion differences make more sense than standardized mean difference for binary variables. This argument is analogous to the \code{binary} argument in \code{\link[cobalt]{bal.tab}} in \pkg{cobalt}.
 }
   \item{x}{
 an \code{optweight} or \code{optweightMSM} object; the output of a call to \code{optweight()}.
@@ -92,6 +93,14 @@ Noah Greifer
 }
 
 \references{
+Soetaert K., Van den Meersche, K., van Oevelen, D. (2009).  limSolve: Solving Linear Inverse Models.  R-package version 1.5.1
+
+Wang, Y., & Zubizarreta, J. R. (2017). Approximate Balancing Weights: Characterizations from a Shrinkage Estimation Perspective. ArXiv:1705.00998 [Math, Stat]. Retrieved from \url{http://arxiv.org/abs/1705.00998}
+
+Yiu, S., & Su, L. (2018). Covariate association eliminating weights: a unified weighting framework for causal effect estimation. Biometrika. \doi{10.1093/biomet/asy015}
+
+Zubizarreta, J. R. (2015). Stable Weights that Balance Covariates for Estimation With Incomplete Outcome Data. Journal of the American Statistical Association, 110(511), 910–922. \doi{10.1080/01621459.2015.1023805}
+
 
 }
 \examples{
