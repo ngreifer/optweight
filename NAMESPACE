@@ -1,4 +1,6 @@
 import(stats)
-export(optweight, optweight.fit)
+export(optweight, optweight.fit, check.tols)
 
 S3method(print, optweight)
+S3method(print, optweightMSM)
+S3method(print, optweight.tols)
