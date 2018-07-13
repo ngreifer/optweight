@@ -11,7 +11,7 @@ check.tols(formula,
 \method{print}{optweight.tols}(x, internal = FALSE, digits = 5, ...)
 }
 \description{
-Checks whether proposed tolerance values for \code{tols} are suitable in number and order for submission to \code{optweight}. Users should include one value per item in \code{formula}. The output can also be used as an input to \code{tols} in \code{optweight}.
+Checks whether proposed tolerance values for \code{tols} are suitable in number and order for submission to \code{\link{optweight}}. Users should include one value per item in \code{formula}. The output can also be used as an input to \code{tols} in \code{optweight}.
 
 }
 \arguments{
@@ -42,12 +42,12 @@ ignored.
 }
 \value{
 An \code{optweight.tols} object, which contains the following items:
-\item{tols}{A named vector of tolerance values, one for each variable specified in \code{formula}. The should be used as user inputs to \code{optweight}.}
+\item{tols}{A named vector of tolerance values, one for each variable specified in \code{formula}. The should be used as user inputs to \code{\link{optweight}}.}
   \item{internal.tols}{The tolerance values to be used internally by \code{optweight}. These will differ from \code{tols} when there are factor variables that are split up; the user only needs to submit one tolerance per factor variable, but seperate tolerance values are produced for each new dummy created.}
 
 }
 \details{
-The purpose of \code{check.tols} is to allow users to ensure that their proposed input to \code{tols} in \code{optweight} is correct both in the number of entries and their order. This is especially important when factor variables and interactions are included in the formula because factor variables are split into several dummies and interactions are moved to the end of the variable list, both of which can cause some confusion and potential error when entering \code{tols} values.
+The purpose of \code{check.tols} is to allow users to ensure that their proposed input to \code{tols} in \code{\link{optweight}} is correct both in the number of entries and their order. This is especially important when factor variables and interactions are included in the formula because factor variables are split into several dummies and interactions are moved to the end of the variable list, both of which can cause some confusion and potential error when entering \code{tols} values.
 
 Factor variables are internally split into a dummy variable for each level, but the user only needs to specify one tolerance value per original variable; \code{check.tols} automatically expands the \code{tols} input to match the newly created variables.
 
@@ -62,14 +62,11 @@ Note that only one formula and vector of tolerance values can be assessed at a t
 Noah Greifer
 }
 
-\references{
-
-}
 \examples{
 library("cobalt")
 data("lalonde", package = "cobalt")
 
-#Checking if the correct number of entries are include:
+#Checking if the correct number of entries are included:
 check.tols(treat ~ age + educ + married +
                 nodegree + re74, data = lalonde,
                 tols = c(.01, .02, .03, .04))
