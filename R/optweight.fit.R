@@ -6,7 +6,7 @@ optweight.fit <- function(treat, covs, tols = .001, estimand = "ATE", s.weights 
   if (is.atomic(t.list)) t.list <- list(t.list)
   if (is.matrix(covs.list) || is.data.frame(covs.list)) covs.list <- list(covs.list)
   t.list <- lapply(t.list, as.character)
-  if (!all(sapply(covs.list, function(c) all(apply(c, 2, is.numeric))))) stop("All covariates must be numeric.", call. = FALSE)
+  if (!all(vapply(covs.list, function(c) all(apply(c, 2, is.numeric)), logical(1L)))) stop("All covariates must be numeric.", call. = FALSE)
   covs.list <- lapply(covs.list, as.matrix)
   times <- seq_along(covs.list)
   if (is.atomic(tols.list)) tols.list <- list(tols.list)
@@ -17,7 +17,7 @@ optweight.fit <- function(treat, covs, tols = .001, estimand = "ATE", s.weights 
   N <- nrow(covs.list[[1]])
   if (is_null(s.weights)) sw <- rep(1, N)
   else sw <- s.weights
-  n <- lapply(times, function(i) setNames(sapply(unique.treats[[i]], function(t) sum(sw[t.list[[i]] == t])),
+  n <- lapply(times, function(i) setNames(vapply(unique.treats[[i]], function(t) sum(sw[t.list[[i]] == t]), numeric(1L)),
                                           unique.treats[[i]]))
 
   if (estimand == "ATE") {
@@ -30,8 +30,8 @@ optweight.fit <- function(treat, covs, tols = .001, estimand = "ATE", s.weights 
     })
   }
   else {
-    if (estimand == "ATT" && is_null(focal)) focal <- sapply(t.list, max)
-    else if (estimand == "ATC") focal <- sapply(t.list, min)
+    if (estimand == "ATT" && is_null(focal)) focal <- vapply(t.list, max, numeric(1L))
+    else if (estimand == "ATC") focal <- vapply(t.list, min, numeric(1L))
 
     means <- lapply(times, function(i) col.w.m(covs.list[[i]][t.list[[i]] == focal[i], , drop = FALSE], w = sw[t.list[[i]] == focal[i]]))
     sds <- lapply(times, function(i) {

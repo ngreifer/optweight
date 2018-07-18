@@ -12,9 +12,9 @@ get.covs.and.treat.from.formula <- function(f, data = NULL, env = .GlobalEnv, ..
   #Check if response exists
   if (is.formula(tt, 2)) {
     resp.vars.mentioned <- as.character(tt)[2]
-    resp.vars.failed <- sapply(resp.vars.mentioned, function(v) {
+    resp.vars.failed <- vapply(resp.vars.mentioned, function(v) {
       is_null_or_error(try(eval(parse(text = v), c(data, env)), silent = TRUE))
-    })
+    }, logical(1L))
 
     if (any(resp.vars.failed)) {
       if (is_null(A[["treat"]])) stop(paste0("The given response variable, \"", as.character(tt)[2], "\", is not a variable in ", word.list(c("data", "the global environment")[c(data.specified, TRUE)], "or"), "."), call. = FALSE)
@@ -42,10 +42,10 @@ get.covs.and.treat.from.formula <- function(f, data = NULL, env = .GlobalEnv, ..
   #Check if RHS variables exist
   tt.covs <- delete.response(tt)
   rhs.vars.mentioned.lang <- attr(tt.covs, "variables")[-1]
-  rhs.vars.mentioned <- sapply(rhs.vars.mentioned.lang, deparse)
-  rhs.vars.failed <- sapply(rhs.vars.mentioned.lang, function(v) {
+  rhs.vars.mentioned <- vapply(rhs.vars.mentioned.lang, deparse, character(1L))
+  rhs.vars.failed <- vapply(rhs.vars.mentioned.lang, function(v) {
     is_null_or_error(try(eval(v, c(data, env)), silent = TRUE))
-  })
+  }, logical(1L))
 
   if (any(rhs.vars.failed)) {
     stop(paste0(c("All variables in formula must be variables in data or objects in the global environment.\nMissing variables: ",
@@ -56,9 +56,9 @@ get.covs.and.treat.from.formula <- function(f, data = NULL, env = .GlobalEnv, ..
   rhs.term.labels <- attr(tt.covs, "term.labels")
   rhs.term.orders <- attr(tt.covs, "order")
 
-  rhs.df <- sapply(rhs.vars.mentioned.lang, function(v) {
+  rhs.df <- vapply(rhs.vars.mentioned.lang, function(v) {
     is.data.frame(try(eval(v, c(data, env)), silent = TRUE))
-  })
+  }, logical(1L))
 
   if (any(rhs.df)) {
     if (any(rhs.vars.mentioned[rhs.df] %in% unlist(sapply(rhs.term.labels[rhs.term.orders > 1], function(x) strsplit(x, ":", fixed = TRUE))))) {
@@ -94,7 +94,7 @@ get.covs.and.treat.from.formula <- function(f, data = NULL, env = .GlobalEnv, ..
 
   #Get full model matrix with interactions too
   covs.matrix <- model.matrix(tt.covs, data = covs,
-                              contrasts.arg = lapply(covs[sapply(covs, is.factor)],
+                              contrasts.arg = lapply(Filter(is.factor, covs),
                                                      contrasts, contrasts=FALSE))
   attr(covs, "terms") <- NULL
 
@@ -220,7 +220,7 @@ nunique.gt <- function(x, n, na.rm = TRUE) {
 }
 is_binary <- function(x) !nunique.gt(x, 2)
 all_the_same <- function(x) !nunique.gt(x, 1)
-check_if_zero_base <- function(x) {
+check_if_zero <- function(x) {
   # this is the default tolerance used in all.equal
   tolerance <- .Machine$double.eps^0.5
   # If the absolute deviation between the number and zero is less than
@@ -229,7 +229,6 @@ check_if_zero_base <- function(x) {
   # -3.20469e-16 or some such.
   abs(x - 0) < tolerance
 }
-check_if_zero <- Vectorize(check_if_zero_base)
 is_null <- function(x) length(x) == 0L
 is_not_null <- function(x) !is_null(x)
 is_null_or_error <- function(x) {is_null(x) || class(x) == "try-error"}
@@ -277,7 +276,7 @@ word.list <- function(word.list = NULL, and.or = c("and", "or"), is.are = FALSE,
   #or "a, b, and c"
   #If is.are, adds "is" or "are" appropriately
   L <- length(word.list)
-  if (quotes) word.list <- sapply(word.list, function(x) paste0("\"", x, "\""))
+  if (quotes) word.list <- vapply(word.list, function(x) paste0("\"", x, "\""), character(1L))
   if (L == 0) {
     out <- ""
     attr(out, "plural") = FALSE
