@@ -1,4 +1,4 @@
-optweight <- function(formula, data = NULL, tols = .001, estimand = "ATE", s.weights = NULL, focal = NULL) {
+optweight <- function(formula, data = NULL, tols = .001, estimand = "ATE", s.weights = NULL, focal = NULL, exact = FALSE) {
 
   if (!is.list(formula)) formula.list <- list(formula)
   else formula.list <- formula
@@ -73,7 +73,8 @@ optweight <- function(formula, data = NULL, tols = .001, estimand = "ATE", s.wei
                      tols = tols, estimand = estimand,
                      focal = focal,
                      s.weights = sw,
-                     std.binary = FALSE)
+                     std.binary = FALSE,
+                     exact = exact)
 
   warn <- FALSE
   test.w <- if (is_null(sw)) w else w*sw
