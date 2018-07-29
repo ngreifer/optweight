@@ -11,6 +11,10 @@ check.tols <- function(formula, data = NULL, tols, stop = FALSE) {
   model.covs <- t.c[["model.covs"]]
 
   formula.vars <- attr(tt, "term.labels")
+  if (is_null(formula.vars)) {
+    formula.vars <- "(Intercept)"
+    attr(model.covs, "assign") <- 1
+  }
   model.vars <- colnames(model.covs)
 
   if (length(tols) == 1) {

@@ -249,7 +249,7 @@ col.w.m <- function(mat, w = NULL, na.rm = TRUE) {
     w.sum <- apply(mat, 2, function(x) sum(!is.na(x)))
   }
   else {
-    w.sum <- apply(mat, 2, function(x) sum(w[!is.na(x)], na.rm = na.rm))
+    w.sum <- apply(mat, 2, function(x) sum(w, na.rm = na.rm))
   }
   return(colSums(mat*w, na.rm = na.rm)/w.sum)
 }
