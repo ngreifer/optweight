@@ -1,4 +1,4 @@
-optweight.fit <- function(treat, covs, tols = .001, estimand = "ATE", s.weights = NULL, focal = NULL, std.binary = FALSE) {
+optweight.fit <- function(treat, covs, tols = .001, estimand = "ATE", s.weights = NULL, focal = NULL, std.binary = FALSE, exact = FALSE) {
  #treat, covs, tols can be lists (for different times), or vec, mat, vec (respectively)
   if (!missing(treat)) t.list <- treat
   if (!missing(covs)) covs.list <- covs
@@ -8,6 +8,7 @@ optweight.fit <- function(treat, covs, tols = .001, estimand = "ATE", s.weights 
   t.list <- lapply(t.list, as.character)
   if (!all(vapply(covs.list, function(c) all(apply(c, 2, is.numeric)), logical(1L)))) stop("All covariates must be numeric.", call. = FALSE)
   covs.list <- lapply(covs.list, as.matrix)
+
   times <- seq_along(covs.list)
   if (is.atomic(tols.list)) tols.list <- list(tols.list)
   if (length(tols.list) == 1) tols.list <- replicate(max(times), tols.list[[1]], simplify = FALSE)
@@ -23,7 +24,7 @@ optweight.fit <- function(treat, covs, tols = .001, estimand = "ATE", s.weights 
   if (estimand == "ATE") {
     means <- lapply(covs.list, col.w.m, w = sw)
     sds <- lapply(times, function(i) {
-      sqrt(rowMeans(sapply(unique.treats[[i]], function(t) col.w.v(covs.list[[i]][t.list[[i]]==t,], w = sw[t.list[[i]] == t]))))
+      sqrt(rowMeans(matrix(sapply(unique.treats[[i]], function(t) col.w.v(covs.list[[i]][t.list[[i]]==t, , drop = FALSE], w = sw[t.list[[i]] == t]), simplify = "array"), ncol = length(unique.treats[[i]]))))
     })
     tols <- lapply(times, function(i) {
       ifelse(apply(covs.list[[i]], 2, function(c) !std.binary && is_binary(c)), tols.list[[i]]/2, tols.list[[i]]*sds[[i]]/2)
@@ -42,27 +43,69 @@ optweight.fit <- function(treat, covs, tols = .001, estimand = "ATE", s.weights 
     })
   }
 
-  A = diag(N)%*%diag(sw)
+  #Minimizing squared distances of weights from the mean (1)
+  A = if (is_null(s.weights)) diag(N) else diag(N)%*%diag(sw)
   B = rep(1, N)
-  E = do.call("rbind", lapply(times, function(i) do.call("rbind", lapply(unique.treats[[i]], function(t) t(as.numeric(t.list[[i]] == t))%*%diag(sw)))))
-  F = unlist(n)
+  if (exact == FALSE) {
+    #Sum of weights in each treat must equal size of group
+    E1 = do.call("rbind", lapply(times, function(i) do.call("rbind", lapply(unique.treats[[i]], function(t) t(as.numeric(t.list[[i]] == t) * sw)))))
+    F1 = unlist(n)
+
+    #All weights must be >= 0
+    G1 = diag(N)
+    H1 = rep(0, N)
+
+    #Balance constraints
+    G2 = do.call("rbind", lapply(times, function(i) {
+      do.call("rbind", lapply(unique.treats[[i]], function(t)
+        rbind(t(covs.list[[i]] * as.numeric(t.list[[i]] == t) * sw),
+              -t(covs.list[[i]] * as.numeric(t.list[[i]] == t) * sw))
+      ))}))
+    H2 = do.call("c", lapply(times, function(i) {
+      do.call("c", lapply(unique.treats[[i]], function(t) c(n[[i]][t]*(-tols[[i]]+means[[i]]),
+                                                            n[[i]][t]*(-tols[[i]]-means[[i]]))))
+    }))
+
+    E = rbind(E1)
+    F = c(F1)
+    G = rbind(G1, G2)
+    H = c(H1, H2)
+
+  }
+  else {
+    #Sum of weights in each treat must equal size of group
+    E1 = do.call("rbind", lapply(times, function(i) do.call("rbind", lapply(unique.treats[[i]], function(t) t(as.numeric(t.list[[i]] == t) * sw)))))
+    F1 = unlist(n)
+
+    #Balance constraints
+    E2 = do.call("rbind", lapply(times, function(i) {
+      do.call("rbind", lapply(unique.treats[[i]], function(t)
+        t(covs.list[[i]] * as.numeric(t.list[[i]] == t) * sw)
+      ))}))
+    F2 = do.call("c", lapply(times, function(i) {
+      do.call("c", lapply(unique.treats[[i]], function(t) n[[i]][t]*(means[[i]])))
+    }))
+
+    #All weights must be >= 0
+    G1 = diag(N)
+    H1 = rep(0, N)
+
+    E = rbind(E1, E2)
+    F = c(F1, F2)
+    G = rbind(G1)
+    H = c(H1)
+
+  }
+
   if (is_not_null(focal) && is_not_null(s.weights)) {
     E0 <- do.call("rbind", lapply(times, function(i) diag(as.numeric(t.list[[i]] == focal[i]))))
     F0 <- do.call("c", lapply(times, function(i) as.numeric(t.list[[i]] == focal[i])))
     E <- rbind(E, E0)
     F <- c(F, F0)
   }
-  G = do.call("rbind", c(lapply(times, function(i) {
-    do.call("rbind", lapply(unique.treats[[i]], function(t)
-      rbind(t(covs.list[[i]])%*%diag(as.numeric(t.list[[i]] == t))%*%diag(sw),
-            -t(covs.list[[i]])%*%diag(as.numeric(t.list[[i]] == t))%*%diag(sw))
-    ))}), list(diag(N))))
-  H = do.call("c", c(lapply(times, function(i) {
-    do.call("c", lapply(unique.treats[[i]], function(t) c(n[[i]][t]*(-tols[[i]]+means[[i]]),
-                                                          n[[i]][t]*(-tols[[i]]-means[[i]]))))
-  }), list(rep(0, N))))
 
-  out <- tryCatch(limSolve::lsei(A = A, B = B, E = E, F = F, G = G, H = H),
+
+  out <- tryCatch(limSolve::lsei(A = A, B = B, E = E, F = F, G = G, H = H, type = 1),
                   warning = function(w) stop("There is no solution with the given constraints.", call. = FALSE))
 
   return(out$X)
