@@ -1,14 +1,21 @@
-optweight <- function(formula, data = NULL, tols = .001, estimand = "ATE", s.weights = NULL, focal = NULL, exact = FALSE) {
+optweight <- function(formula, data = NULL, tols = 0, estimand = "ATE", s.weights = NULL, focal = NULL, verbose = FALSE, ...) {
 
   if (!is.list(formula)) formula.list <- list(formula)
   else formula.list <- formula
   times <- seq_along(formula.list)
   onetime <- length(formula.list) == 1
 
-  if (class(tols) == "optweight.tols") tols.list <- list(tols[["internal.tols"]])
-  else if (is.atomic(tols)) tols.list <- list(tols)
-  else tols.list <- tols
-  if (length(tols.list) == 1) tols.list <- replicate(max(times), tols.list[[1]], simplify = FALSE)
+  if (!identical(tols, 0)) {
+    if (class(tols) == "optweight.tols") tols.list <- list(tols[["internal.tols"]])
+    else if (is.atomic(tols)) tols.list <- list(tols)
+    else tols.list <- tols
+    if (length(tols.list) == 1) tols.list <- replicate(max(times), tols.list[[1]], simplify = FALSE)
+    exact <- FALSE
+  }
+  else {
+    tols.list <- NULL
+    exact <- TRUE
+  }
 
   reported.covs.list <- covs.list <- treat.list <- vector("list", length(formula.list))
   n <- 0 * times
@@ -18,7 +25,7 @@ optweight <- function(formula, data = NULL, tols = .001, estimand = "ATE", s.wei
     reported.covs.list[[i]] <- t.c[["reported.covs"]]
     covs.list[[i]] <- t.c[["model.covs"]]
     treat.list[[i]] <- t.c[["treat"]]
-    treat.name <- t.c[["treat.name"]]
+    #treat.name <- t.c[["treat.name"]]
 
     #Get treat type
     treat.list[[i]] <- get.treat.type(treat.list[[i]])
@@ -55,12 +62,14 @@ optweight <- function(formula, data = NULL, tols = .001, estimand = "ATE", s.wei
       stop(paste0("No missing or non-finite values are allowed in the covariates. Missing or non-finite values were found in the following covariates:\n", paste(names(reported.covs.list[[i]])[bad.covs], collapse = ", ")), call. = FALSE)
     }
 
-    tryCatch(ct <- check.tols(formula.list[[i]], reported.covs.list[[i]], tols.list[[i]], stop = TRUE),
-             error = function(e) {
-               if (onetime) e. <- conditionMessage(e)
-               else e. <- paste0("For treatment ", i, ", ", conditionMessage(e))
-               stop(e., call. = FALSE)})
-    tols.list[[i]] <- ct[["internal.tols"]]
+    if (!exact) {
+      tryCatch(ct <- check.tols(formula.list[[i]], reported.covs.list[[i]], tols.list[[i]], stop = TRUE),
+               error = function(e) {
+                 if (onetime) e. <- conditionMessage(e)
+                 else e. <- paste0("For treatment ", i, ", ", conditionMessage(e))
+                 stop(e., call. = FALSE)})
+      tols.list[[i]] <- ct[["internal.tols"]]
+    }
   }
 
   if (!all_the_same(n)) stop("The same number of units must be present in each time point.", call. = FALSE)
@@ -70,11 +79,13 @@ optweight <- function(formula, data = NULL, tols = .001, estimand = "ATE", s.wei
 
   ###Run optweight.fit
   w <- optweight.fit(treat = treat.list, covs = covs.list,
-                     tols = tols, estimand = estimand,
+                     tols = tols.list, estimand = estimand,
                      focal = focal,
                      s.weights = sw,
                      std.binary = FALSE,
-                     exact = exact)
+                     exact = exact,
+                     verbose = verbose,
+                     ...)
 
   warn <- FALSE
   test.w <- if (is_null(sw)) w else w*sw
