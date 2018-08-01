@@ -1,8 +1,8 @@
 check.tols <- function(formula, data = NULL, tols, stop = FALSE) {
 
   if (!is.formula(formula)) stop("The argument to formula must a single formula wit hthe covariates on the right side.", call. = FALSE)
-  if (missing(tols)) stop("tols must be specified.", call. = FALSE)
-  if (!is.numeric(tols)) stop("tols must be a numeric vector.", call. = FALSE)
+  if (missing(tols)) tols <- NA_real_
+  else if (!is.numeric(tols)) stop("tols must be a numeric vector.", call. = FALSE)
 
   #Process treat and covs from formula and data
   tt <- delete.response(terms(formula))
@@ -47,10 +47,10 @@ check.tols <- function(formula, data = NULL, tols, stop = FALSE) {
 
     if (!stop) {
       if (any(attr(terms(formula), "order") > 1)) {
-        message("tols look okay, but interactions were present in the formula, so make sure the order is correct.")
+        #message("tols look okay, but interactions were present in the formula, so make sure the order is correct.")
       }
       else {
-        message("tols look okay, but you should print them to make sure they're correct.")
+        #message("tols look okay, but you should print them to make sure they're correct.")
       }
     }
   }
@@ -62,11 +62,17 @@ check.tols <- function(formula, data = NULL, tols, stop = FALSE) {
 }
 
 print.optweight.tols <- function(x, internal = FALSE, digits = 5, ...) {
-  cat("- tols:\n")
-  print(round(x[["tols"]], digits))
-  if (internal) {
-    cat("\n- tols used internally by optweight:\n")
-    print(round(x[["internal.tols"]], digits))
+  if (all(is.na(x[["tols"]]))) {
+    cat("- vars:\n\t")
+    cat(paste(names(x[["tols"]]), collapse = "   "))
+  }
+  else {
+    cat("- tols:\n")
+    print(round(x[["tols"]], digits))
+    if (internal) {
+      cat("\n- tols used internally by optweight:\n")
+      print(round(x[["internal.tols"]], digits))
+    }
   }
   invisible(x)
 }
