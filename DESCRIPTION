@@ -8,7 +8,7 @@ Description: Use optimization to estimate weights that balance covariates for bi
 Depends:
     R (>= 3.4.0)
 Imports:
-    limSolve (>= 1.5.5.3)
+    rosqp
 Suggests:
     cobalt (>= 3.3.1),
     twang
