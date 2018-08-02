@@ -13,7 +13,7 @@ optweight <- function(formula, data = NULL, tols = 0, estimand = "ATE", s.weight
     exact <- FALSE
   }
   else {
-    tols.list <- NULL
+    tols.list <- 0
     exact <- TRUE
   }
 
@@ -78,40 +78,43 @@ optweight <- function(formula, data = NULL, tols = 0, estimand = "ATE", s.weight
   sw <- process.s.weights(s.weights, data)
 
   ###Run optweight.fit
-  w <- optweight.fit(treat = treat.list, covs = covs.list,
-                     tols = tols.list, estimand = estimand,
-                     focal = focal,
-                     s.weights = sw,
-                     std.binary = FALSE,
-                     exact = exact,
-                     verbose = verbose,
-                     ...)
+  fit_out <- optweight.fit(treat = treat.list, covs = covs.list,
+                           tols = tols.list, estimand = estimand,
+                           focal = focal,
+                           s.weights = sw,
+                           std.binary = FALSE,
+                           verbose = verbose,
+                           ...)
 
   warn <- FALSE
-  test.w <- if (is_null(sw)) w else w*sw
+  test.w <- if (is_null(sw)) fit_out$w else fit_out$w*sw
   if (any(sapply(treat.list, function(t) attr(t, "treat.type") == "continuous"))) {if (sd(test.w)/mean(test.w) > 4) warn <- TRUE}
   else if (any(sapply(treat.list, function(t) sapply(unique(t), function(x) sd(test.w[t == x])/mean(test.w[t == x]) > 4)))) warn <- TRUE
   if (warn) warning("Some extreme weights were generated. Examine them with summary() and maybe trim them with trim().", call. = FALSE)
   call <- match.call()
 
   if (onetime) {
-    out <- list(weights = w,
+    out <- list(weights = fit_out$w,
                 treat = treat.list[[1]],
                 covs = reported.covs.list[[1]],
                 s.weights = sw,
                 estimand = reported.estimand,
                 focal = focal,
-                call = call)
+                call = call,
+                duals = fit_out$duals[[1]],
+                info = fit_out$info)
 
     class(out) <- "optweight"
   }
   else {
-    out <- list(weights = w,
+    out <- list(weights = fit_out$w,
                 treat.list = treat.list,
                 covs.list = reported.covs.list,
                 s.weights = sw,
                 estimand = reported.estimand,
-                call = call)
+                call = call,
+                duals = fit_out$duals,
+                info = fit_out$info)
 
     class(out) <- c("optweightMSM", "optweight")
   }
