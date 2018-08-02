@@ -1,4 +1,7 @@
 import(stats)
+import(Matrix)
+import(ggplot2)
+
 export(optweight, optweight.fit, check.tols)
 
 S3method(print, optweight)

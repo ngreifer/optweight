@@ -8,7 +8,9 @@ Description: Use optimization to estimate weights that balance covariates for bi
 Depends:
     R (>= 3.4.0)
 Imports:
-    rosqp
+    rosqp,
+    Matrix,
+    ggplot2 (>= 3.0.0)
 Suggests:
     cobalt (>= 3.3.1),
     twang
