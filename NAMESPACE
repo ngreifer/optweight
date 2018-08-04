@@ -1,6 +1,7 @@
 import(stats)
 import(Matrix)
 import(ggplot2)
+importFrom("graphics", "hist")
 
 export(optweight, optweight.fit, check.tols)
 
@@ -8,4 +9,8 @@ S3method(print, optweight)
 S3method(print, optweightMSM)
 S3method(print, optweight.tols)
 S3method(plot, optweight)
-S3method(plot, optweightMSM)
+S3method(summary, optweight)
+S3method(summary, optweightMSM)
+S3method(print, summary.optweight)
+S3method(print, summary.optweightMSM)
+S3method(plot, summary.optweight)
