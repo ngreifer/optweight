@@ -5,7 +5,14 @@ optweight.fit <- function(treat, covs, tols = .001, estimand = "ATE", s.weights 
   if (!missing(covs)) covs.list <- covs
   if (is.atomic(t.list)) t.list <- list(t.list)
   if (is.matrix(covs.list) || is.data.frame(covs.list)) covs.list <- list(covs.list)
-  t.list <- lapply(t.list, as.character)
+  treat.types <- vapply(t.list, function(x) {
+    if (is.factor(x) || is.character(x) || is_binary(x)) "cat"
+    else "cont"
+  }, character(1L))
+  t.list <- lapply(seq_along(treat.types), function(x) {
+    if (treat.types[x] == "cat") as.character(t.list[[x]])
+    else as.numeric(t.list[[x]])
+  })
   if (!all(vapply(covs.list, function(c) all(apply(c, 2, is.numeric)), logical(1L)))) stop("All covariates must be numeric.", call. = FALSE)
   covs.list <- lapply(covs.list, as.matrix)
 
@@ -21,22 +28,45 @@ optweight.fit <- function(treat, covs, tols = .001, estimand = "ATE", s.weights 
   else sw <- s.weights
   w <- numeric(N)
 
-  if (estimand == "ATE") {
-    n <- lapply(times, function(i) vapply(split(sw, t.list[[i]]), sum, numeric(1)))
+  if (length(times) > 1 && estimand != "ATE") stop("Only the ATE is compatible with longitduinal treatments.", call. = FALSE)
+
+  if (estimand == "ATE" || length(times) > 1) {
+    n <- lapply(times, function(i) {
+      if (treat.types[i] == "cat") vapply(split(sw, t.list[[i]]), sum, numeric(1))
+      else c(cont.treat = sum(sw))
+    })
     unique.treats <- lapply(n, names)
 
     means <- lapply(covs.list, col.w.m, w = sw)
+    covs.list <- lapply(times, function(i) {
+      if (treat.types[i] == "cat") covs.list[[i]]
+      else sweep(covs.list[[i]], 2, means[[i]], "-") #center covs
+    })
+
     sds <- lapply(times, function(i) {
-      sqrt(rowMeans(matrix(sapply(unique.treats[[i]], function(t) col.w.v(covs.list[[i]][t.list[[i]]==t, , drop = FALSE], w = sw[t.list[[i]] == t]), simplify = "array"), ncol = length(unique.treats[[i]]))))
+      if (treat.types[i] == "cat") sqrt(rowMeans(matrix(sapply(unique.treats[[i]], function(t) col.w.v(covs.list[[i]][t.list[[i]]==t, , drop = FALSE], w = sw[t.list[[i]] == t]), simplify = "array"), ncol = length(unique.treats[[i]]))))
+      else sqrt(col.w.v(covs.list[[i]], w = sw))
+    })
+    treat.sds <- vapply(times, function(i) {
+      if (treat.types[i] == "cat") NA_real_
+      else sqrt(col.w.v(matrix(t.list[[i]], ncol = 1), w = sw))
+    }, numeric(1L))
+    treat.means <- vapply(times, function(i) {
+      if (treat.types[i] == "cat") NA_real_
+      else col.w.m(matrix(t.list[[i]], ncol = 1), w = sw)
+    }, numeric(1L))
+    t.list <- lapply(times, function(i) {
+      if (treat.types[i] == "cat") t.list[[i]]
+      else t.list[[i]] - treat.means[i] #center treat
     })
 
     tols <- lapply(times, function(i) {
-      ifelse(check_if_zero(tols.list[[i]]) | apply(covs.list[[i]], 2, function(c) !std.binary && is_binary(c)), abs(tols.list[[i]]/2), abs(tols.list[[i]]*sds[[i]]/2))
+      if (treat.types[i] == "cat") ifelse(check_if_zero(tols.list[[i]]) | apply(covs.list[[i]], 2, function(c) !std.binary && is_binary(c)), abs(tols.list[[i]]/2), abs(tols.list[[i]]*sds[[i]]/2))
+      else abs(tols.list[[i]]*sds[[i]]*treat.sds[i]) #Maybe make binary covs act differently
     })
 
   }
   else {
-    if (length(t.list) > 1) stop("Only the ATE is compatible with longitduinal treatments.", call. = FALSE)
     treat <- t.list[[1]]
     covs <- covs.list[[1]]
 
@@ -69,7 +99,10 @@ optweight.fit <- function(treat, covs, tols = .001, estimand = "ATE", s.weights 
   q = rep(-1, N)
 
   #Sum of weights in each treat must equal size of group
-  E1 = do.call("rbind", lapply(times, function(i) do.call("rbind", lapply(unique.treats[[i]], function(t) (t.list[[i]] == t) * sw))))
+  E1 = do.call("rbind", lapply(times, function(i) {
+    if (treat.types[i] == "cat") do.call("rbind", lapply(unique.treats[[i]], function(t) (t.list[[i]] == t) * sw))
+    else sw
+  }))
   F1l = do.call("c", lapply(times, function(i) n[[i]][unique.treats[[i]]]))
   F1u = F1l
 
@@ -80,19 +113,32 @@ optweight.fit <- function(treat, covs, tols = .001, estimand = "ATE", s.weights 
 
   #Balance constraints
   G2 = do.call("rbind", lapply(times, function(i) {
-    do.call("rbind", lapply(unique.treats[[i]], function(t)
+    if (treat.types[i] == "cat") do.call("rbind", lapply(unique.treats[[i]], function(t)
       t(covs.list[[i]] * (t.list[[i]] == t) * sw)
-    ))}))
+    ))
+    else t(covs.list[[i]] * t.list[[i]] * sw)
+  }))
   H2l = do.call("c", lapply(times, function(i) {
-    vapply(n[[i]][unique.treats[[i]]],
+    if (treat.types[i] == "cat") vapply(n[[i]][unique.treats[[i]]],
            function(n_) n_*(means[[i]]-tols[[i]]),
            numeric(length(means[[i]])))
+    else -n[[i]]*tols[[i]]
   }))
   H2u = do.call("c", lapply(times, function(i) {
-    vapply(n[[i]][unique.treats[[i]]],
-           function(n_) n_*(means[[i]]+tols[[i]]),
-           numeric(length(means[[i]])))
+    if (treat.types[i] == "cat") vapply(n[[i]][unique.treats[[i]]],
+                                        function(n_) n_*(means[[i]]+tols[[i]]),
+                                        numeric(length(means[[i]])))
+    else n[[i]]*tols[[i]]
   }))
+
+  #For continuous treatments, constrain cov and treat means to be same as in sample
+  G3 = do.call("rbind", lapply(times[treat.types == "cont"], function(i) {
+    rbind(t(covs.list[[i]]), t.list[[i]])
+  }))
+  H3l = do.call("c", lapply(times[treat.types == "cont"], function(i) {
+    rep(0, ncol(covs.list[[i]]) + 1)
+  }))
+  H3u = H3l
 
   #Process args
   args[names(args) %nin% names(formals(rosqp::osqpSettings))] <- NULL
@@ -103,9 +149,9 @@ optweight.fit <- function(treat, covs, tols = .001, estimand = "ATE", s.weights 
   args[["verbose"]] <- verbose
 
   P <- P_^2
-  A  <- rbind(G1, E1, G2)
-  lower <- c(H1l, F1l, H2l)
-  upper <- c(H1u, F1u, H2u)
+  A  <- rbind(G1, E1, G3, G2)
+  lower <- c(H1l, F1l, H3l, H2l)
+  upper <- c(H1u, F1u, H3u, H2u)
 
   out <- rosqp::solve_osqp(P = P, q = q, A = A, l = lower, u = upper,
                            pars = do.call(rosqp::osqpSettings, args))
@@ -126,6 +172,7 @@ optweight.fit <- function(treat, covs, tols = .001, estimand = "ATE", s.weights 
   }
 
   w_ <- out$x
+  w_[w_ < 0] <- 0
 
   if (is_null(focal)) w <- w_
   else w[w != 1] <- w_
