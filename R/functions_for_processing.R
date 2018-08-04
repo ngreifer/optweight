@@ -380,3 +380,6 @@ text.box.plot <- function(range.list, width = 12) {
   }
   return(d)
 }
+
+#To pass CRAN checks:
+utils::globalVariables(c("covs", "dual", "treat"))
