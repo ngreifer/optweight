@@ -6,7 +6,7 @@ optweight <- function(formula, data = NULL, tols = 0, estimand = "ATE", s.weight
   onetime <- length(formula.list) == 1
 
   if (!identical(tols, 0)) {
-    if (class(tols) == "optweight.tols") tols.list <- list(tols[["internal.tols"]])
+    if (class(tols) == "optweight.tols") tols.list <- list(tols[["tols"]])
     else if (is.atomic(tols)) tols.list <- list(tols)
     else tols.list <- tols
     if (length(tols.list) == 1) tols.list <- replicate(max(times), tols.list[[1]], simplify = FALSE)
@@ -63,7 +63,7 @@ optweight <- function(formula, data = NULL, tols = 0, estimand = "ATE", s.weight
     }
 
     if (!exact) {
-      tryCatch(ct <- check.tols(formula.list[[i]], reported.covs.list[[i]], tols.list[[i]], stop = TRUE),
+      tryCatch(ct <- check.tols(formula.list[[i]], data, tols.list[[i]], stop = TRUE),
                error = function(e) {
                  if (onetime) e. <- conditionMessage(e)
                  else e. <- paste0("For treatment ", i, ", ", conditionMessage(e))
