@@ -22,7 +22,7 @@ knitr::opts_chunk$set(
 [![CRAN_Downloads_Badge](http://cranlogs.r-pkg.org/badges/optweight?color=0047ab
 )](https://cran.r-project.org/package=optweight)
 
-`optweight` contains functions to estimate weights that balance treatments to given balance thresholds. It solves a quadratic programming problem to minimize the variance of the weights using `lsei()` in the `limSolve` package. This is the method described in Zubizarreta (2015). `optweight` extends the method to multinomial and longitudinal treatments and provides a simple user interface and compatibility with packages `cobalt` and `WeightIt`.
+`optweight` contains functions to estimate weights that balance treatments to given balance thresholds. It solves a quadratic programming problem to minimize the variance of the weights using `solve_osqp()` in the `rosqp` package. This is the method described in Zubizarreta (2015). `optweight` extends the method to multinomial, continuous, and longitudinal treatments and provides a simple user interface and compatibility with packages `cobalt` and `WeightIt`.
 
 Below is an example of estimating weights wih `optweight` and assessing balance on the covariates with `cobalt`.
 
@@ -52,4 +52,4 @@ summ(lm(re78 ~ treat, data = lalonde, weights = ow$weights),
      confint = TRUE, robust = TRUE, model.fit = FALSE)
 ```
 
-The lower-level function `optweight.fit` operates on the covariates and treatment variables directly and can handle longitdunal treatments given as lists of treatment statuses and covariates (like the `time.list` method for `bal.tab` in `cobalt`).
+The lower-level function `optweight.fit` operates on the covariates and treatment variables directly.
