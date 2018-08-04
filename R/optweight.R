@@ -98,7 +98,7 @@ optweight <- function(formula, data = NULL, tols = 0, estimand = "ATE", s.weight
                 treat = treat.list[[1]],
                 covs = reported.covs.list[[1]],
                 s.weights = sw,
-                estimand = reported.estimand,
+                estimand = if (treat.type == "continuous") NULL else reported.estimand,
                 focal = focal,
                 call = call,
                 duals = fit_out$duals[[1]],
@@ -111,7 +111,7 @@ optweight <- function(formula, data = NULL, tols = 0, estimand = "ATE", s.weight
                 treat.list = treat.list,
                 covs.list = reported.covs.list,
                 s.weights = sw,
-                estimand = reported.estimand,
+                #estimand = reported.estimand,
                 call = call,
                 duals = fit_out$duals,
                 info = fit_out$info)
@@ -122,16 +122,36 @@ optweight <- function(formula, data = NULL, tols = 0, estimand = "ATE", s.weight
 }
 
 print.optweight <- function(x, ...) {
+  treat.type <- attr(x[["treat"]], "treat.type")
+
   cat("An optweight object\n")
   cat(paste0(" - number of obs.: ", length(x[["weights"]]), "\n"))
-  if (is_not_null(x[["estimand"]])) cat(paste0(" - estimand: ", x[["estimand"]], ifelse(is_not_null(x[["focal"]]), paste0(" (focal: ", x[["focal"]], ")"), ""), "\n"))
   cat(paste0(" - sampling weights: ", ifelse(all_the_same(x[["s.weights"]]),"none", "present"), "\n"))
+  cat(paste0(" - treatment: ", ifelse(treat.type == "continuous", "continuous", paste0(nunique(x[["treat"]]), "-category", ifelse(treat.type == "multinomial", paste0(" (", paste(levels(x[["treat"]]), collapse = ", "), ")"), ""))), "\n"))
+  if (is_not_null(x[["estimand"]])) cat(paste0(" - estimand: ", x[["estimand"]], ifelse(is_not_null(x[["focal"]]), paste0(" (focal: ", x[["focal"]], ")"), ""), "\n"))
+  cat(paste0(" - covariates: ", ifelse(length(names(x[["covs"]])) > 60, "too many to name", paste(names(x[["covs"]]), collapse = ", ")), "\n"))
   invisible(x)
 }
 print.optweightMSM <- function(x, ...) {
-  cat("An optweightMSM object\n")
+  treat.types <- sapply(x[["treat.list"]], function(y) attr(y, "treat.type"))
+
+  cat("A weightitMSM object\n")
   cat(paste0(" - number of obs.: ", length(x[["weights"]]), "\n"))
-  cat(paste0(" - number of time points: ", length(x[["treat.list"]]), "\n"))
-  cat(paste0(" - sampling weights: ", ifelse(all_the_same(x[["s.weights"]]),"none", "present"), "\n"))
+  cat(paste0(" - sampling weights: ", ifelse(all_the_same(x[["s.weights"]]), "none", "present"), "\n"))
+  cat(paste0(" - number of time points: ", length(x[["treat.list"]]), " (", paste(names(x[["treat.list"]]), collapse = ", "), ")\n"))
+  cat(paste0(" - treatment: \n",
+             paste0(sapply(1:length(x$covs.list), function(i) {
+               paste0("    + time ", i, ": ", ifelse(treat.types[i] == "continuous", "continuous", paste0(nunique(x[["treat.list"]][[i]]), "-category", ifelse(treat.types[i] == "multinomial", paste0(" (", paste(levels(x[["treat.list"]][[i]]), collapse = ", "), ")"), ""))), "\n")
+             }), collapse = ""), collapse = "\n"))
+  cat(paste0(" - covariates: \n",
+             paste0(sapply(1:length(x$covs.list), function(i) {
+               if (i == 1) {
+                 paste0("    + baseline: ", paste(names(x$covs.list[[i]]), collapse = ", "), "\n")
+               }
+               else {
+                 paste0("    + after time ", i-1, ": ", paste(names(x$covs.list[[i]]), collapse = ", "), "\n")
+               }
+             }), collapse = ""), collapse = "\n"))
+
   invisible(x)
 }
