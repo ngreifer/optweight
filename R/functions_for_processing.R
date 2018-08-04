@@ -311,3 +311,72 @@ word.list <- function(word.list = NULL, and.or = c("and", "or"), is.are = FALSE,
   }
   return(out)
 }
+round_df_char <- function(df, digits, pad = "0", na_vals = "") {
+  nas <- is.na(df)
+  if (!is.data.frame(df)) df <- as.data.frame.matrix(df, stringsAsFactors = FALSE)
+  rn <- rownames(df)
+  cn <- colnames(df)
+  df <- as.data.frame(lapply(df, function(col) {
+    if (suppressWarnings(all(!is.na(as.numeric(as.character(col)))))) {
+      as.numeric(as.character(col))
+    } else {
+      col
+    }
+  }), stringsAsFactors = FALSE)
+  nums <- vapply(df, is.numeric, FUN.VALUE = logical(1))
+  o.negs <- sapply(1:ncol(df), function(x) if (nums[x]) df[[x]] < 0 else rep(FALSE, length(df[[x]])))
+  df[nums] <- round(df[nums], digits = digits)
+  df[nas] <- ""
+
+  df <- as.data.frame(lapply(df, format, scientific = FALSE, justify = "none"), stringsAsFactors = FALSE)
+
+  for (i in which(nums)) {
+    if (any(grepl(".", df[[i]], fixed = TRUE))) {
+      s <- strsplit(df[[i]], ".", fixed = TRUE)
+      lengths <- lengths(s)
+      digits.r.of.. <- vapply(seq_along(s), function(x) {
+        if (lengths[x] > 1) nchar(s[[x]][lengths[x]])
+        else 0 }, numeric(1L))
+      df[[i]] <- sapply(seq_along(df[[i]]), function(x) {
+        if (df[[i]][x] == "") ""
+        else if (lengths[x] <= 1) {
+          paste0(c(df[[i]][x], rep(".", pad == 0), rep(pad, max(digits.r.of..) - digits.r.of..[x] + as.numeric(pad != 0))),
+                 collapse = "")
+        }
+        else paste0(c(df[[i]][x], rep(pad, max(digits.r.of..) - digits.r.of..[x])),
+                    collapse = "")
+      })
+    }
+  }
+
+  df[o.negs & df == 0] <- paste0("-", df[o.negs & df == 0])
+
+  # Insert NA placeholders
+  df[nas] <- na_vals
+
+  if (length(rn) > 0) rownames(df) <- rn
+  if (length(cn) > 0) names(df) <- cn
+
+  return(df)
+}
+text.box.plot <- function(range.list, width = 12) {
+  full.range <- range(unlist(range.list))
+  ratio = diff(full.range)/(width+1)
+  rescaled.range.list <- lapply(range.list, function(x) round(x/ratio))
+  rescaled.full.range <- round(full.range/ratio)
+  d <- as.data.frame(matrix(NA_character_, ncol = 3, nrow = length(range.list),
+                            dimnames = list(names(range.list), c("Min", paste(rep(" ", width + 1), collapse = ""), "Max"))),
+                     stringsAsFactors = FALSE)
+  d[,"Min"] <- vapply(range.list, function(x) x[1], numeric(1L))
+  d[,"Max"] <- vapply(range.list, function(x) x[2], numeric(1L))
+  for (i in seq_len(nrow(d))) {
+    spaces1 <- rescaled.range.list[[i]][1] - rescaled.full.range[1]
+    #|
+    dashes <- max(0, diff(rescaled.range.list[[i]]) - 2)
+    #|
+    spaces2 <- max(0, diff(rescaled.full.range) - (spaces1 + 1 + dashes + 1))
+
+    d[i, 2] <- paste0(paste(rep(" ", spaces1), collapse = ""), "|", paste(rep("-", dashes), collapse = ""), "|", paste(rep(" ", spaces2), collapse = ""))
+  }
+  return(d)
+}
