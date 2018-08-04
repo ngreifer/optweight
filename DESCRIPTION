@@ -4,7 +4,7 @@ Title: Covariate Balancing Weights Using Optimization
 Version: 0.1.0
 Author: Noah Greifer [aut, cre]
 Maintainer: Noah Greifer <noah.greifer@gmail.com>
-Description: Use optimization to estimate weights that balance covariates for binary, multinomial, and longtiduinal treatments in the spirit of Zubizarreta (2015) <doi:10.1080/01621459.2015.1023805>. The degree of balance can be specified for each covariate.
+Description: Use optimization to estimate weights that balance covariates for binary, multinomial, continuous, and longtiduinal treatments in the spirit of Zubizarreta (2015) <doi:10.1080/01621459.2015.1023805>. The degree of balance can be specified for each covariate.
 Depends:
     R (>= 3.4.0)
 Imports:
