@@ -1,5 +1,13 @@
-plot.optweight <- function(x, ...) {
-  d <- x$duals
+plot.optweight <- function(x, which.time = 1, ...) {
+  if ("optweightMSM" %in% class(x)) {
+    d <- x$duals[[which.time]]
+    title <- paste("Dual Variables for Balance Constraints at Time", which.time)
+  }
+  else {
+    d <- x$duals
+    title <- "Dual Variables for Balance Constraints"
+  }
+
   duals <- data.frame(reshape(d, direction = "long", ids = rownames(d),
                               idvar = "covs", varying = list(colnames(d)),
                               timevar = "treat", times = colnames(d), v.names = "dual"))
@@ -21,7 +29,7 @@ plot.optweight <- function(x, ...) {
   p
 }
 
-plot.optweightMSM <- function(x, ...) {
+.plot.optweightMSM <- function(x, which.time = 1, ...) {
   duals_time <- lapply(seq_along(x$duals), function(i) {
     d <- x$duals[[i]]
     data.frame(reshape(d, direction = "long", ids = rownames(d),
@@ -34,7 +42,7 @@ plot.optweightMSM <- function(x, ...) {
   duals$covs <- factor(duals$covs, labels = rev(unique(duals$covs)))
   duals$treat <- factor(duals$treat); levels(duals$treat) <- paste("Treat =", levels(duals$treat))
   duals$time <- factor(duals$time); levels(duals$time) <- paste("Time", levels(duals$time))
-print(duals)
+
   p <- ggplot(duals, aes(x = covs, y = dual)) +
     geom_col() +
     geom_hline(yintercept = 0) +
