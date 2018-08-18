@@ -87,6 +87,8 @@ get.covs.and.treat.from.formula <- function(f, data = NULL, env = .GlobalEnv, ..
   tryCatch({covs <- eval(mf.covs, c(data, env))},
            error = function(e) {stop(conditionMessage(e), call. = FALSE)})
 
+  if (is_not_null(treat.name) && treat.name %in% names(covs)) stop("The variable on the left side of the formula appears on the right side too.", call. = FALSE)
+
   if (is_null(rhs.vars.mentioned)) {
     covs <- data.frame(Intercept = rep(1, if (is_null(treat)) 1 else length(treat)))
   }
@@ -96,7 +98,7 @@ get.covs.and.treat.from.formula <- function(f, data = NULL, env = .GlobalEnv, ..
   covs.matrix <- model.matrix(tt.covs, data = covs,
                               contrasts.arg = lapply(Filter(is.factor, covs),
                                                      contrasts, contrasts=FALSE))
-  attr(covs, "terms") <- NULL
+  #attr(covs, "terms") <- NULL
 
   return(list(reported.covs = covs,
               model.covs = covs.matrix,
