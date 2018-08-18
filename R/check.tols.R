@@ -10,7 +10,8 @@ check.tols <- function(formula, data = NULL, tols, stop = FALSE) {
   formula.covs <- t.c[["reported.covs"]]
   model.covs <- t.c[["model.covs"]]
 
-  formula.vars <- attr(tt, "term.labels")
+  formula.vars <- attr(attr(formula.covs, "terms"), "term.labels")
+  #formula.vars <- attr(tt, "term.labels")
   if (is_null(formula.vars)) {
     formula.vars <- "(Intercept)"
     attr(model.covs, "assign") <- 1
@@ -55,23 +56,27 @@ check.tols <- function(formula, data = NULL, tols, stop = FALSE) {
     }
   }
 
-  out <- list(tols = user.tols,
-              internal.tols = internal.tols)
+  out <- user.tols
+  attr(out, "internal.tols") <- internal.tols
   class(out) <- "optweight.tols"
   return(out)
 }
 
 print.optweight.tols <- function(x, internal = FALSE, digits = 5, ...) {
-  if (all(is.na(x[["tols"]]))) {
+  tols <- x
+  internal.tols <- attr(tols, "internal.tols")
+  attributes(tols) <- NULL
+  names(tols) <- names(x)
+  if (all(is.na(tols))) {
     cat("- vars:\n\t")
-    cat(paste(names(x[["tols"]]), collapse = "   "))
+    cat(paste(names(tols), collapse = "   "))
   }
   else {
     cat("- tols:\n")
-    print(round(x[["tols"]], digits))
+    print(round(tols, digits))
     if (internal) {
       cat("\n- tols used internally by optweight:\n")
-      print(round(x[["internal.tols"]], digits))
+      print(round(internal.tols, digits))
     }
   }
   invisible(x)
