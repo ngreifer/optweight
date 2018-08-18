@@ -6,8 +6,7 @@ optweight <- function(formula, data = NULL, tols = 0, estimand = "ATE", s.weight
   onetime <- length(formula.list) == 1
 
   if (!identical(tols, 0)) {
-    if (class(tols) == "optweight.tols") tols.list <- list(tols[["tols"]])
-    else if (is.atomic(tols)) tols.list <- list(tols)
+    if (is.atomic(tols)) tols.list <- list(tols)
     else tols.list <- tols
     if (length(tols.list) == 1) tols.list <- replicate(max(times), tols.list[[1]], simplify = FALSE)
     exact <- FALSE
@@ -68,7 +67,7 @@ optweight <- function(formula, data = NULL, tols = 0, estimand = "ATE", s.weight
                  if (onetime) e. <- conditionMessage(e)
                  else e. <- paste0("For treatment ", i, ", ", conditionMessage(e))
                  stop(e., call. = FALSE)})
-      tols.list[[i]] <- ct[["internal.tols"]]
+      tols.list[[i]] <- attr(ct, "internal.tols")
     }
   }
 
@@ -78,8 +77,10 @@ optweight <- function(formula, data = NULL, tols = 0, estimand = "ATE", s.weight
   sw <- process.s.weights(s.weights, data)
 
   ###Run optweight.fit
-  fit_out <- optweight.fit(treat = treat.list, covs = covs.list,
-                           tols = tols.list, estimand = estimand,
+  fit_out <- optweight.fit(treat = treat.list,
+                           covs = covs.list,
+                           tols = tols.list,
+                           estimand = estimand,
                            focal = focal,
                            s.weights = sw,
                            std.binary = FALSE,
