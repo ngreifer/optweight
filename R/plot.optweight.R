@@ -1,5 +1,6 @@
 plot.optweight <- function(x, which.time = 1, ...) {
   if ("optweightMSM" %in% class(x)) {
+    if (which.time %nin% seq_along(x$duals)) stop("which.time must correspond to an available time point.", call. = FALSE)
     d <- x$duals[[which.time]]
     title <- paste("Dual Variables for Balance Constraints at Time", which.time)
   }
