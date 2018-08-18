@@ -18,8 +18,8 @@ summary.optweight <- function(object, top = 5, ignore.s.weights = FALSE, ...) {
     out$coef.of.var <- c(all = sd(w)/mean(w))
 
     nn <- as.data.frame(matrix(0, ncol = 1, nrow = 2))
-    nn[1, ] <- (sum(sw)^2)/sum(sw^2)
-    nn[2, ] <- (sum(w)^2)/sum((w)^2)
+    nn[1, ] <- ESS(sw)
+    nn[2, ] <- ESS(w)
     dimnames(nn) <- list(c("Unweighted", "Weighted"),
                          c("Total"))
 
@@ -45,10 +45,8 @@ summary.optweight <- function(object, top = 5, ignore.s.weights = FALSE, ...) {
     #dc <- weightit$discarded
 
     nn <- as.data.frame(matrix(0, nrow = 2, ncol = 2))
-    nn[1, ] <- c((sum(sw[t==0])^2)/sum(sw[t==0]^2),
-                 (sum(sw[t==1])^2)/sum(sw[t==1]^2))
-    nn[2, ] <- c((sum(w[t==0])^2)/sum((w[t==0])^2),
-                 (sum(w[t==1])^2)/sum((w[t==1])^2))
+    nn[1, ] <- c(ESS(sw[t==0]), ESS(sw[t==1]))
+    nn[2, ] <- c(ESS(w[t==0]), ESS(w[t==1]))
     # nn[3, ] <- c(sum(t==0 & dc==1), #Discarded
     #              sum(t==1 & dc==1))
     dimnames(nn) <- list(c("Unweighted", "Weighted"),
@@ -67,8 +65,8 @@ summary.optweight <- function(object, top = 5, ignore.s.weights = FALSE, ...) {
 
     nn <- as.data.frame(matrix(0, nrow = 2, ncol = nunique(t)))
     for (i in seq_len(nunique(t))) {
-      nn[1, i] <- (sum(sw[t==levels(t)[i]])^2)/sum(sw[t==levels(t)[i]]^2)
-      nn[2, i] <- (sum(w[t==levels(t)[i]])^2)/sum((w[t==levels(t)[i]])^2)
+      nn[1, i] <- ESS(sw[t==levels(t)[i]])
+      nn[2, i] <- ESS(w[t==levels(t)[i]])
       # nn[3, i] <- sum(t==levels(t)[i] & dc==1) #Discarded
     }
     dimnames(nn) <- list(c("Unweighted", "Weighted"),
