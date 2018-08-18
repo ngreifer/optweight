@@ -382,6 +382,9 @@ text.box.plot <- function(range.list, width = 12) {
   }
   return(d)
 }
+ESS <- function(w) {
+  (sum(w)^2)/sum(w^2)
+}
 
 #To pass CRAN checks:
 utils::globalVariables(c("covs", "dual", "treat"))
