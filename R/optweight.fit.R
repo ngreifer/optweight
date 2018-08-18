@@ -61,7 +61,14 @@ optweight.fit <- function(treat, covs, tols = .001, estimand = "ATE", s.weights 
     })
 
     tols <- lapply(times, function(i) {
-      if (treat.types[i] == "cat") ifelse(check_if_zero(tols.list[[i]]) | apply(covs.list[[i]], 2, function(c) !std.binary && is_binary(c)), abs(tols.list[[i]]/2), abs(tols.list[[i]]*sds[[i]]/2))
+      if (treat.types[i] == "cat") {
+        if (std.binary) vars.to.standardize <- !check_if_zero(tols.list[[i]])
+        else vars.to.standardize <- !check_if_zero(tols.list[[i]]) & !apply(covs.list[[i]], 2, is_binary)
+
+        ifelse(vars.to.standardize,
+               abs(tols.list[[i]]*sds[[i]]/2), #standardize
+               abs(tols.list[[i]]/2))
+      }
       else abs(tols.list[[i]]*sds[[i]]*treat.sds[i]) #Maybe make binary covs act differently
     })
 
@@ -79,7 +86,13 @@ optweight.fit <- function(treat, covs, tols = .001, estimand = "ATE", s.weights 
     means <- col.w.m(covs[treat == focal, , drop = FALSE], w = sw[treat == focal])
     sds <- sqrt(col.w.v(covs[treat == focal, , drop = FALSE], w = sw[treat == focal]))
 
-    tols <- ifelse(check_if_zero(tols.list[[1]]) | apply(covs, 2, function(c) !std.binary && is_binary(c)), abs(tols.list[[1]]), abs(tols.list[[1]]*sds))
+    if (std.binary) vars.to.standardize <- !check_if_zero(tols.list[[1]])
+    else vars.to.standardize <- !check_if_zero(tols.list[[1]]) & !apply(covs, 2, is_binary)
+
+    tols <- ifelse(vars.to.standardize,
+           abs(tols.list[[1]]*sds), #standardize
+           abs(tols.list[[1]]))
+    #tols <- ifelse(check_if_zero(tols.list[[1]]) | apply(covs, 2, function(c) !std.binary && is_binary(c)), abs(tols.list[[1]]), abs(tols.list[[1]]*sds))
 
     w[treat == focal] <- 1
 
@@ -95,7 +108,7 @@ optweight.fit <- function(treat, covs, tols = .001, estimand = "ATE", s.weights 
   }
 
   #Minimizing squared distances of weights from the mean (1)
-  P_ = if (is_null(s.weights)) sparseMatrix(1:N, 1:N, x = 1) else sparseMatrix(1:N, 1:N, x = sw)
+  P = if (is_null(s.weights)) sparseMatrix(1:N, 1:N, x = 1) else sparseMatrix(1:N, 1:N, x = sw^2)
   q = rep(-1, N)
 
   #Sum of weights in each treat must equal size of group
@@ -114,21 +127,17 @@ optweight.fit <- function(treat, covs, tols = .001, estimand = "ATE", s.weights 
   #Balance constraints
   G2 = do.call("rbind", lapply(times, function(i) {
     if (treat.types[i] == "cat") do.call("rbind", lapply(unique.treats[[i]], function(t)
-      t(covs.list[[i]] * (t.list[[i]] == t) * sw)
+      t(covs.list[[i]] * (t.list[[i]] == t) * sw / n[[i]][t])
     ))
-    else t(covs.list[[i]] * t.list[[i]] * sw)
+    else t(covs.list[[i]] * t.list[[i]] * sw / n[[i]])
   }))
   H2l = do.call("c", lapply(times, function(i) {
-    if (treat.types[i] == "cat") vapply(n[[i]][unique.treats[[i]]],
-           function(n_) n_*(means[[i]]-tols[[i]]),
-           numeric(length(means[[i]])))
-    else -n[[i]]*tols[[i]]
+    if (treat.types[i] == "cat") rep(means[[i]]-tols[[i]], length(unique.treats[[i]]))
+    else -tols[[i]]
   }))
   H2u = do.call("c", lapply(times, function(i) {
-    if (treat.types[i] == "cat") vapply(n[[i]][unique.treats[[i]]],
-                                        function(n_) n_*(means[[i]]+tols[[i]]),
-                                        numeric(length(means[[i]])))
-    else n[[i]]*tols[[i]]
+    if (treat.types[i] == "cat") rep(means[[i]]+tols[[i]], length(unique.treats[[i]]))
+    else tols[[i]]
   }))
 
   #For continuous treatments, constrain cov and treat means to be same as in sample
@@ -136,7 +145,7 @@ optweight.fit <- function(treat, covs, tols = .001, estimand = "ATE", s.weights 
     rbind(t(covs.list[[i]]), t.list[[i]])
   }))
   H3l = do.call("c", lapply(times[treat.types == "cont"], function(i) {
-    rep(0, ncol(covs.list[[i]]) + 1)
+    rep(0, ncol(covs.list[[i]]) + 1) #variables are centered; +1 for treat
   }))
   H3u = H3l
 
@@ -148,13 +157,20 @@ optweight.fit <- function(treat, covs, tols = .001, estimand = "ATE", s.weights 
   if (is_null(args[["eps_rel"]])) args[["eps_rel"]] <- 1E-8
   args[["verbose"]] <- verbose
 
-  P <- P_^2
   A  <- rbind(G1, E1, G3, G2)
   lower <- c(H1l, F1l, H3l, H2l)
   upper <- c(H1u, F1u, H3u, H2u)
 
   out <- rosqp::solve_osqp(P = P, q = q, A = A, l = lower, u = upper,
                            pars = do.call(rosqp::osqpSettings, args))
+
+  #Check for convergence
+  if (out$info$status_val == -2) {
+    warning(paste("The optimization failed to find a solution after", out$info$iter, "iterations. The problem may be infeasible or more interations may be required."), call. = FALSE)
+  }
+  else if (out$info$status_val != 1) {
+    warning("The optimization failed to find a stable solution.", call. = FALSE)
+  }
 
   #Get dual vars for constraints
   balance_duals <- out$y[-seq_len(length(out$y)-nrow(G2))]
