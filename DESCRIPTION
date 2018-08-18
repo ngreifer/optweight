@@ -1,6 +1,6 @@
 Package: optweight
 Type: Package
-Title: Covariate Balancing Weights Using Optimization
+Title: Targeted Stable Balancing Weights Using Optimization
 Version: 0.1.0
 Author: Noah Greifer [aut, cre]
 Maintainer: Noah Greifer <noah.greifer@gmail.com>
@@ -12,7 +12,7 @@ Imports:
     Matrix,
     ggplot2 (>= 3.0.0)
 Suggests:
-    cobalt (>= 3.3.1),
+    cobalt (>= 3.4.0),
     twang
 License: GPL
 Encoding: UTF-8
