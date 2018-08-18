@@ -1,19 +1,25 @@
-plot.optweight <- function(x, which.time = 1, ...) {
+plot.optweight <- function(x, which.time = 1, scale = c("var", "ess"), ...) {
   if ("optweightMSM" %in% class(x)) {
     if (which.time %nin% seq_along(x$duals)) stop("which.time must correspond to an available time point.", call. = FALSE)
     d <- x$duals[[which.time]]
     title <- paste("Dual Variables for Balance Constraints at Time", which.time)
+    t <- x$treat.list[[which.time]]
   }
   else {
     d <- x$duals
     title <- "Dual Variables for Balance Constraints"
+    t <- x$treat
   }
 
+  w <- x$weights
+  # if (scale == "ess") {
+  #
+  # }
   duals <- data.frame(reshape(d, direction = "long", ids = rownames(d),
                               idvar = "covs", varying = list(colnames(d)),
                               timevar = "treat", times = colnames(d), v.names = "dual"))
 
-  duals$covs <- factor(duals$covs, labels = rev(unique(duals$covs)))
+  duals$covs <- factor(duals$covs, levels = rev(unique(duals$covs)))
   duals$treat <- factor(duals$treat); levels(duals$treat) <- paste("Treat =", levels(duals$treat))
 
   p <- ggplot(duals, aes(x = covs, y = dual)) +
