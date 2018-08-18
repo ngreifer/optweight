@@ -107,16 +107,16 @@ optweight.fit <- function(treat, covs, tols = .001, estimand = "ATE", s.weights 
     sw <- sw[treat != focal]
   }
 
-  #Minimizing squared distances of weights from the mean (1)
+  #Minimizing squared distances of weights from their mean (1)
   P = if (is_null(s.weights)) sparseMatrix(1:N, 1:N, x = 1) else sparseMatrix(1:N, 1:N, x = sw^2)
   q = rep(-1, N)
 
-  #Sum of weights in each treat must equal size of group
+  #Mean of weights in each treat must equal 1
   E1 = do.call("rbind", lapply(times, function(i) {
-    if (treat.types[i] == "cat") do.call("rbind", lapply(unique.treats[[i]], function(t) (t.list[[i]] == t) * sw))
+    if (treat.types[i] == "cat") do.call("rbind", lapply(unique.treats[[i]], function(t) (t.list[[i]] == t) * sw / n[[i]][t]))
     else sw
   }))
-  F1l = do.call("c", lapply(times, function(i) n[[i]][unique.treats[[i]]]))
+  F1l = do.call("c", lapply(times, function(i) rep(1, length(unique.treats[[i]]))))
   F1u = F1l
 
   #All weights must be >= 0
