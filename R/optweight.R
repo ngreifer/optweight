@@ -91,7 +91,7 @@ optweight <- function(formula, data = NULL, tols = 0, estimand = "ATE", s.weight
   test.w <- if (is_null(sw)) fit_out$w else fit_out$w*sw
   if (any(sapply(treat.list, function(t) attr(t, "treat.type") == "continuous"))) {if (sd(test.w)/mean(test.w) > 4) warn <- TRUE}
   else if (any(sapply(treat.list, function(t) sapply(unique(t), function(x) sd(test.w[t == x])/mean(test.w[t == x]) > 4)))) warn <- TRUE
-  if (warn) warning("Some extreme weights were generated. Examine them with summary() and maybe trim them with trim().", call. = FALSE)
+  if (warn) warning("Some extreme weights were generated. Examine them with summary() and maybe relax the constraints.", call. = FALSE)
   call <- match.call()
 
   if (onetime) {
