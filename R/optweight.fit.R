@@ -1,4 +1,4 @@
-optweight.fit <- function(treat, covs, tols = .001, estimand = "ATE", s.weights = NULL, focal = NULL, std.binary = FALSE, verbose = FALSE, ...) {
+optweight.fit <- function(treat, covs, tols = .001, estimand = "ATE", s.weights = NULL, focal = NULL, std.binary = FALSE, std.cont = TRUE, verbose = FALSE, ...) {
   #treat, covs, tols can be lists (for different times), or vec, mat, vec (respectively)
   args <- list(...)
   if (!missing(treat)) t.list <- treat
@@ -62,8 +62,10 @@ optweight.fit <- function(treat, covs, tols = .001, estimand = "ATE", s.weights 
 
     tols <- lapply(times, function(i) {
       if (treat.types[i] == "cat") {
-        if (std.binary) vars.to.standardize <- !check_if_zero(tols.list[[i]])
-        else vars.to.standardize <- !check_if_zero(tols.list[[i]]) & !apply(covs.list[[i]], 2, is_binary)
+        if (std.binary && std.cont) vars.to.standardize <- !check_if_zero(tols.list[[i]])
+        else if (!std.binary && std.cont) vars.to.standardize <- !check_if_zero(tols.list[[i]]) & !apply(covs.list[[i]], 2, is_binary)
+        else if (std.binary && !std.cont) vars.to.standardize <- !check_if_zero(tols.list[[i]]) & apply(covs.list[[i]], 2, is_binary)
+        else vars.to.standardize <- rep(FALSE, length(tols.list[[i]]))
 
         ifelse(vars.to.standardize,
                abs(tols.list[[i]]*sds[[i]]/2), #standardize
@@ -86,8 +88,10 @@ optweight.fit <- function(treat, covs, tols = .001, estimand = "ATE", s.weights 
     means <- col.w.m(covs[treat == focal, , drop = FALSE], w = sw[treat == focal])
     sds <- sqrt(col.w.v(covs[treat == focal, , drop = FALSE], w = sw[treat == focal]))
 
-    if (std.binary) vars.to.standardize <- !check_if_zero(tols.list[[1]])
-    else vars.to.standardize <- !check_if_zero(tols.list[[1]]) & !apply(covs, 2, is_binary)
+    if (std.binary && std.cont) vars.to.standardize <- !check_if_zero(tols.list[[1]])
+    else if (!std.binary && std.cont) vars.to.standardize <- !check_if_zero(tols.list[[1]]) & !apply(covs, 2, is_binary)
+    else if (std.binary && !std.cont) vars.to.standardize <- !check_if_zero(tols.list[[1]]) & apply(covs, 2, is_binary)
+    else vars.to.standardize <- rep(FALSE, length(tols.list[[1]]))
 
     tols <- ifelse(vars.to.standardize,
            abs(tols.list[[1]]*sds), #standardize
@@ -153,8 +157,8 @@ optweight.fit <- function(treat, covs, tols = .001, estimand = "ATE", s.weights 
   args[names(args) %nin% names(formals(rosqp::osqpSettings))] <- NULL
   if (is_null(args[["adaptive_rho"]])) args[["adaptive_rho"]] <- TRUE
   if (is_null(args[["max_iter"]])) args[["max_iter"]] <- 2E5
-  if (is_null(args[["eps_abs"]])) args[["eps_abs"]] <- 1E-8
-  if (is_null(args[["eps_rel"]])) args[["eps_rel"]] <- 1E-8
+  if (is_null(args[["eps_abs"]])) args[["eps_abs"]] <- 1E-9
+  if (is_null(args[["eps_rel"]])) args[["eps_rel"]] <- 1E-9
   args[["verbose"]] <- verbose
 
   A  <- rbind(G1, E1, G3, G2)
@@ -163,14 +167,6 @@ optweight.fit <- function(treat, covs, tols = .001, estimand = "ATE", s.weights 
 
   out <- rosqp::solve_osqp(P = P, q = q, A = A, l = lower, u = upper,
                            pars = do.call(rosqp::osqpSettings, args))
-
-  #Check for convergence
-  if (out$info$status_val == -2) {
-    warning(paste("The optimization failed to find a solution after", out$info$iter, "iterations. The problem may be infeasible or more interations may be required."), call. = FALSE)
-  }
-  else if (out$info$status_val != 1) {
-    warning("The optimization failed to find a stable solution.", call. = FALSE)
-  }
 
   #Get dual vars for constraints
   balance_duals <- out$y[-seq_len(length(out$y)-nrow(G2))]
