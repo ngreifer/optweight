@@ -16,34 +16,32 @@ Checks whether proposed tolerance values for \code{tols} are suitable in number 
 }
 \arguments{
   \item{formula}{
-a formula with the covariates to be balanced with \code{optweight} on the right hand side. See \code{\link{glm}} for more details. Interactions and functions of covariates are allowed. Lists of formulas are not allows; multiple formulas must be checked one at a time.
+A formula with the covariates to be balanced with \code{optweight} on the right hand side. See \code{\link{glm}} for more details. Interactions and functions of covariates are allowed. Lists of formulas are not allowed; multiple formulas must be checked one at a time.
 }
   \item{data}{
-an optional data set in the form of a data frame that contains the variables in \code{formula}.
+An optional data set in the form of a data frame that contains the variables in \code{formula}.
 }
   \item{tols}{
-a vector of balance tolerance values in standardized mean difference units for each covariate. These should be in the order corresponding to the order of the corresponding variable in \code{formula}, except for interactions, which will appear after all lower-order terms. If only one value is supplied, it will be applied to all covariates.
+A vector of balance tolerance values in standardized mean difference units for each covariate. These should be in the order corresponding to the order of the corresponding variable in \code{formula}, except for interactions, which will appear after all lower-order terms. If only one value is supplied, it will be applied to all covariates.
 }
   \item{stop}{
-\code{logical}; if \code{TRUE}, an error will be thrown if the number of values in \code{tols} is not equal to the correct number of covariates in \code{formula}, and no messages will be displayed if the \code{tols} input is satisfactory. If \code{FALSE}, a message will be displayed if the numbe of values in \code{tols} is not equal to the correct number of covariates in \code{formula}, and other messages will be displayed.
+\code{logical}; if \code{TRUE}, an error will be thrown if the number of values in \code{tols} is not equal to the correct number of covariates in \code{formula}, and no messages will be displayed if the \code{tols} input is satisfactory. If \code{FALSE}, a message will be displayed if the number of values in \code{tols} is not equal to the correct number of covariates in \code{formula}, and other messages will be displayed.
 }
   \item{x}{
-an \code{optweight.tols} object; the output of a call to \code{check.tols}.
+An \code{optweight.tols} object; the output of a call to \code{check.tols}.
 }
   \item{internal}{
 \code{logical}; whether to print the tolerance values that are to be used internally by \code{optweight}. See Value section.
 }
   \item{digits}{
-how many digits to print.
+How many digits to print.
 }
   \item{\dots}{
-ignored.
+Ignored.
 }
 }
 \value{
-An \code{optweight.tols} object, which contains the following items:
-\item{tols}{A named vector of tolerance values, one for each variable specified in \code{formula}. The should be used as user inputs to \code{\link{optweight}}.}
-  \item{internal.tols}{The tolerance values to be used internally by \code{optweight}. These will differ from \code{tols} when there are factor variables that are split up; the user only needs to submit one tolerance per factor variable, but seperate tolerance values are produced for each new dummy created.}
+An \code{optweight.tols} object, which is a named vector of tolerance values, one for each variable specified in \code{formula}. This should be used as user inputs to \code{\link{optweight}}. The \code{"internal.tols"} attribute contains the tolerance values to be used internally by \code{optweight}. These will differ from the vector values when there are factor variables that are split up; the user only needs to submit one tolerance per factor variable, but seperate tolerance values are produced for each new dummy created.
 
 }
 \details{
