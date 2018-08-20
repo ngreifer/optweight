@@ -11,6 +11,8 @@ optweight(formula,
           estimand = "ATE",
           s.weights = NULL,
           focal = NULL,
+          std.binary = FALSE,
+          std.cont = TRUE,
           verbose = FALSE,
           ...)
 
@@ -25,6 +27,7 @@ optweight.fit(treat,
               s.weights = NULL,
               focal = NULL,
               std.binary = FALSE,
+              std.cont = TRUE,
               verbose = FALSE,
               ...)
 }
@@ -63,8 +66,8 @@ A vector of treatment statuses for each unit or a list thereof. Non-numeric (i.e
   \item{covs}{
 A data frame or matrix of covariates to be balanced. All variables must be numeric. Does not have to be full rank.
 }
-  \item{std.binary}{
-Whether the tolerances are in standardized mean units (\code{TRUE}) or raw units (\code{FALSE}) for binary variables. The default is \code{FALSE} because raw proportion differences make more sense than standardized mean difference for binary variables. This argument is analogous to the \code{binary} argument in \code{\link[cobalt]{bal.tab}} in \pkg{cobalt}.
+  \item{std.binary, std.cont}{
+\code{logical}; whether the tolerances are in standardized mean units (\code{TRUE}) or raw units (\code{FALSE}) for binary variables and contoinous variables, respectively. The default is \code{FALSE} for \code{std.binary} because raw proportion differences make more sense than standardized mean difference for binary variables. These arguments are analogous to the \code{binary} and \code{continuous} arguments in \code{\link[cobalt]{bal.tab}} in \pkg{cobalt}.
 }
   \item{x}{
 An \code{optweight} or \code{optweightMSM} object; the output of a call to \code{optweight()}.
