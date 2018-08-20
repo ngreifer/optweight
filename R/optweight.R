@@ -111,6 +111,7 @@ optweight <- function(formula, data = NULL, tols = 0, estimand = "ATE", s.weight
                 estimand = if (treat.type == "continuous") NULL else reported.estimand,
                 focal = focal,
                 call = call,
+                tols = tols.list[[1]]
                 duals = fit_out$duals[[1]],
                 info = fit_out$info)
 
@@ -123,6 +124,7 @@ optweight <- function(formula, data = NULL, tols = 0, estimand = "ATE", s.weight
                 s.weights = sw,
                 #estimand = reported.estimand,
                 call = call,
+                tols = tols.list,
                 duals = fit_out$duals,
                 info = fit_out$info)
 
