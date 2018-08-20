@@ -57,7 +57,7 @@ check.tols <- function(formula, data = NULL, tols, stop = FALSE) {
 
   out <- user.tols
   attr(out, "internal.tols") <- internal.tols
-  attr(out, "original.vars") <- setNames(model.vars, formula.vars[attr(model.covs, "assign")])
+  attr(out, "original.vars") <- setNames(formula.vars[attr(model.covs, "assign")], model.vars)
   class(out) <- "optweight.tols"
   return(out)
 }
