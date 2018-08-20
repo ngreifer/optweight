@@ -1,4 +1,4 @@
-optweight <- function(formula, data = NULL, tols = 0, estimand = "ATE", s.weights = NULL, focal = NULL, verbose = FALSE, ...) {
+optweight <- function(formula, data = NULL, tols = 0, estimand = "ATE", s.weights = NULL, focal = NULL, std.binary = FALSE, std.cont = TRUE, verbose = FALSE, ...) {
 
   if (!is.list(formula)) formula.list <- list(formula)
   else formula.list <- formula
@@ -6,7 +6,7 @@ optweight <- function(formula, data = NULL, tols = 0, estimand = "ATE", s.weight
   onetime <- length(formula.list) == 1
 
   if (!identical(tols, 0)) {
-    if (is.atomic(tols)) tols.list <- list(tols)
+    if (!is.list(tols)) tols.list <- list(tols)
     else tols.list <- tols
     if (length(tols.list) == 1) tols.list <- replicate(max(times), tols.list[[1]], simplify = FALSE)
     exact <- FALSE
@@ -83,14 +83,23 @@ optweight <- function(formula, data = NULL, tols = 0, estimand = "ATE", s.weight
                            estimand = estimand,
                            focal = focal,
                            s.weights = sw,
-                           std.binary = FALSE,
+                           std.binary = std.binary,
+                           std.cont = std.cont,
                            verbose = verbose,
                            ...)
+
+  #Check for convergence
+  if (fit_out$info$status_val == -2) {
+    warning(paste("The optimization failed to find a solution after", fit_out$info$iter, "iterations. The problem may be infeasible or more interations may be required. Check the dual variables to see which constraints are likely causing this issue."), call. = FALSE)
+  }
+  else if (fit_out$info$status_val != 1) {
+    warning("The optimization failed to find a stable solution.", call. = FALSE)
+  }
 
   warn <- FALSE
   test.w <- if (is_null(sw)) fit_out$w else fit_out$w*sw
   if (any(sapply(treat.list, function(t) attr(t, "treat.type") == "continuous"))) {if (sd(test.w)/mean(test.w) > 4) warn <- TRUE}
-  else if (any(sapply(treat.list, function(t) sapply(unique(t), function(x) sd(test.w[t == x])/mean(test.w[t == x]) > 4)))) warn <- TRUE
+  else if (any(sapply(treat.list, function(t) any(vapply(unique(t), function(x) sd(test.w[t == x])/mean(test.w[t == x]) > 4, logical(1L)))))) warn <- TRUE
   if (warn) warning("Some extreme weights were generated. Examine them with summary() and maybe relax the constraints.", call. = FALSE)
   call <- match.call()
 
