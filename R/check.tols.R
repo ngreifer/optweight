@@ -45,7 +45,6 @@ check.tols <- function(formula, data = NULL, tols, stop = FALSE) {
   else {
     user.tols <- setNames(tols, formula.vars)
     internal.tols <- setNames(tols[attr(model.covs, "assign")], model.vars)
-
     if (!stop) {
       if (any(attr(terms(formula), "order") > 1)) {
         #message("tols look okay, but interactions were present in the formula, so make sure the order is correct.")
@@ -58,6 +57,7 @@ check.tols <- function(formula, data = NULL, tols, stop = FALSE) {
 
   out <- user.tols
   attr(out, "internal.tols") <- internal.tols
+  attr(out, "original.vars") <- setNames(model.vars, formula.vars[attr(model.covs, "assign")])
   class(out) <- "optweight.tols"
   return(out)
 }
