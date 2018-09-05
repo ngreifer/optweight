@@ -10,9 +10,9 @@ Depends:
 Imports:
     rosqp,
     Matrix,
+    cobalt (>= 3.4.0),
     ggplot2 (>= 3.0.0)
 Suggests:
-    cobalt (>= 3.4.0),
     twang
 License: GPL
 Encoding: UTF-8
