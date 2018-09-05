@@ -3,7 +3,7 @@ import(Matrix)
 import(ggplot2)
 importFrom("graphics", "hist")
 
-export(optweight, optweight.fit, check.tols)
+export(optweight, optweight.fit, check.tols, optweight.tune)
 
 S3method(print, optweight)
 S3method(print, optweightMSM)
