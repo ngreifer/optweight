@@ -94,10 +94,25 @@ get.covs.and.treat.from.formula <- function(f, data = NULL, env = .GlobalEnv, ..
   }
   else attr(tt.covs, "intercept") <- 0
 
+  covs.levels <- setNames(vector("list", ncol(covs)), names(covs))
+  for (i in names(covs)) {
+    if (is.character(covs[[i]])) covs[[i]] <- factor(covs[[i]])
+    if (is.factor(covs[[i]])) {
+      covs.levels[[i]] <- levels(covs[[i]])
+      levels(covs[[i]]) <- paste0("_", covs.levels[[i]])
+    }
+  }
+
   #Get full model matrix with interactions too
   covs.matrix <- model.matrix(tt.covs, data = covs,
                               contrasts.arg = lapply(Filter(is.factor, covs),
                                                      contrasts, contrasts=FALSE))
+  for (i in names(covs)) {
+    if (is.factor(covs[[i]])) {
+      levels(covs[[i]]) <- covs.levels[[i]]
+    }
+  }
+
   #attr(covs, "terms") <- NULL
 
   return(list(reported.covs = covs,
@@ -124,26 +139,41 @@ get.treat.type <- function(treat) {
   attr(treat, "treat.type") <- treat.type
   return(treat)
 }
-process.focal.and.estimand <- function(focal, estimand, treat, treat.type) {
-  if (length(estimand) != 1 || !is.character(estimand)) {
-    stop("estimand must be a character vector of length 1.", call. = FALSE)
+process.focal.and.estimand <- function(focal, estimand, targets, treat, treat.type) {
+  if (is_null(targets) && is_not_null(estimand)) {
+    if (!(length(estimand) == 1 && is.character(estimand))) {
+      stop("estimand must be a character vector of length 1.", call. = FALSE)
+    }
+    estimand_ <- toupper(estimand)[[1]]
+
+    #Allowable estimands
+    AE <- list(binary =  c("ATT", "ATC", "ATE"),
+               multinomial = c("ATT", "ATE"),
+               continuous = "ATE")
+
+    if (estimand_ %nin% AE[[treat.type]]) {
+      stop(paste0("\"", estimand, "\" is not an allowable estimand with ", treat.type, " treatments. Only ", word.list(AE[[treat.type]], quotes = TRUE, and.or = "and", is.are = TRUE),
+                  " allowed."), call. = FALSE)
+    }
+
+    reported.estimand <- estimand_
   }
-  estimand <- toupper(estimand)[[1]]
-
-  #Allowable estimands
-  AE <- list(binary =  c("ATT", "ATC", "ATE"),
-             multinomial = c("ATT", "ATE"))
-
-  if (treat.type != "continuous" && estimand %nin% AE[[treat.type]]) {
-    stop(paste0("\"", estimand, "\" is not an allowable estimand with ", treat.type, " treatments. Only ", word.list(AE[[treat.type]], quotes = TRUE, and.or = "and", is.are = TRUE),
-                " allowed."), call. = FALSE)
+  else {
+    if (is_not_null(estimand)) warning("targets are not NULL; ignoring estimand.", call. = FALSE, immediate. = TRUE)
+    estimand <- NULL
+    reported.estimand <- "targets"
+    estimand_ <- NULL
   }
-
-  reported.estimand <- estimand
 
   #Check focal
   if (treat.type %in% c("binary", "multinomial")) {
-    if (estimand == "ATT") {
+    if (is_null(estimand)) {
+      if (is_not_null(focal)) {
+        warning(paste("Only estimand = \"ATT\" is compatible with focal. Ignoring focal."), call. = FALSE)
+        focal <- NULL
+      }
+    }
+    else if (estimand_ == "ATT") {
       if (is_null(focal)) {
         if (treat.type == "multinomial") {
           stop("When estimand = \"ATT\" for multinomial treatments, an argument must be supplied to focal.", call. = FALSE)
@@ -155,7 +185,7 @@ process.focal.and.estimand <- function(focal, estimand, treat, treat.type) {
     }
     else {
       if (is_not_null(focal)) {
-        warning(paste(estimand, "is not compatible with focal. Ignoring focal."), call. = FALSE)
+        warning(paste(estimand_, "is not compatible with focal. Ignoring focal."), call. = FALSE)
         focal <- NULL
       }
     }
@@ -165,21 +195,23 @@ process.focal.and.estimand <- function(focal, estimand, treat, treat.type) {
   if (isTRUE(treat.type == "binary")) {
     unique.treat <- unique(treat, nmax = 2)
     unique.treat.bin <- unique(binarize(treat), nmax = 2)
-    if (estimand == "ATT") {
-      if (is_null(focal)) {
-        focal <- unique.treat[unique.treat.bin == 1]
+    if (is_not_null(estimand)) {
+      if (estimand_ == "ATT") {
+        if (is_null(focal)) {
+          focal <- unique.treat[unique.treat.bin == 1]
+        }
+        else if (focal == unique.treat[unique.treat.bin == 0]){
+          reported.estimand <- "ATC"
+        }
       }
-      else if (focal == unique.treat[unique.treat.bin == 0]){
-        reported.estimand <- "ATC"
+      else if (estimand_ == "ATC") {
+        focal <- unique.treat[unique.treat.bin == 0]
+        estimand_ <- "ATT"
       }
-    }
-    else if (estimand == "ATC") {
-      focal <- unique.treat[unique.treat.bin == 0]
-      estimand <- "ATT"
     }
   }
   return(list(focal = focal,
-              estimand = estimand,
+              estimand = estimand_,
               reported.estimand = reported.estimand))
 }
 process.s.weights <- function(s.weights, data = NULL) {
