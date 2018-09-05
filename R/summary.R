@@ -38,9 +38,9 @@ summary.optweight <- function(object, top = 5, ignore.s.weights = FALSE, ...) {
     top.weights <- list(treated = sort(w[t == 1], decreasing = TRUE)[seq_len(top0["treated"])],
                         control = sort(w[t == 0], decreasing = TRUE)[seq_len(top0["control"])])
 
-    out$coef.of.var <- c(treated = sd(w[t==1])/mean(w[t==1]),
-                         control = sd(w[t==0])/mean(w[t==0]),
-                         overall = sd(w)/mean(w))
+    out$coef.of.var <- c(treated = sqrt(mean((w[t==1]-mean(w[t==1]))^2))/mean(w[t==1]),
+                         control = sqrt(mean((w[t==0]-mean(w[t==0]))^2))/mean(w[t==0]),
+                         overall = sqrt(mean((w-mean(w))^2))/mean(w))
 
     #dc <- weightit$discarded
 
@@ -60,8 +60,8 @@ summary.optweight <- function(object, top = 5, ignore.s.weights = FALSE, ...) {
                             levels(t))
     out$weight.top <- setNames(lapply(names(top.weights), function(x) sort(setNames(top.weights[[x]], which(w %in% top.weights[[x]] & t == x)[seq_len(top)]))),
                                names(top.weights))
-    out$coef.of.var <- c(sapply(levels(t), function(x) sd(w[t==x])/mean(w[t==x])),
-                         overall = sd(w)/mean(w))
+    out$coef.of.var <- c(sapply(levels(t), function(x) sqrt(mean((w[t==x]-mean(w[t==x]))^2))/mean(w[t==x])),
+                         overall = sqrt(mean((w-mean(w))^2))/mean(w))
 
     nn <- as.data.frame(matrix(0, nrow = 2, ncol = nunique(t)))
     for (i in seq_len(nunique(t))) {
