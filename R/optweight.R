@@ -1,4 +1,4 @@
-optweight <- function(formula, data = NULL, tols = 0, estimand = "ATE", s.weights = NULL, focal = NULL, std.binary = FALSE, std.cont = TRUE, verbose = FALSE, ...) {
+optweight <- function(formula, data = NULL, tols = 0, estimand = "ATE", targets = NULL, s.weights = NULL, focal = NULL, std.binary = FALSE, std.cont = TRUE, verbose = FALSE, ...) {
 
   if (!is.list(formula)) formula.list <- list(formula)
   else formula.list <- formula
@@ -38,7 +38,7 @@ optweight <- function(formula, data = NULL, tols = 0, estimand = "ATE", s.weight
       }
 
       #Process estimand and focal
-      f.e.r <- process.focal.and.estimand(focal, estimand, treat.list[[i]], treat.type)
+      f.e.r <- process.focal.and.estimand(focal, estimand, targets, treat.list[[i]], treat.type)
       focal <- f.e.r[["focal"]]
       estimand <- f.e.r[["estimand"]]
       reported.estimand <- f.e.r[["reported.estimand"]]
@@ -49,10 +49,10 @@ optweight <- function(formula, data = NULL, tols = 0, estimand = "ATE", s.weight
       if (any(!is.finite(treat.list[[i]]))) {
         stop(paste0("No missing or non-finite values are allowed in the treatment variable. Missing or non-finite values were found in treatment ", i, "."), call. = FALSE)
       }
-      if (toupper(estimand) != "ATE") stop("The only estimand allowed with longitudinal treatments is the ATE.", call. = FALSE)
+      if (is_not_null(estimand) && toupper(estimand) != "ATE") stop("The only estimand allowed with longitudinal treatments is the ATE.", call. = FALSE)
       focal <- NULL
-      estimand <- "ATE"
-      reported.estimand <- "ATE"
+      estimand <- toupper(estimand)
+      reported.estimand <- estimand
     }
 
     n[i] <- length(treat.list[[i]])
@@ -82,6 +82,7 @@ optweight <- function(formula, data = NULL, tols = 0, estimand = "ATE", s.weight
                            tols = tols.list,
                            estimand = estimand,
                            focal = focal,
+                           targets = targets,
                            s.weights = sw,
                            std.binary = std.binary,
                            std.cont = std.cont,
@@ -90,7 +91,7 @@ optweight <- function(formula, data = NULL, tols = 0, estimand = "ATE", s.weight
 
   #Check for convergence
   if (fit_out$info$status_val == -2) {
-    warning(paste("The optimization failed to find a solution after", fit_out$info$iter, "iterations. The problem may be infeasible or more interations may be required. Check the dual variables to see which constraints are likely causing this issue."), call. = FALSE)
+    warning(paste("The optimization failed to find a solution after", fit_out$info$iter, "iterations. The problem may be infeasible or more iterations may be required. Check the dual variables to see which constraints are likely causing this issue."), call. = FALSE)
   }
   else if (fit_out$info$status_val != 1) {
     warning("The optimization failed to find a stable solution.", call. = FALSE)
@@ -98,6 +99,7 @@ optweight <- function(formula, data = NULL, tols = 0, estimand = "ATE", s.weight
 
   warn <- FALSE
   test.w <- if (is_null(sw)) fit_out$w else fit_out$w*sw
+  if (any(is.na(test.w))) stop("Some weights are NA, which means something went wrong.", call. = FALSE)
   if (any(sapply(treat.list, function(t) attr(t, "treat.type") == "continuous"))) {if (sd(test.w)/mean(test.w) > 4) warn <- TRUE}
   else if (any(sapply(treat.list, function(t) any(vapply(unique(t), function(x) sd(test.w[t == x])/mean(test.w[t == x]) > 4, logical(1L)))))) warn <- TRUE
   if (warn) warning("Some extreme weights were generated. Examine them with summary() and maybe relax the constraints.", call. = FALSE)
