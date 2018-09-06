@@ -9,10 +9,9 @@ optweight(formula,
           data = NULL,
           tols = 0,
           estimand = "ATE",
+          targets = NULL,
           s.weights = NULL,
           focal = NULL,
-          std.binary = FALSE,
-          std.cont = TRUE,
           verbose = FALSE,
           ...)
 
@@ -24,15 +23,17 @@ optweight.fit(treat,
               covs,
               tols = .001,
               estimand = "ATE",
+              targets = NULL,
               s.weights = NULL,
               focal = NULL,
               std.binary = FALSE,
               std.cont = TRUE,
+              min.w = 0,
               verbose = FALSE,
               ...)
 }
 \description{
-Estimate balancing weights for treatments and covariates specified in \code{formula}. The degree of balance for each covariate is specified by \code{tols}. \code{optweight.fit} performs the optimization (via \pkg{rosqp}; Anderson, 2018) and outputs a vector of weights, and \code{optweight} prepares input for processing and outputs an object that includes the estimated weights and other values. Users should use \code{optweight} for most purposes. See Zubizarreta (2015), Wang & Zubizarreta (2017), and Yiu & Su (2018) for details in the properties of these weights and the methods used to fit them.
+Estimate balancing weights for treatments and covariates specified in \code{formula}. The degree of balance for each covariate is specified by \code{tols} and the target population can be specified with \code{targets} or \code{estimand}. \code{optweight.fit} performs the optimization (via \pkg{rosqp}; Anderson, 2018) and outputs a vector of weights, and \code{optweight} prepares input for processing and outputs an object that includes the estimated weights and other values. Users should use \code{optweight} for most purposes. See Zubizarreta (2015), Wang & Zubizarreta (2017), and Yiu & Su (2018) for details in the properties of these weights and the methods used to fit them.
 
 }
 \arguments{
@@ -43,10 +44,13 @@ A formula with a treatment variable on the left hand side and the covariates to 
 An optional data set in the form of a data frame that contains the variables in \code{formula}.
 }
   \item{tols}{
-A vector of balance tolerance values for each covariate, or a list thereof. The resulting weighted standardized balance statistics will be at least as small as these values. If only one value is supplied, it will be applied to all covariates. Can also but the output of a call to \code{\link{check.tols}} for point treatments. See Details.
+A vector of balance tolerance values for each covariate, or a list thereof. The resulting weighted standardized balance statistics will be at least as small as these values. If only one value is supplied, it will be applied to all covariates. Can also be the output of a call to \code{\link{check.tols}} for point treatments. See Details.
 }
   \item{estimand}{
-The desired estimand. For binary treatments, can be "ATE", "ATT", "ATC". For multinomial treatments, can be "ATE" or "ATT". The default for both is "ATE". For longitudinal treatments, only "ATE" is supported.
+The desired estimand, which determines the target population. For binary treatments, can be "ATE", "ATT", "ATC", or \code{NULL}. For multinomial treatments, can be "ATE", "ATT", or \code{NULL}. For continuous treatments, can be "ATE" or \code{NULL}. The default for both is "ATE". For longitudinal treatments, only "ATE" is supported. \code{estimand} is ignored when \code{targets} is non-\code{NULL}. If both \code{estimand} and \code{targets} are \code{NULL}, no targeting will take place. See Details.
+}
+  \item{targets}{
+A vector of target populaton mean values for each baseline covariate. The resulting weights will yield sample means within \code{tols}/2 units of the target values for each covariate. If \code{NULL}, \code{estimand} will be used to determine targets. Otherwise, \code{estimand} is ignored. If any target values are \code{NA}, the corresponding variable will not be targeted and its weighted mean will be wherever the weights yield the smallest variance. Can also be the output of a call to \code{\link{check.targets}}. See Details.
 }
   \item{s.weights}{
 A vector of sampling weights or the name of a variable in \code{data} that contains sampling weights.
@@ -58,7 +62,7 @@ When multinomial treatments are used and the "ATT" is requested, which group to 
 Whether information on the optimization problem solution should be printed. This information contains how many iterations it took to estimate the weights and whether the solution is optimal.
 }
   \item{\dots}{
-For \code{optweight} and \code{optweight.fit}, options that are passed to code{\link[rosqp]{osqpSettings}} for use in the \code{par} arguments of code{\link[rosqp]{solve_osqp}}. Of particular note are \code{adaptive_rho}, which when set to \code{TRUE} dramatically speeds up the estimation of the weights at the cost of a slightly submoptimal solution (default \code{FALSE}), and \code{max_iter}, which controls the maximum number of iterations of the solver, and can be set higher if the problem is not solved in the default number of iterations (200000).
+For \code{optweight}, arguments passed to \code{optweight.fit}. For \code{optweight.fit}, options that are passed to code{\link[rosqp]{osqpSettings}} for use in the \code{par} arguments of code{\link[rosqp]{solve_osqp}}. Of particular note are \code{adaptive_rho}, which when set to \code{TRUE} dramatically speeds up the estimation of the weights at the cost of a slightly submoptimal solution (default \code{FALSE}), and \code{max_iter}, which controls the maximum number of iterations of the solver, and can be set higher if the problem is not solved in the default number of iterations (200000).
 }
   \item{treat}{
 A vector of treatment statuses for each unit or a list thereof. Non-numeric (i.e., factor or character) values are allowed.
@@ -66,11 +70,15 @@ A vector of treatment statuses for each unit or a list thereof. Non-numeric (i.e
   \item{covs}{
 A data frame or matrix of covariates to be balanced. All variables must be numeric. Does not have to be full rank.
 }
+
+  \item{x}{
+An \code{optweight} or \code{optweightMSM} object; the output of a call to \code{optweight()}.
+}
   \item{std.binary, std.cont}{
 \code{logical}; whether the tolerances are in standardized mean units (\code{TRUE}) or raw units (\code{FALSE}) for binary variables and contoinous variables, respectively. The default is \code{FALSE} for \code{std.binary} because raw proportion differences make more sense than standardized mean difference for binary variables. These arguments are analogous to the \code{binary} and \code{continuous} arguments in \code{\link[cobalt]{bal.tab}} in \pkg{cobalt}.
 }
-  \item{x}{
-An \code{optweight} or \code{optweightMSM} object; the output of a call to \code{optweight()}.
+  \item{min.w}{
+A single \code{numeric} value between 0 and 1 for the smallest allowable weight. Some analyses require nonzero weights for all units, so a nonzero minimum can be specified. Doing so will likely (slightly) increase the variance of the resulting weights.
 }
 
 }
@@ -83,6 +91,7 @@ An \code{optweight} or \code{optweightMSM} object; the output of a call to \code
   \item{estimand}{The estimand requested.}
   \item{focal}{The focal variable if the ATT was requested with a multinomial treatment.}
   \item{call}{The function call.}
+  \item{tols}{The tolerance values for each covariate.}
   \item{duals}{A data.frame containing the dual variables for each covariate. See Zubizarreta (2015) for interpretation of these values.}
   \item{info}{The \code{info} component of the output of \code{\link[rosqp]{solve_osqp}}, which contains information on the performance of the optimization at termination.}
 
@@ -93,6 +102,7 @@ An \code{optweight} or \code{optweightMSM} object; the output of a call to \code
   \item{s.weights}{The provided sampling weights.}
   \item{estimand}{The estimand requested; "ATE" for longtiduinal treatments.}
   \item{call}{The function call.}
+  \item{tols}{A list of tolerance values for each covariate at each time point.}
   \item{duals}{A list of data.frames containing the dual variables for each covariate at each time point. See Zubizarreta (2015) for interpretation of these values.}
   \item{info}{The \code{info} component of the output of \code{\link[rosqp]{solve_osqp}}, which contains information on the performance of the optimization at termination.}
 
@@ -100,9 +110,9 @@ An \code{optweight} or \code{optweightMSM} object; the output of a call to \code
 \details{
 The optimization is fit using \code{\link[rosqp]{solve_osqp}} in the \pkg{rosqp} package, which provides a straightforward interface to specifying the constraints and objective function for quadratic optimization problems and uses a fast and flexible solving algorithm.
 
-For binary and multinomial treatments, weights are estimated so that the standardized mean differences of the covariates are within the given tolerance thresholds (unless \code{std.binary = FALSE}, in which case unstandardized differences in proportion are considered). For a covariate \eqn{x} with specified tolerance \eqn{\delta}, the standardized means of each each group will be within \eqn{\delta} of each other. Additionally, when the ATE is specified as the estimand, the standardized means of each group will each be within \eqn{\delta/2} of the standardized overall sample mean; this ensures generalizability to the same population from which the original sample was drawn. The standardization factor corresponds to the estimand requested: when the ATE is requested, the standardization factor is the square root of the average variance for that covariate across treatment groups, and when the ATT or ATC are requested, the standardization factor is the standard deviation of the covariate in the focal group. The standardization factor is always unweighted.
+For binary and multinomial treatments, weights are estimated so that the standardized mean differences of the covariates are within the given tolerance thresholds (unless \code{std.binary} or \code{std.cont} are \code{FALSE}, in which case unstandardized mean differences are considered for binary and continuous variables, respectively). For a covariate \eqn{x} with specified tolerance \eqn{\delta}, the weighted means of each each group will be within \eqn{\delta} of each other. Additionally, when the ATE is specified as the estimand or a target population is specified, the weighted means of each group will each be within \eqn{\delta/2} of the target means; this ensures generalizability to the same population from which the original sample was drawn. If standardized tolerance values are requested, the standardization factor corresponds to the estimand requested: when the ATE is requested or a target population specified, the standardization factor is the square root of the average variance for that covariate across treatment groups, and when the ATT or ATC are requested, the standardization factor is the standard deviation of the covariate in the focal group. The standardization factor is always unweighted.
 
-For continuous treatments, weights are estimated so that the weighted correlation between the treatment and each covariate is within the specified tolerance threshold. Additionally, the means of the weighted covariates and treatment are restricted to be equal to those of the unweighted sample to ensure generalizability to the same target population from which the sample was drawn. The weighted correlation is computed as the weighted covariance divided by the product of the \emph{unweighted} standard deviations.
+For continuous treatments, weights are estimated so that the weighted correlation between the treatment and each covariate is within the specified tolerance threshold. If the ATE is requested or a target population is specified, the means of the weighted covariates and treatment are restricted to be equal to those of the target population to ensure generalizability to the desired target population. The weighted correlation is computed as the weighted covariance divided by the product of the \emph{unweighted} standard deviations. The means used to center the variables in computing the covariance are those specified in the target population.
 
 For longitudinal treatments, only "wide" data sets, where each row corresponds to a unit's entire variable history, are supported. You can use \code{\link{reshape}} or other functions to transform your data into this format; see example in the documentation for \code{weightitMSM} in the \pkg{WeightIt} package.
 }
@@ -164,4 +174,22 @@ data("iptwExWide")
                              c(.001, .001, .01, .01,
                                .1, .1, .1))))
 bal.tab(ow3)
+
+#Balancing covariates between treatment groups (binary)
+#and requesting a specified target population
+(ow4a <- optweight(treat ~ age + educ + married +
+                nodegree + re74, data = lalonde,
+                tols = 0,
+                targets = c(26, 12, .4, .5, 1000),
+                estimand = NULL))
+bal.tab(ow4a, disp.means = TRUE)
+
+#Balancing covariates between treatment groups (binary)
+#and not requesting a target population
+(ow4b <- optweight(treat ~ age + educ + married +
+                nodegree + re74, data = lalonde,
+                tols = 0,
+                targets = NULL,
+                estimand = NULL))
+bal.tab(ow4b, disp.means = TRUE)
 }
