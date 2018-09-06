@@ -29,9 +29,10 @@ optweight.fit <- function(treat, covs, tols = .001, estimand = "ATE", targets = 
   else sw <- s.weights
   w <- numeric(N)
 
+  if (length(min.w) != 1 || !is.numeric(min.w) || min.w < 0 || min.w >= 1) stop("min.w must be a single number in the interval [0, 1).", call. = FALSE)
+
   if (length(times) > 1 && is_not_null(estimand) && estimand %nin% "ATE") stop("Only the ATE or specified targets are compatible with longitduinal treatments.", call. = FALSE)
 
-  #if (is_null(estimand) || estimand %in% c("ATE", "ATT") || length(times) > 1) {
     n <- lapply(times, function(i) {
       if (treat.types[i] == "cat") vapply(split(sw, t.list[[i]]), sum, numeric(1)) #faster than tapply
       else c(cont.treat = sum(sw))
@@ -39,12 +40,15 @@ optweight.fit <- function(treat, covs, tols = .001, estimand = "ATE", targets = 
     unique.treats <- lapply(n, names)
 
     means <- lapply(covs.list, col.w.m, w = sw)
-    if (is_not_null(estimand)) {
+    if (is_not_null(estimand) && is_null(targets)) {
       if (estimand %in% c("ATT", "ATC")) {
         targets <- lapply(times, function(i) {
-          if (is_null(focal)) focal <- max(t.list[[i]])
-          else if (estimand == "ATC") focal <- min(t.list[[i]])
-          col.w.m(covs.list[[i]][t.list[[i]] == focal,], w = sw[t.list[[i]] == focal])
+          if (i == 1) {
+            if (is_null(focal)) focal <- max(t.list[[i]])
+            else if (estimand == "ATC") focal <- min(t.list[[i]])
+            col.w.m(covs.list[[i]][t.list[[i]] == focal,], w = sw[t.list[[i]] == focal])
+          }
+          else rep(NA_real_, ncol(covs.list[[i]]))
         })
         sds <- lapply(times, function(i) {
           if (is_null(focal)) focal <- max(t.list[[i]])
@@ -53,19 +57,18 @@ optweight.fit <- function(treat, covs, tols = .001, estimand = "ATE", targets = 
         })
       }
       else if (estimand == "ATE") {
-        targets <- means
+        targets <- c(list(means[[1]]), lapply(covs.list[-1], function(c) rep(NA_real_, ncol(c))))
         sds <- lapply(times, function(i) sqrt(rowMeans(matrix(sapply(unique.treats[[i]], function(t) col.w.v(covs.list[[i]][t.list[[i]]==t, , drop = FALSE], w = sw[t.list[[i]] == t]), simplify = "array"), ncol = length(unique.treats[[i]])))))
       }
     }
     else {
-      if (is_null(targets)) targets <- lapply(covs.list, function(c) rep(NA_real_, ncol(c)))
-      else if (is.atomic(targets)) targets <- list(targets)
-      else if (!is.list(targets)) stop("targets must be a list of target values for each covariate.", call. = FALSE)
+      if (is_null(targets)) targets <- rep(NA_real_, ncol(covs.list[[1]]))
+      else if (!is.atomic(targets) || (!all(is.na(targets)) && !is.numeric(targets))) stop("targets must be a vector of target values for each baseline covariate.", call. = FALSE)
 
-      for (i in seq_along(covs.list)) {
-        if (length(targets[[i]]) != ncol(covs.list[[i]])) {
-          stop("targets must have the same number of values as there are covariates.", call. = FALSE)
-        }
+      targets <- c(list(targets), lapply(covs.list[-1], function(c) rep(NA_real_, ncol(c))))
+
+      if (length(targets[[1]]) != ncol(covs.list[[1]])) {
+        stop("targets must have the same number of values as there are baseline covariates.", call. = FALSE)
       }
       sds <- lapply(times, function(i) sqrt(rowMeans(matrix(sapply(unique.treats[[i]], function(t) col.w.v(covs.list[[i]][t.list[[i]]==t, , drop = FALSE], w = sw[t.list[[i]] == t]), simplify = "array"), ncol = length(unique.treats[[i]])))))
 
@@ -92,8 +95,6 @@ optweight.fit <- function(treat, covs, tols = .001, estimand = "ATE", targets = 
       else {
         targeted[[i]] <- !is.na(targets[[i]])
         untargeted[[i]] <- !targeted[[i]]
-        #targeted.covs.list[[i]] <- sweep(covs.list[[i]][!is.na(targets[[i]])], 2, targets[[i]][!is.na(targets[[i]])], "-") #center covs at targets (which will be eventual means)
-        #untargeted.covs.list[[i]] <- sweep(covs.list[[i]][is.na(targets[[i]])], 2, means[[i]][is.na(targets[[i]])], "-") #center covs at means
         covs.list[[i]][, targeted[[i]]] <- sweep(covs.list[[i]][, targeted[[i]], drop = FALSE], 2, targets[[i]][targeted[[i]]], "-") #center covs at targets (which will be eventual means)
         covs.list[[i]][, untargeted[[i]]] <- sweep(covs.list[[i]][, untargeted[[i]], drop = FALSE], 2, means[[i]][untargeted[[i]]], "-") #center covs at means
         sds[[i]] <- sqrt(col.w.v(covs.list[[i]], w = sw))
@@ -103,44 +104,6 @@ optweight.fit <- function(treat, covs, tols = .001, estimand = "ATE", targets = 
         tols[[i]] <- abs(tols.list[[i]]*sds[[i]]*treat.sds[[i]])
       }
     }
-  # }
-  # else {
-  #   treat <- t.list[[1]]
-  #   covs <- covs.list[[1]]
-  #
-  #   if (estimand == "ATT" && is_null(focal)) focal <- max(treat)
-  #   else if (estimand == "ATC") focal <- min(treat)
-  #
-  #   n <- vapply(split(sw[treat != focal], treat[treat != focal]), sum, numeric(1))
-  #   unique.treats <- names(n)
-  #
-  #   targets <- col.w.m(covs[treat == focal, , drop = FALSE], w = sw[treat == focal])
-  #   sds <- sqrt(col.w.v(covs[treat == focal, , drop = FALSE], w = sw[treat == focal]))
-  #
-  #   if (std.binary && std.cont) vars.to.standardize <- !check_if_zero(tols.list[[1]])
-  #   else if (!std.binary && std.cont) vars.to.standardize <- !check_if_zero(tols.list[[1]]) & !apply(covs, 2, is_binary)
-  #   else if (std.binary && !std.cont) vars.to.standardize <- !check_if_zero(tols.list[[1]]) & apply(covs, 2, is_binary)
-  #   else vars.to.standardize <- rep(FALSE, length(tols.list[[1]]))
-  #
-  #   tols <- ifelse(vars.to.standardize,
-  #                  abs(tols.list[[1]]*sds), #standardize
-  #                  abs(tols.list[[1]]))
-  #   #tols <- ifelse(check_if_zero(tols.list[[1]]) | apply(covs, 2, function(c) !std.binary && is_binary(c)), abs(tols.list[[1]]), abs(tols.list[[1]]*sds))
-  #
-  #   w[treat == focal] <- 1
-  #
-  #   targeted <- list(!is.na(targets))
-  #   untargeted <- list(is.na(targets))
-  #   N <- sum(treat != focal)
-  #   t.list <- list(treat[treat != focal])
-  #   covs.list <- list(covs[treat != focal, , drop = FALSE])
-  #   unique.treats <- list(unique.treats)
-  #   tols <- list(tols)
-  #   targets <- list(targets)
-  #   sds <- list(sds)
-  #   n <- list(n)
-  #   sw <- sw[treat != focal]
-  # }
 
   #Minimizing variance of weights
   P = sparseMatrix(1:N, 1:N, x = 2*(sw^2)/sum(sw))
