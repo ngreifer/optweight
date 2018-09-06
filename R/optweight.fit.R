@@ -1,4 +1,4 @@
-optweight.fit <- function(treat, covs, tols = .001, estimand = "ATE", targets = NULL, s.weights = NULL, focal = NULL, std.binary = FALSE, std.cont = TRUE, zero.ok = TRUE, verbose = FALSE, ...) {
+optweight.fit <- function(treat, covs, tols = .001, estimand = "ATE", targets = NULL, s.weights = NULL, focal = NULL, std.binary = FALSE, std.cont = TRUE, min.w = 0, verbose = FALSE, ...) {
   #treat, covs, tols can be lists (for different times), or vec, mat, vec (respectively)
   args <- list(...)
   estimand <- toupper(estimand)
@@ -160,7 +160,7 @@ optweight.fit <- function(treat, covs, tols = .001, estimand = "ATE", targets = 
   F1u = F1l
 
   #All weights must be >= min; focal weights must be 1, weights where sw = 0 must be 0
-  if (zero.ok) min <- 0 else min <- sqrt(.Machine$double.eps)
+  min <- min.w
   G1 = sparseMatrix(1:N, 1:N, x = 1)
   if (is_not_null(focal)) {
     H1l <- ifelse(check_if_zero(sw), min, ifelse(t.list[[1]] == focal, 1, min))
