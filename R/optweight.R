@@ -1,4 +1,4 @@
-optweight <- function(formula, data = NULL, tols = 0, estimand = "ATE", targets = NULL, s.weights = NULL, focal = NULL, std.binary = FALSE, std.cont = TRUE, verbose = FALSE, ...) {
+optweight <- function(formula, data = NULL, tols = 0, estimand = "ATE", targets = NULL, s.weights = NULL, focal = NULL, verbose = FALSE, ...) {
 
   if (!is.list(formula)) formula.list <- list(formula)
   else formula.list <- formula
@@ -84,8 +84,6 @@ optweight <- function(formula, data = NULL, tols = 0, estimand = "ATE", targets 
                            focal = focal,
                            targets = targets,
                            s.weights = sw,
-                           std.binary = std.binary,
-                           std.cont = std.cont,
                            verbose = verbose,
                            ...)
 
