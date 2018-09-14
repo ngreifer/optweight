@@ -21,11 +21,12 @@ optweight(formula,
 
 optweight.fit(treat,
               covs,
-              tols = .001,
+              tols = 0,
               estimand = "ATE",
               targets = NULL,
               s.weights = NULL,
               focal = NULL,
+              norm = "l2",
               std.binary = FALSE,
               std.cont = TRUE,
               min.w = 0,
@@ -34,7 +35,6 @@ optweight.fit(treat,
 }
 \description{
 Estimate balancing weights for treatments and covariates specified in \code{formula}. The degree of balance for each covariate is specified by \code{tols} and the target population can be specified with \code{targets} or \code{estimand}. \code{optweight.fit} performs the optimization (via \pkg{rosqp}; Anderson, 2018) and outputs a vector of weights, and \code{optweight} prepares input for processing and outputs an object that includes the estimated weights and other values. Users should use \code{optweight} for most purposes. See Zubizarreta (2015), Wang & Zubizarreta (2017), and Yiu & Su (2018) for details in the properties of these weights and the methods used to fit them.
-
 }
 \arguments{
   \item{formula}{
@@ -62,7 +62,7 @@ When multinomial treatments are used and the "ATT" is requested, which group to 
 Whether information on the optimization problem solution should be printed. This information contains how many iterations it took to estimate the weights and whether the solution is optimal.
 }
   \item{\dots}{
-For \code{optweight}, arguments passed to \code{optweight.fit}. For \code{optweight.fit}, options that are passed to code{\link[rosqp]{osqpSettings}} for use in the \code{par} arguments of code{\link[rosqp]{solve_osqp}}. Of particular note are \code{adaptive_rho}, which when set to \code{TRUE} dramatically speeds up the estimation of the weights at the cost of a slightly submoptimal solution (default \code{FALSE}), and \code{max_iter}, which controls the maximum number of iterations of the solver, and can be set higher if the problem is not solved in the default number of iterations (200000).
+For \code{optweight}, arguments passed to \code{optweight.fit}. For \code{optweight.fit}, options that are passed to \code{\link[rosqp]{osqpSettings}} for use in the \code{par} arguments of \code{\link[rosqp]{solve_osqp}}.
 }
   \item{treat}{
 A vector of treatment statuses for each unit or a list thereof. Non-numeric (i.e., factor or character) values are allowed.
@@ -74,11 +74,14 @@ A data frame or matrix of covariates to be balanced. All variables must be numer
   \item{x}{
 An \code{optweight} or \code{optweightMSM} object; the output of a call to \code{optweight()}.
 }
+  \item{norm}{
+A string containing the name of the norm to minimize. The options are \code{"l1"} for the L1 norm, \code{"l2"} for the L2 norm (the default), and \code{"linf"} for the L\eqn{\infty} norm. The L1 norm minimizes the average absolute distance between each weight and the mean of the weights. The L2 norm minimizes the variance of the weights. The L\eqn{\infty} norm minimizes the largest weight.
+}
   \item{std.binary, std.cont}{
 \code{logical}; whether the tolerances are in standardized mean units (\code{TRUE}) or raw units (\code{FALSE}) for binary variables and contoinous variables, respectively. The default is \code{FALSE} for \code{std.binary} because raw proportion differences make more sense than standardized mean difference for binary variables. These arguments are analogous to the \code{binary} and \code{continuous} arguments in \code{\link[cobalt]{bal.tab}} in \pkg{cobalt}.
 }
   \item{min.w}{
-A single \code{numeric} value between 0 and 1 for the smallest allowable weight. Some analyses require nonzero weights for all units, so a nonzero minimum can be specified. Doing so will likely (slightly) increase the variance of the resulting weights.
+A single \code{numeric} value between 0 and 1 for the smallest allowable weight. Some analyses require nonzero weights for all units, so a nonzero minimum (e.g., \code{1E-8} can be specified. Doing so will likely (slightly) increase the variance of the resulting weights depending on the magntiude of the minimum.
 }
 
 }
@@ -115,6 +118,17 @@ For binary and multinomial treatments, weights are estimated so that the standar
 For continuous treatments, weights are estimated so that the weighted correlation between the treatment and each covariate is within the specified tolerance threshold. If the ATE is requested or a target population is specified, the means of the weighted covariates and treatment are restricted to be equal to those of the target population to ensure generalizability to the desired target population. The weighted correlation is computed as the weighted covariance divided by the product of the \emph{unweighted} standard deviations. The means used to center the variables in computing the covariance are those specified in the target population.
 
 For longitudinal treatments, only "wide" data sets, where each row corresponds to a unit's entire variable history, are supported. You can use \code{\link{reshape}} or other functions to transform your data into this format; see example in the documentation for \code{weightitMSM} in the \pkg{WeightIt} package.
+
+\subsection{Solving Convergence Failure}{
+
+Sometimes the opimization will fail to converge at a solution. There are a variety of reasons why this might happen, which include that the constraints are nearly impossible to satisfy or that the optimization surface is relatively flat. It can be hard to know the exact cause or how to solve it, but this section offers some solutions one might try.
+
+Rarely is the problem too few iterations, though this is possible. Most problems can be solved in the default 200,000 iterations, but sometimes it can help to increase this number with the \code{max_iter} argument. Usually, though, this just ends up taking more time without a solution found.
+
+If the problem is that the constraints are too tight, it can be helpful to loosen the constraints. Sometimes examining the dual variables of a solution that has failed to converge can reveal which constraints are causing the problem.
+
+Sometimes a suboptimal solution is possible; such a solution does not satisfy the constraints exactly but will come pretty close. To allow these solutions, the arguments \code{eps_abs} and \code{eps_rel} can be increased from 1E-9 to larger values. These should be adjusted together since they both must be satisfied for converge to occur.
+}
 }
 
 \author{
