@@ -5,18 +5,17 @@ optweight <- function(formula, data = NULL, tols = 0, estimand = "ATE", targets 
   times <- seq_along(formula.list)
   onetime <- length(formula.list) == 1
 
-  if (!identical(tols, 0)) {
-    if (!is.list(tols)) tols.list <- list(tols)
-    else tols.list <- tols
-    if (length(tols.list) == 1) tols.list <- replicate(max(times), tols.list[[1]], simplify = FALSE)
-    exact <- FALSE
-  }
-  else {
-    tols.list <- 0
-    exact <- TRUE
-  }
+  if (!is.list(tols)) tols.list <- list(tols)
+  else tols.list <- tols
+  if (length(tols.list) == 1) tols.list <- replicate(max(times), tols.list[[1]], simplify = FALSE)
 
-  reported.covs.list <- covs.list <- treat.list <- vector("list", length(formula.list))
+  #Process targets
+  tryCatch(targets <- check.targets(formula.list[[1]], data, targets, stop = TRUE),
+           error = function(e) {
+             e. <- conditionMessage(e)
+             stop(e., call. = FALSE)})
+
+  reported.covs.list <- covs.list <- treat.list <- ct <- vector("list", length(formula.list))
   n <- 0 * times
   for (i in times) {
     #Process treat and covs from formula and data
@@ -61,14 +60,12 @@ optweight <- function(formula, data = NULL, tols = 0, estimand = "ATE", targets 
       stop(paste0("No missing or non-finite values are allowed in the covariates. Missing or non-finite values were found in the following covariates:\n", paste(names(reported.covs.list[[i]])[bad.covs], collapse = ", ")), call. = FALSE)
     }
 
-    if (!exact) {
-      tryCatch(ct <- check.tols(formula.list[[i]], data, tols.list[[i]], stop = TRUE),
-               error = function(e) {
-                 if (onetime) e. <- conditionMessage(e)
-                 else e. <- paste0("For treatment ", i, ", ", conditionMessage(e))
-                 stop(e., call. = FALSE)})
-      tols.list[[i]] <- attr(ct, "internal.tols")
-    }
+    tryCatch(ct[[i]] <- check.tols(formula.list[[i]], data, tols.list[[i]], stop = TRUE),
+             error = function(e) {
+               if (onetime) e. <- conditionMessage(e)
+               else e. <- paste0("For treatment ", i, ", ", conditionMessage(e))
+               stop(e., call. = FALSE)})
+    tols.list[[i]] <- attr(ct[[i]], "internal.tols")
   }
 
   if (!all_the_same(n)) stop("The same number of units must be present in each time point.", call. = FALSE)
@@ -102,6 +99,15 @@ optweight <- function(formula, data = NULL, tols = 0, estimand = "ATE", targets 
   else if (any(sapply(treat.list, function(t) any(vapply(unique(t), function(x) sd(test.w[t == x])/mean(test.w[t == x]) > 4, logical(1L)))))) warn <- TRUE
   if (warn) warning("Some extreme weights were generated. Examine them with summary() and maybe relax the constraints.", call. = FALSE)
   call <- match.call()
+
+  #Process duals
+  for (i in times) {
+    original.vars <- attr(ct[[i]], "original.vars")
+    d <- fit_out$duals[[i]]
+    d$cov <- vapply(d$cov, function(c) original.vars[names(original.vars) == c][1], character(1L))
+    d$dual <- with(d, ave(dual, constraint, cov, treat, FUN = sum))
+    fit_out$duals[[i]] <- unique(d)
+  }
 
   if (onetime) {
     out <- list(weights = fit_out$w,
