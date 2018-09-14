@@ -140,7 +140,7 @@ get.treat.type <- function(treat) {
   return(treat)
 }
 process.focal.and.estimand <- function(focal, estimand, targets, treat, treat.type) {
-  if (is_null(targets) && is_not_null(estimand)) {
+  if ((is_null(targets) || all(is.na(targets))) && is_not_null(estimand)) {
     if (!(length(estimand) == 1 && is.character(estimand))) {
       stop("estimand must be a character vector of length 1.", call. = FALSE)
     }
