@@ -4,16 +4,16 @@ Title: Targeted Stable Balancing Weights Using Optimization
 Version: 0.1.0
 Author: Noah Greifer [aut, cre]
 Maintainer: Noah Greifer <noah.greifer@gmail.com>
-Description: Use optimization to estimate weights that balance covariates for binary, multinomial, continuous, and longtiduinal treatments in the spirit of Zubizarreta (2015) <doi:10.1080/01621459.2015.1023805>. The degree of balance can be specified for each covariate.
+Description: Use optimization to estimate weights that balance covariates for binary, multinomial, continuous, and longitudinal treatments in the spirit of Zubizarreta (2015) <doi:10.1080/01621459.2015.1023805>. The degree of balance can be specified for each covariate.
 Depends:
     R (>= 3.4.0)
 Imports:
-    rosqp,
-    Matrix,
-    cobalt (>= 3.4.0),
+    rosqp (>= 0.1.0),
+    Matrix (>= 1.2-13),
     ggplot2 (>= 3.0.0)
 Suggests:
-    twang
+    cobalt (>= 3.4.1),
+    twang (>= 1.5)
 License: GPL
 Encoding: UTF-8
 LazyData: true
