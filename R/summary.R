@@ -15,7 +15,8 @@ summary.optweight <- function(object, top = 5, ignore.s.weights = FALSE, ...) {
                                      max(w[w > 0])))
     top.weights <- sort(w, decreasing = TRUE)[seq_len(top)]
     out$weight.top <- list(all = sort(setNames(top.weights, which(w %in% top.weights)[seq_len(top)])))
-    out$coef.of.var <- c(all = sd(w)/mean(w))
+    out$coef.of.var <- c(all = coef.of.var(w))
+    out$mean.abs.dev <- c(all = mean.abs.dev(w))
 
     nn <- as.data.frame(matrix(0, ncol = 1, nrow = 2))
     nn[1, ] <- ESS(sw)
@@ -38,9 +39,12 @@ summary.optweight <- function(object, top = 5, ignore.s.weights = FALSE, ...) {
     top.weights <- list(treated = sort(w[t == 1], decreasing = TRUE)[seq_len(top0["treated"])],
                         control = sort(w[t == 0], decreasing = TRUE)[seq_len(top0["control"])])
 
-    out$coef.of.var <- c(treated = sqrt(mean((w[t==1]-mean(w[t==1]))^2))/mean(w[t==1]),
-                         control = sqrt(mean((w[t==0]-mean(w[t==0]))^2))/mean(w[t==0]),
-                         overall = sqrt(mean((w-mean(w))^2))/mean(w))
+    out$coef.of.var <- c(treated = coef.of.var(w[t==1]),
+                         control = coef.of.var(w[t==0]),
+                         overall = coef.of.var(w))
+    out$mean.abs.dev <- c(treated = mean.abs.dev(w[t==1]),
+                          control = mean.abs.dev(w[t==0]),
+                          overall = mean.abs.dev(w))
 
     #dc <- weightit$discarded
 
@@ -60,8 +64,10 @@ summary.optweight <- function(object, top = 5, ignore.s.weights = FALSE, ...) {
                             levels(t))
     out$weight.top <- setNames(lapply(names(top.weights), function(x) sort(setNames(top.weights[[x]], which(w %in% top.weights[[x]] & t == x)[seq_len(top)]))),
                                names(top.weights))
-    out$coef.of.var <- c(sapply(levels(t), function(x) sqrt(mean((w[t==x]-mean(w[t==x]))^2))/mean(w[t==x])),
-                         overall = sqrt(mean((w-mean(w))^2))/mean(w))
+    out$coef.of.var <- c(sapply(levels(t), function(x) coef.of.var(w[t==x])),
+                         overall = coef.of.var(w))
+    out$mean.abs.dev <- c(sapply(levels(t), function(x) mean.abs.dev(w[t==x])),
+                          overall = mean.abs.dev(w))
 
     nn <- as.data.frame(matrix(0, nrow = 2, ncol = nunique(t)))
     for (i in seq_len(nunique(t))) {
@@ -96,9 +102,10 @@ print.summary.optweight <- function(x, ...) {
   cat(paste("\n- Units with", top, "greatest weights by group:\n"))
   print.data.frame(df, row.names = FALSE)
   cat("\n")
-  print.data.frame(round_df_char(as.data.frame(matrix(c(x$coef.of.var), ncol = 1,
+  print.data.frame(round_df_char(as.data.frame(matrix(c(x$coef.of.var, x$mean.abs.dev), ncol = 2,
+                                                      byrow = FALSE,
                                                       dimnames = list(names(x$coef.of.var),
-                                                                      c("Coef of Var")))), 4))
+                                                                      c("Coef of Var", "Mean Abs Dev")))), 4))
   cat("\n- Effective Sample Sizes:\n")
   print.data.frame(round_df_char(x$effective.sample.size, 3))
   invisible(x)
@@ -123,11 +130,12 @@ summary.optweightMSM <- function(object, top = 5, ignore.s.weights = FALSE, ...)
                                        max(w[w > 0])))
       top.weights <- sort(w, decreasing = TRUE)[seq_len(top)]
       out$weight.top <- list(all = sort(setNames(top.weights, which(w %in% top.weights)[seq_len(top)])))
-      out$coef.of.var <- c(all = sd(w)/mean(w))
+      out$coef.of.var <- c(all = coef.of.var(w))
+      out$mean.abs.dev <- c(all = mean.abs.dev(w))
 
       nn <- as.data.frame(matrix(0, ncol = 1, nrow = 2))
-      nn[1, ] <- (sum(sw)^2)/sum(sw^2)
-      nn[2, ] <- (sum(w)^2)/sum((w)^2)
+      nn[1, ] <- ESS(sw)
+      nn[2, ] <- ESS(w)
       dimnames(nn) <- list(c("Unweighted", "Weighted"),
                            c("Total"))
       out$effective.sample.size <- nn
@@ -146,17 +154,18 @@ summary.optweightMSM <- function(object, top = 5, ignore.s.weights = FALSE, ...)
                           control = sort(w[t == 0], decreasing = TRUE)[seq_len(top)])
       out$weight.top <- setNames(lapply(names(top.weights), function(x) sort(setNames(top.weights[[x]], which(w[t == ifelse(x == "control", 0, 1)] %in% top.weights[[x]])[seq_len(top)]))),
                                  names(top.weights))
-      out$coef.of.var <- c(treated = sd(w[t==1])/mean(w[t==1]),
-                           control = sd(w[t==0])/mean(w[t==0]),
-                           overall = sd(w)/mean(w))
+      out$coef.of.var <- c(treated = coef.of.var(w[t==1]),
+                           control = coef.of.var(w[t==0]),
+                           overall = coef.of.var(w))
+      out$mean.abs.dev <- c(treated = mean.abs.dev(w[t==1]),
+                            control = mean.abs.dev(w[t==0]),
+                            overall = mean.abs.dev(w))
 
       #dc <- weightit$discarded
 
       nn <- as.data.frame(matrix(0, nrow = 2, ncol = 2))
-      nn[1, ] <- c((sum(sw[t==0])^2)/sum(sw[t==0]^2),
-                   (sum(sw[t==1])^2)/sum(sw[t==1]^2))
-      nn[2, ] <- c((sum(w[t==0])^2)/sum((w[t==0])^2),
-                   (sum(w[t==1])^2)/sum((w[t==1])^2))
+      nn[1, ] <- c(ESS(sw[t==0]), ESS(sw[t==1]))
+      nn[2, ] <- c(ESS(w[t==0]), ESS(w[t==1]))
       # nn[3, ] <- c(sum(t==0 & dc==1), #Discarded
       #              sum(t==1 & dc==1))
       dimnames(nn) <- list(c("Unweighted", "Weighted"),
@@ -176,13 +185,15 @@ summary.optweightMSM <- function(object, top = 5, ignore.s.weights = FALSE, ...)
                               levels(t))
       out$weight.top <- setNames(lapply(names(top.weights), function(x) sort(setNames(top.weights[[x]], which(w[t == x] %in% top.weights[[x]])[seq_len(top)]))),
                                  names(top.weights))
-      out$coef.of.var <- c(sapply(levels(t), function(x) sd(w[t==x])/mean(w[t==x])),
-                           overall = sd(w)/mean(w))
+      out$coef.of.var <- c(sapply(levels(t), function(x) coef.of.var(w[t==x])),
+                           overall = coef.of.var(w))
+      out$mean.abs.dev <- c(sapply(levels(t), function(x) mean.abs.dev(w[t==x])),
+                            overall = mean.abs.dev(w))
 
       nn <- as.data.frame(matrix(0, nrow = 2, ncol = nunique(t)))
       for (i in seq_len(nunique(t))) {
-        nn[1, i] <- (sum(sw[t==levels(t)[i]])^2)/sum(sw[t==levels(t)[i]]^2)
-        nn[2, i] <- (sum(w[t==levels(t)[i]])^2)/sum((w[t==levels(t)[i]])^2)
+        nn[1, i] <- ESS(sw[t==levels(t)[i]])
+        nn[2, i] <- ESS(w[t==levels(t)[i]])
         # nn[3, i] <- sum(t==levels(t)[i] & dc==1) #Discarded
       }
       dimnames(nn) <- list(c("Unweighted", "Weighted"),
@@ -217,9 +228,10 @@ print.summary.optweightMSM <- function(x, ...) {
     cat(paste("\n- Units with", length(x[[ti]]$weight.top[[1]]), "greatest weights by group:\n"))
     print.data.frame(df, row.names = FALSE)
     cat("\n")
-    print.data.frame(round_df_char(as.data.frame(matrix(x[[ti]]$coef.of.var, ncol = 1,
+    print.data.frame(round_df_char(as.data.frame(matrix(c(x[[ti]]$coef.of.var, x[[ti]]$mean.abs.dev), ncol = 2,
+                                                        byrow = FALSE,
                                                         dimnames = list(names(x[[ti]]$coef.of.var),
-                                                                        c("Coef of Var")))), 4))
+                                                                        c("Coef of Var", "Mean Abs Dev")))), 4))
 
     cat("\n- Effective Sample Sizes:\n")
     print.data.frame(round_df_char(x[[ti]]$effective.sample.size, 3))
