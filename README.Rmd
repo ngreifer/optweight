@@ -27,9 +27,8 @@ knitr::opts_chunk$set(
 Below is an example of estimating weights wih `optweight` and assessing balance on the covariates with `cobalt`.
 
 ```{r, eval = FALSE}
-devtools::install_github("ngreifer/optweight")
+devtools::install_github("ngreifer/optweight") #development version
 library("optweight")
-install.packages("cobalt") #Newest version required
 library("cobalt")
 ```
 ```{r, include = FALSE}

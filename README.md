@@ -9,18 +9,17 @@
 `optweight` contains functions to estimate weights that balance
 treatments to given balance thresholds. It solves a quadratic
 programming problem to minimize the variance of the weights using
-`lsei()` in the `limSolve` package. This is the method described in
-Zubizarreta (2015). `optweight` extends the method to multinomial and
-longitudinal treatments and provides a simple user interface and
-compatibility with packages `cobalt` and `WeightIt`.
+`solve_osqp()` in the `rosqp` package. This is the method described in
+Zubizarreta (2015). `optweight` extends the method to multinomial,
+continuous, and longitudinal treatments and provides a simple user
+interface and compatibility with packages `cobalt` and `WeightIt`.
 
 Below is an example of estimating weights wih `optweight` and assessing
 balance on the covariates with `cobalt`.
 
 ``` r
-devtools::install_github("ngreifer/optweight")
+devtools::install_github("ngreifer/optweight")  #development version
 library("optweight")
-devtools::install_github("ngreifer/cobalt")  #Newest version required
 library("cobalt")
 ```
 
@@ -35,26 +34,33 @@ ow
 
     An optweight object
      - number of obs.: 614
-     - estimand: ATT (focal: 1)
      - sampling weights: none
+     - treatment: 2-category
+     - estimand: ATT (focal: 1)
+     - covariates: age, educ, race, nodegree, married, re74, re75, I(re74 == 0), I(re75 == 0)
 
 ``` r
 bal.tab(ow)
 ```
 
+    Call
+     optweight(formula = treat ~ age + educ + race + nodegree + married + 
+        re74 + re75 + I(re74 == 0) + I(re75 == 0), data = lalonde, 
+        tols = 0.01, estimand = "ATT")
+    
     Balance Measures
-                    Type Diff.Adj
-    age          Contin.     0.01
-    educ         Contin.     0.01
-    race_black    Binary     0.01
-    race_hispan   Binary     0.00
-    race_white    Binary    -0.01
-    nodegree      Binary     0.01
-    married       Binary    -0.01
-    re74         Contin.     0.01
-    re75         Contin.     0.01
-    I(re74 == 0)  Binary     0.01
-    I(re75 == 0)  Binary     0.01
+                         Type Diff.Adj
+    age               Contin.     0.01
+    educ              Contin.     0.01
+    race_black         Binary     0.01
+    race_hispan        Binary     0.00
+    race_white         Binary    -0.01
+    nodegree_1         Binary     0.01
+    married_1          Binary    -0.01
+    re74              Contin.     0.01
+    re75              Contin.     0.01
+    I(re74 == 0)_TRUE  Binary     0.01
+    I(re75 == 0)_TRUE  Binary     0.01
     
     Effective sample sizes
                Control Treated
@@ -79,6 +85,4 @@ summ(lm(re78 ~ treat, data = lalonde, weights = ow$weights), confint = TRUE,
     treat       1006.20   57.22 1955.19   2.09 0.04   *
 
 The lower-level function `optweight.fit` operates on the covariates and
-treatment variables directly and can handle longitdunal treatments given
-as lists of treatment statuses and covariates (like the `time.list`
-method for `bal.tab` in `cobalt`).
+treatment variables directly.
