@@ -9,7 +9,7 @@
 Summarize, print, and plot information about estimated weights
 }
 \description{
-These functions summarize the weights resulting from a call to \code{\link{optweight}}. \code{summary} produces summary statistics on the distribution of weights, including their range and variability, and the effective sample size of the weighted sample (computing using the formula in XXX). \code{plot} creates a histogram of the weights.
+These functions summarize the weights resulting from a call to \code{\link{optweight}}. \code{summary} produces summary statistics on the distribution of weights, including their range and variability, and the effective sample size of the weighted sample (computing using the formula in McCaffrey, Rudgeway, & Morral, 2004). \code{plot} creates a histogram of the weights.
 }
 \usage{
 \method{summary}{optweight}(object, top = 5, ignore.s.weights = FALSE, ...)
@@ -37,7 +37,7 @@ Whether or not to ignore sampling weights when computing the weight summary. If 
 A \code{summary.optweight} or \code{summary.optweightMSM} object; the output of a call to \code{summary.optweight} or \code{summary.optweightMSM()}.
 }
   \item{...}{
-Additional arguments. For \code{plot.summary.optweight}, additional arguments passed to \code{\link[graphics]{hist}} to determine the number of bins, though \code{\link[ggplot2]{geom_histogram}} from \pkg{ggplot2} is actually used to create the plot.
+Additional arguments. For \code{plot}, additional arguments passed to \code{\link[graphics]{hist}} to determine the number of bins, though \code{\link[ggplot2]{geom_histogram}} from \pkg{ggplot2} is actually used to create the plot.
   }
 }
 
@@ -46,6 +46,7 @@ For point treatments (i.e., \code{optweight} objects), \code{summary} returns a 
 \item{weight.range}{The range (minimum and maximum) weight for each treatment group.}
 \item{weight.top}{The units with the greatest weights in each treatment group; how many are included is determined by \code{top}.}
 \item{coef.of.var}{The coefficient of variation (standard deviation divided by mean) of the weights in each treatment group and overall. When no sampling weights are used, this is simply the standard deviation of the weights.}
+\item{mean.abs.dev}{The mean absolute deviation of the weights in each treatment group and overall.}
 \item{effective.sample.size}{The effective sample size for each treatment group before and after weighting.}
 
 For longitudinal treatments (i.e., \code{optweightMSM} objects), a list of the above elements for each treatment period.
@@ -53,7 +54,7 @@ For longitudinal treatments (i.e., \code{optweightMSM} objects), a list of the a
 \code{plot} returns a \code{ggplot} object with a histogram displaying the distribution of the estimaed weights. If the estimand is the ATT or ATC, only the weights for the non-focal group(s) will be displayed (since the weights for the focal group are all 1). A dotted line is displayed at the mean of the weights (usually 1).
 }
 \references{
-ESS ref
+McCaffrey, D. F., Ridgeway, G., & Morral, A. R. (2004). Propensity Score Estimation With Boosted Regression for Evaluating Causal Effects in Observational Studies. Psychological Methods, 9(4), 403–425. \doi{10.1037/1082-989X.9.4.403}
 }
 \author{
 Noah Greifer
