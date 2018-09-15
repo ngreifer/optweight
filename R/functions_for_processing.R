@@ -417,6 +417,13 @@ text.box.plot <- function(range.list, width = 12) {
 ESS <- function(w) {
   (sum(w)^2)/sum(w^2)
 }
+mean.abs.dev <- function(x) {
+  mean(abs(x - mean(x)))
+}
+coef.of.var <- function(x, pop = TRUE) {
+  if (pop) sqrt(mean((x-mean(x))^2))/mean(x)
+  else sd(x)/mean(x)
+}
 
 #To pass CRAN checks:
-utils::globalVariables(c("covs", "dual", "treat"))
+utils::globalVariables(c("covs", "dual", "treat", "constraint"))
