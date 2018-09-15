@@ -74,8 +74,8 @@ optweight <- function(formula, data = NULL, tols = 0, estimand = "ATE", targets 
   sw <- process.s.weights(s.weights, data)
 
   ###Run optweight.fit
-  fit_out <- optweight.fit(treat = treat.list,
-                           covs = covs.list,
+  fit_out <- optweight.fit(treat.list = treat.list,
+                           covs.list = covs.list,
                            tols = tols.list,
                            estimand = estimand,
                            focal = focal,
@@ -156,7 +156,7 @@ print.optweightMSM <- function(x, ...) {
   cat("A weightitMSM object\n")
   cat(paste0(" - number of obs.: ", length(x[["weights"]]), "\n"))
   cat(paste0(" - sampling weights: ", ifelse(all_the_same(x[["s.weights"]]), "none", "present"), "\n"))
-  cat(paste0(" - number of time points: ", length(x[["treat.list"]]), " (", paste(names(x[["treat.list"]]), collapse = ", "), ")\n"))
+  cat(paste0(" - number of time points: ", length(x[["treat.list"]]), "\n"))
   cat(paste0(" - treatment: \n",
              paste0(sapply(1:length(x$covs.list), function(i) {
                paste0("    + time ", i, ": ", ifelse(treat.types[i] == "continuous", "continuous", paste0(nunique(x[["treat.list"]][[i]]), "-category", ifelse(treat.types[i] == "multinomial", paste0(" (", paste(levels(x[["treat.list"]][[i]]), collapse = ", "), ")"), ""))), "\n")
