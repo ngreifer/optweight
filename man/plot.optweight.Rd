@@ -4,7 +4,7 @@
 Plot Dual Variables for Assessing Balance Constraints
 }
 \description{
-Plots the dual variables resulting from \code{optweight} in a way similar to figure 2 of Zubizarreta (2015), which explained how to interpret these values. These can be thought of as the cost of tightening the constraint on the variance of the resulting weights. For covariates with large values of the dual variable, tightening the constraint will increase the variability of the weights, and loosening the constraint will decrease the variability fo the weights, both to a greater extent than would doing the same for covariate with small values of the dual variable.
+Plots the dual variables resulting from \code{optweight} in a way similar to figure 2 of Zubizarreta (2015), which explained how to interpret these values. These represent the cost of changing the constraint on the variance of the resulting weights. For covariates with large values of the dual variable, tightening the constraint will increase the variability of the weights, and loosening the constraint will decrease the variability of the weights, both to a greater extent than would doing the same for covariate with small values of the dual variable.
 }
 \usage{
 \method{plot}{optweight}(x, which.time = 1, ...)
@@ -19,11 +19,6 @@ For longitudinal treatments, which time period to display. Only one may be displ
   \item{\dots}{
 Ignored.
 }
-}
-\details{
-If binary or multinomial treatments are used, there will be a seperate plot for each treatment (other than the focal group if the ATT or ATC are requested). Because constraints are specified simutaneously for each treatment, the dual variables for all treatments should be considered when adjusting the tolerance for a covariate. For example, if the dual variable for a covariate is near 0 for the treated group but large for the control group, its tolerance should not be tightened because one of the constraints for the covariate is active at the optimum.
-
-As recommended by Zubizarreta (2015), the dual variables are standardized to the value of the objective function at the optimum to enhance interpretability. A consequence of this is that the values of the standardized dual variables cannot be compared across different tolerance specifications because the value of the objective function changes.
 }
 \value{
 A \code{ggplot} object that can be used with other \pkg{ggplot2} functions.
