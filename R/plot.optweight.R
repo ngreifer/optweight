@@ -28,3 +28,23 @@ plot.optweight <- function(x, which.time = 1, ...) {
                       scales = "free_y", space = "free")
   p
 }
+
+plot.optweight.svy <- function(x, ...) {
+
+  d <- x$duals
+  title <- "Dual Variables for Target Constraints"
+
+  d$cov <- factor(d$cov, levels = rev(unique(d$cov)))
+
+  p <- ggplot(d, aes(x = cov, y = dual)) +
+    geom_col() +
+    geom_hline(yintercept = 0) +
+    coord_flip() +
+    labs(y = "Absolute Dual Variable",
+         x = "Covariate",
+         title = title) +
+    theme_bw() +
+    scale_y_continuous(expand = expand_scale(c(0, .05)))
+
+  p
+}

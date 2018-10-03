@@ -1,5 +1,6 @@
 \name{plot.optweight}
 \alias{plot.optweight}
+\alias{plot.optweight.svy}
 \title{
 Plot Dual Variables for Assessing Balance Constraints
 }
@@ -8,10 +9,12 @@ Plots the dual variables resulting from \code{optweight} in a way similar to fig
 }
 \usage{
 \method{plot}{optweight}(x, which.time = 1, ...)
+
+\method{plot}{optweight.svy}(x, ...)
 }
 \arguments{
   \item{x}{
-An \code{optweight} object; the output of a call to \code{\link{optweight}}.
+An \code{optweight} or \code{optweight.svy} object; the output of a call to \code{\link{optweight}} or \code{\link{optweight.svy}}.
 }
   \item{which.time}{
 For longitudinal treatments, which time period to display. Only one may be displayed at a time.
@@ -31,7 +34,7 @@ Noah Greifer
 }
 
 \seealso{
-\code{\link{optweight}} to estimate the weights and the dual variables
+\code{\link{optweight}} or \code{\link{optweight.svy}} to estimate the weights and the dual variables
 \code{\link{plot.summary.optweight}} for plots of the distribution of weights
 }
 \examples{

@@ -242,6 +242,57 @@ print.summary.optweightMSM <- function(x, ...) {
   invisible(x)
 }
 
+summary.optweight.svy <- function(object, top = 5, ignore.s.weights = FALSE, ...) {
+  outnames <- c("weight.range", "weight.top","weight.ratio",
+                "coef.of.var",
+                "effective.sample.size")
+  out <- setNames(vector("list", length(outnames)), outnames)
+
+  if (ignore.s.weights || is_null(object$s.weights)) sw <- rep(1, length(object$weights))
+  else sw <- object$s.weights
+  w <- object$weights*sw
+
+    out$weight.range <- list(all = c(min(w[w > 0]),
+                                     max(w[w > 0])))
+    top.weights <- sort(w, decreasing = TRUE)[seq_len(top)]
+    out$weight.top <- list(all = sort(setNames(top.weights, which(w %in% top.weights)[seq_len(top)])))
+    out$coef.of.var <- c(all = coef.of.var(w))
+    out$mean.abs.dev <- c(all = mean.abs.dev(w))
+
+    nn <- as.data.frame(matrix(0, ncol = 1, nrow = 2))
+    nn[1, ] <- ESS(sw)
+    nn[2, ] <- ESS(w)
+    dimnames(nn) <- list(c("Unweighted", "Weighted"),
+                         c("Total"))
+
+  out$effective.sample.size <- nn
+
+  attr(out, "weights") <- w
+
+  class(out) <- c("summary.optweight.svy", "summary.optweight")
+  return(out)
+}
+print.summary.optweight.svy <- function(x, ...) {
+  top <- max(lengths(x$weight.top))
+  cat("Summary of weights:\n\n")
+  cat("- Weight ranges:\n")
+  print.data.frame(round_df_char(text.box.plot(x$weight.range, 28), 4), ...)
+  df <- setNames(data.frame(do.call("c", lapply(names(x$weight.top), function(x) c(" ", x))),
+                            matrix(do.call("c", lapply(x$weight.top, function(x) c(names(x), rep("", top - length(x)), round(x, 4), rep("", top - length(x))))),
+                                   byrow = TRUE, nrow = 2*length(x$weight.top))),
+                 rep("", 1 + top))
+  cat(paste("\n- Units with", top, "greatest weights:\n"))
+  print.data.frame(df, row.names = FALSE)
+  cat("\n")
+  print.data.frame(round_df_char(as.data.frame(matrix(c(x$coef.of.var, x$mean.abs.dev), ncol = 2,
+                                                      byrow = FALSE,
+                                                      dimnames = list(names(x$coef.of.var),
+                                                                      c("Coef of Var", "Mean Abs Dev")))), 4))
+  cat("\n- Effective Sample Sizes:\n")
+  print.data.frame(round_df_char(x$effective.sample.size, 3))
+  invisible(x)
+}
+
 plot.summary.optweight <- function(x, ...) {
   w <- attr(x, "weights")
   focal <- attr(w, "focal")
