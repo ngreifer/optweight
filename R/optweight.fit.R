@@ -114,7 +114,7 @@ optweight.fit <- function(treat.list, covs.list, tols, estimand = "ATE", targets
     if (treat.types[i] == "cat") {
       targeted[[i]] <- !is.na(targets[[i]])
       balanced[[i]] <- !targeted[[i]]
-      # balanced[[i]] <- rep(TRUE, length(targeted[[i]]))
+      #balanced[[i]] <- rep(TRUE, length(targeted[[i]]))
       treat.sds[[i]] <- NA_real_
       treat.means[[i]] <- NA_real_
 
@@ -185,25 +185,29 @@ optweight.fit <- function(treat.list, covs.list, tols, estimand = "ATE", targets
     #Targeting constraints
     G2 = do.call("rbind", lapply(times, function(i) {
       if (any(targeted[[i]])) {
-        if (treat.types[i] == "cat") t(covs.list[[i]][, targeted[[i]], drop = FALSE] * sw / N)
+        if (treat.types[i] == "cat") do.call("rbind", lapply(unique.treats[[i]], function(t)
+          if (is_null(focal) || (is_not_null(focal) && t != focal)) t(covs.list[[i]][, targeted[[i]], drop = FALSE] * (treat.list[[i]] == t) * sw / n[[i]][t])
+        ))
         else rbind(t(covs.list[[i]][, targeted[[i]], drop = FALSE] * sw), treat.list[[i]] * sw) #variables are centered
       }
       else NULL
     }))
     H2l = do.call("c", lapply(times, function(i) {
       if (any(targeted[[i]])) {
-        if (treat.types[i] == "cat")  {
-          targets[[i]][targeted[[i]]] - tols[[i]][targeted[[i]]]/2
-        }
+        if (treat.types[i] == "cat") do.call("c", lapply(unique.treats[[i]], function(t) {
+          if (is_null(focal)) targets[[i]][targeted[[i]]] - tols[[i]][targeted[[i]]]/2
+          else if (is_not_null(focal) && t != focal) targets[[i]][targeted[[i]]] - tols[[i]][targeted[[i]]]
+        }))
         else rep(0, sum(targeted[[i]]) + 1) #variables are centered at targets; +1 for treat
       }
       else NULL
     }))
     H2u = do.call("c", lapply(times, function(i) {
       if (any(targeted[[i]])) {
-        if (treat.types[i] == "cat")  {
-          targets[[i]][targeted[[i]]] + tols[[i]][targeted[[i]]]/2
-        }
+        if (treat.types[i] == "cat") do.call("c", lapply(unique.treats[[i]], function(t) {
+          if (is_null(focal)) targets[[i]][targeted[[i]]] + tols[[i]][targeted[[i]]]/2
+          else if (is_not_null(focal) && t != focal) targets[[i]][targeted[[i]]] + tols[[i]][targeted[[i]]]
+        }))
         else rep(0, sum(targeted[[i]]) + 1) #variables are centered at targets; +1 for treat
       }
       else NULL
