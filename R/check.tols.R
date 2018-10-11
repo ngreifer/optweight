@@ -105,7 +105,9 @@ check.targets <- function(formula, data = NULL, targets, stop = FALSE) {
     stop(paste0("No missing or non-finite values are allowed in the covariates. Missing or non-finite values were found in the following covariates:\n", paste(names(formula.covs)[bad.covs], collapse = ", ")), call. = FALSE)
   }
 
-  if (missing(targets) || is_null(targets)) targets <- setNames(rep(NA_real_, length(model.vars)), model.vars)
+  missing.targets <- missing(targets)
+  if (missing.targets) targets <- colMeans(model.covs)
+  else if (is_null(targets)) targets <- rep(NA_real_, length(model.vars))
   else if (!is.numeric(targets)) stop("targets must be a numeric vector.", call. = FALSE)
 
   if (length(targets) != length(model.vars)) {
@@ -152,6 +154,7 @@ check.targets <- function(formula, data = NULL, targets, stop = FALSE) {
 
   out <- internal.targets
   attr(out, "original.vars") <- setNames(formula.vars[attr(model.covs, "assign")], model.vars)
+  attr(out, "ATE") <- (missing.targets || isTRUE(all(check_if_zero(colMeans(model.covs) - internal.targets))))
   class(out) <- "optweight.targets"
   return(out)
 }
