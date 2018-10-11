@@ -14,6 +14,10 @@ optweight <- function(formula, data = NULL, tols = 0, estimand = "ATE", targets 
            error = function(e) {
              e. <- conditionMessage(e)
              stop(e., call. = FALSE)})
+  if (isTRUE(attr(targets, "ATE"))) {
+    estimand <- "ATE"
+    targets <- rep(NA_real_, length(targets))
+  }
 
   reported.covs.list <- covs.list <- treat.list <- ct <- vector("list", length(formula.list))
   n <- 0 * times
