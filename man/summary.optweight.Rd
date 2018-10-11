@@ -1,8 +1,10 @@
 \name{summary.optweight}
 \alias{summary.optweight}
 \alias{summary.optweightMSM}
+\alias{summary.optweight.svy}
 \alias{print.summary.optweight}
 \alias{print.summary.optweightMSM}
+\alias{print.summary.optweight.svy}
 \alias{plot.summary.optweight}
 
 \title{

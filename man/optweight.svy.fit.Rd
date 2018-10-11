@@ -85,7 +85,7 @@ covs <- splitfactor(lalonde[c("age", "educ", "race",
                   "married", "nodegree")],
                   drop.first = FALSE)
 
-targets <- c(23, 9, .3, .3, .4, .2, .5))
+targets <- c(23, 9, .3, .3, .4, .2, .5)
 
 tols <- rep(0, 7)
 
