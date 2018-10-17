@@ -10,7 +10,6 @@ plot.optweight <- function(x, which.time = 1, ...) {
   }
 
   d$cov <- factor(d$cov, levels = rev(unique(d$cov)))
-  d$treat <- factor(d$treat, levels = unique(d$treat), labels = paste("Treat:", unique(d$treat)))
   d$constraint <- factor(d$constraint, levels = unique(d$constraint, nmax=2), labels = paste("Constraint:", unique(d$constraint, nmax=2)))
 
   p <- ggplot(d, aes(x = cov, y = dual)) +
@@ -23,8 +22,7 @@ plot.optweight <- function(x, which.time = 1, ...) {
     theme_bw() +
     scale_y_continuous(expand = expand_scale(c(0, .05)))
 
-  p <- p + facet_grid(cols = vars(treat),
-                      rows = vars(constraint),
+  p <- p + facet_grid(rows = vars(constraint),
                       scales = "free_y", space = "free")
   p
 }
