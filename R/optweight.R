@@ -109,8 +109,9 @@ optweight <- function(formula, data = NULL, tols = 0, estimand = "ATE", targets 
     original.vars <- attr(ct[[i]], "original.vars")
     d <- fit_out$duals[[i]]
     d$cov <- vapply(d$cov, function(c) original.vars[names(original.vars) == c][1], character(1L))
-    d$dual <- with(d, ave(dual, constraint, cov, treat, FUN = sum))
-    fit_out$duals[[i]] <- unique(d)
+    d$dual <- with(d, ave(dual, constraint, cov, FUN = sum)) #Total effect of constraint on obj. fun. is sum of abs(duals)
+    fit_out$duals[[i]] <- unique(d[names(d) != "treat"])
+    rownames(fit_out$duals[[i]]) <- NULL
   }
 
   if (onetime) {
