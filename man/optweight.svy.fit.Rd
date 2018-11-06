@@ -9,7 +9,7 @@ optweight.svy.fit(covs,
                   norm = "l2",
                   std.binary = FALSE,
                   std.cont = TRUE,
-                  min.w = 0,
+                  min.w = 1E-8,
                   verbose = FALSE,
                   ...)
 }
@@ -36,7 +36,7 @@ A string containing the name of the norm corresponding to the objective function
 \code{logical}; whether the tolerances are in standardized mean units (\code{TRUE}) or raw units (\code{FALSE}) for binary variables and continuous variables, respectively. The default is \code{FALSE} for \code{std.binary} because raw proportion differences make more sense than standardized mean difference for binary variables.
 }
   \item{min.w}{
-A single \code{numeric} value between 0 and 1 for the smallest allowable weight. Some analyses require nonzero weights for all units, so a nonzero minimum (e.g., \code{1E-8} can be specified. Doing so will likely (slightly) increase the variance of the resulting weights depending on the magntiude of the minimum.
+A single \code{numeric} value between 0 and 1 for the smallest allowable weight. Some analyses require nonzero weights for all units, so a small, nonzero minimum may be desirable. Doing so will likely (slightly) increase the variance of the resulting weights depending on the magntiude of the minimum. The default is 1e-8, which does not materially change the properties of the weights from a minimum of 0 but prevents warnings in some packages that use weights to estimate treatment effects.
 }
   \item{verbose}{
 Whether information on the optimization problem solution should be printed. This information contains how many iterations it took to estimate the weights and whether the solution is optimal.

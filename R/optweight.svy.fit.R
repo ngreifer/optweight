@@ -1,12 +1,12 @@
-optweight.svy.fit <- function(covs, tols = 0, targets, s.weights = NULL, norm = "l2", std.binary = FALSE, std.cont = TRUE, min.w = 0, verbose = FALSE, ...) {
+optweight.svy.fit <- function(covs, tols = 0, targets, s.weights = NULL, norm = "l2", std.binary = FALSE, std.cont = TRUE, min.w = 1E-8, verbose = FALSE, ...) {
   args <- list(...)
 
   #Process args
   args[names(args) %nin% names(formals(rosqp::osqpSettings))] <- NULL
   if (is_null(args[["adaptive_rho"]])) args[["adaptive_rho"]] <- TRUE
-  if (is_null(args[["max_iter"]])) args[["max_iter"]] <- 2E5
-  if (is_null(args[["eps_abs"]])) args[["eps_abs"]] <- 1E-9
-  if (is_null(args[["eps_rel"]])) args[["eps_rel"]] <- 1E-9
+  if (is_null(args[["max_iter"]])) args[["max_iter"]] <- 2E5L
+  if (is_null(args[["eps_abs"]])) args[["eps_abs"]] <- 1E-8
+  if (is_null(args[["eps_rel"]])) args[["eps_rel"]] <- 1E-8
   args[["verbose"]] <- verbose
 
   key.args <- c("covs", "targets")

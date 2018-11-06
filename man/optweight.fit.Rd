@@ -12,7 +12,7 @@ optweight.fit(treat.list,
               norm = "l2",
               std.binary = FALSE,
               std.cont = TRUE,
-              min.w = 0,
+              min.w = 1E-8,
               verbose = FALSE,
               ...)
 }
@@ -49,13 +49,13 @@ A string containing the name of the norm corresponding to the objective function
 \code{logical}; whether the tolerances are in standardized mean units (\code{TRUE}) or raw units (\code{FALSE}) for binary variables and continuous variables, respectively. The default is \code{FALSE} for \code{std.binary} because raw proportion differences make more sense than standardized mean difference for binary variables. These arguments are analogous to the \code{binary} and \code{continuous} arguments in \code{\link[cobalt]{bal.tab}} in \pkg{cobalt}.
 }
   \item{min.w}{
-A single \code{numeric} value between 0 and 1 for the smallest allowable weight. Some analyses require nonzero weights for all units, so a nonzero minimum (e.g., \code{1E-8} can be specified. Doing so will likely (slightly) increase the variance of the resulting weights depending on the magntiude of the minimum.
+A single \code{numeric} value between 0 and 1 for the smallest allowable weight. Some analyses require nonzero weights for all units, so a small, nonzero minimum may be desirable. Doing so will likely (slightly) increase the variance of the resulting weights depending on the magntiude of the minimum. The default is 1e-8, which does not materially change the properties of the weights from a minimum of 0 but prevents warnings in some packages that use weights to estimate treatment effects.
 }
   \item{verbose}{
 Whether information on the optimization problem solution should be printed. This information contains how many iterations it took to estimate the weights and whether the solution is optimal.
 }
   \item{\dots}{
-Options that are passed to \code{\link[rosqp]{osqpSettings}} for use in the \code{par} arguments of \code{\link[rosqp]{solve_osqp}}.
+Options that are passed to \code{\link[rosqp]{osqpSettings}} for use in the \code{par} arguments of \code{\link[rosqp]{solve_osqp}}. See Details for defaults.
 }
 
 }
@@ -68,6 +68,8 @@ Options that are passed to \code{\link[rosqp]{osqpSettings}} for use in the \cod
 }
 \details{
 \code{optweight.fit} transforms the inputs into the required inputs for \code{\link[rosqp]{solve_osqp}}, which are (sparse) matrices and vectors, and then supplies the outputs (the weights, duals variables, and convergence information) back to \code{optweight}. No processing of inputs is performed, as this is normally handled by \code{optweight}.
+
+The default values for some of the parameters sent to \code{solve_osqp} are not the same as those in \code{osqpSettings}. The following are the differences: \code{max_iter} is set to 20000 and \code{eps_abs} and \code{eps_rel} are set to 1E-8 (i.e., 10^-8). All other values are the same.
 }
 
 \author{

@@ -1,13 +1,13 @@
-optweight.fit <- function(treat.list, covs.list, tols, estimand = "ATE", targets = NULL, s.weights = NULL, focal = NULL, norm = "l2", std.binary = FALSE, std.cont = TRUE, min.w = 0, verbose = FALSE, ...) {
+optweight.fit <- function(treat.list, covs.list, tols, estimand = "ATE", targets = NULL, s.weights = NULL, focal = NULL, norm = "l2", std.binary = FALSE, std.cont = TRUE, min.w = 1E-8, verbose = FALSE, ...) {
 
   args <- list(...)
 
   #Process args
   args[names(args) %nin% names(formals(rosqp::osqpSettings))] <- NULL
   if (is_null(args[["adaptive_rho"]])) args[["adaptive_rho"]] <- TRUE
-  if (is_null(args[["max_iter"]])) args[["max_iter"]] <- 2E5
-  if (is_null(args[["eps_abs"]])) args[["eps_abs"]] <- 1E-9
-  if (is_null(args[["eps_rel"]])) args[["eps_rel"]] <- 1E-9
+  if (is_null(args[["max_iter"]])) args[["max_iter"]] <- 2E5L
+  if (is_null(args[["eps_abs"]])) args[["eps_abs"]] <- 1E-8
+  if (is_null(args[["eps_rel"]])) args[["eps_rel"]] <- 1E-8
   args[["verbose"]] <- verbose
 
   key.args <- c("treat.list", "covs.list", "tols")
@@ -129,9 +129,9 @@ optweight.fit <- function(treat.list, covs.list, tols, estimand = "ATE", targets
                           abs(tols.list[[i]]))
       #Note: duals work incorrecly unless tols are > 0, so replace small tols with
       #sqrt(.Machine$double.eps).
-      tols[[i]] <- ifelse(tols[[i]] < sqrt(.Machine$double.eps),
-                          sqrt(.Machine$double.eps),
-                          tols[[i]])
+      # tols[[i]] <- ifelse(tols[[i]] < sqrt(.Machine$double.eps),
+      #                     sqrt(.Machine$double.eps),
+      #                     tols[[i]])
     }
     else {
       targeted[[i]] <- !is.na(targets[[i]])
@@ -146,9 +146,9 @@ optweight.fit <- function(treat.list, covs.list, tols, estimand = "ATE", targets
       tols[[i]] <- abs(tols.list[[i]]*sds[[i]]*treat.sds[[i]])
       #Note: duals work incorrecly unless tols are > 0, so replace small tols with
       #sqrt(.Machine$double.eps).
-      tols[[i]] <- ifelse(tols[[i]] < sqrt(.Machine$double.eps),
-                          sqrt(.Machine$double.eps),
-                          tols[[i]])
+      # tols[[i]] <- ifelse(tols[[i]] < sqrt(.Machine$double.eps),
+      #                     sqrt(.Machine$double.eps),
+      #                     tols[[i]])
     }
   }
 
