@@ -131,7 +131,7 @@ check.targets <- function(formula, data = NULL, targets, stop = FALSE) {
         }
       }
     }
-    if (any(sapply(formula.vars, function(v) {
+    if (!all(is.na(targets)) && any(sapply(formula.vars, function(v) {
       if (attr(terms(formula.covs), "order")[formula.vars == v] > 1) {
         vars.in.interaction <- rownames(attr(terms(formula.covs), "factors"))[attr(terms(formula.covs), "factors")[, v] == 1]
         if (sum(attr(terms(formula.covs), "dataClasses")[vars.in.interaction] == "factor") > 1) {
