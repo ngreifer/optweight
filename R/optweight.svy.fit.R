@@ -3,7 +3,6 @@ optweight.svy.fit <- function(covs, tols = 0, targets, s.weights = NULL, norm = 
 
   #Process args
   args[names(args) %nin% names(formals(rosqp::osqpSettings))] <- NULL
-  if (is_null(args[["adaptive_rho"]])) args[["adaptive_rho"]] <- TRUE
   if (is_null(args[["max_iter"]])) args[["max_iter"]] <- 2E5L
   if (is_null(args[["eps_abs"]])) args[["eps_abs"]] <- 1E-8
   if (is_null(args[["eps_rel"]])) args[["eps_rel"]] <- 1E-8
@@ -28,9 +27,10 @@ optweight.svy.fit <- function(covs, tols = 0, targets, s.weights = NULL, norm = 
   else sw <- s.weights
 
   norm.options <- c("l2", "l1", "linf")
-  if (!isTRUE(norm %in% norm.options)) {
+  if (length(norm) != 1 || !is.character(norm) || tolower(norm) %nin% norm.options) {
     stop(paste0("norm must be ", word.list(norm.options, and.or = "or", quotes = TRUE), "."), call. = FALSE)
   }
+  else norm <- tolower(norm)
 
   if (length(min.w) != 1 || !is.numeric(min.w) || min.w < 0 || min.w >= 1) stop("min.w must be a single number in the interval [0, 1).", call. = FALSE)
 
@@ -129,9 +129,6 @@ optweight.svy.fit <- function(covs, tols = 0, targets, s.weights = NULL, norm = 
     Inxn = sparseMatrix(1:N, 1:N, x = 1)
     I = rbind(cbind(Inxn, -Inxn),
               cbind(-Inxn, -Inxn))
-    # I = sparseMatrix(c(1:N, 1:N, (N+1):(2*N), (N+1):(2*N)),
-    #                  c(1:N, (N+1):(2*N), 1:N, (N+1):(2*N)),
-    #                  x = c(rep(1, N), rep(-1, 3*N)))
     jl = rep(-Inf, 2*N)
     ju = rep(1, 2*N)
 
@@ -185,12 +182,8 @@ optweight.svy.fit <- function(covs, tols = 0, targets, s.weights = NULL, norm = 
 
     #Conversion constraints
     Inxn = sparseMatrix(1:N, 1:N, x = 1)
-    #one = matrix(1, nrow = N, ncol = 1)
     I = rbind(cbind(Inxn, -Inxn),
               cbind(-Inxn, -Inxn))
-    # I = sparseMatrix(c(1:N, 1:N, (N+1):(2*N), (N+1):(2*N)),
-    #                  c(1:N, rep(N+1, N), 1:N, rep(N+1, N)),
-    #                  x = c(rep(1, N), rep(-1, 3*N)))
     jl = rep(-Inf, 2*N)
     ju = rep(1, 2*N)
 

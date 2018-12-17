@@ -4,7 +4,6 @@ optweight.fit <- function(treat.list, covs.list, tols, estimand = "ATE", targets
 
   #Process args
   args[names(args) %nin% names(formals(rosqp::osqpSettings))] <- NULL
-  if (is_null(args[["adaptive_rho"]])) args[["adaptive_rho"]] <- TRUE
   if (is_null(args[["max_iter"]])) args[["max_iter"]] <- 2E5L
   if (is_null(args[["eps_abs"]])) args[["eps_abs"]] <- 1E-8
   if (is_null(args[["eps_rel"]])) args[["eps_rel"]] <- 1E-8
@@ -21,14 +20,7 @@ optweight.fit <- function(treat.list, covs.list, tols, estimand = "ATE", targets
     }
   }
   if (any(missing.args)) stop(paste(word.list(names(missing.args)[missing.args]), "must be supplied."), call. = FALSE)
-  if (any(args.not.list)) stop(paste(word.list(names(args.not.list)[args.not.list]), "must be a list."), call. = FALSE)
-
-  # if (missing(treat.list)) stop("treat.list must be supplied.", call. = FALSE)
-  # else if (!is.vector(treat.list, mode = "list")) stop("treat.list must be a list.", call. = FALSE)
-  # if (missing(covs.list)) stop("covs.list must be supplied.", call. = FALSE)
-  # else if (!is.vector(covs.list, mode = "list")) stop("covs.list must be a list.", call. = FALSE)
-  # if (missing(tols)) stop("tols must be supplied.", call. = FALSE)
-  # else if (length(tols) > 0 && !is.vector(tols, mode = "list")) stop("tols must be a list.", call. = FALSE)
+  if (any(args.not.list)) stop(paste(word.list(names(args.not.list)[args.not.list]), "must be", ifelse(sum(args.not.list) > 1, "lists.", "a list.")), call. = FALSE)
 
   treat.types <- vapply(treat.list, function(x) {
     if (is.factor(x) || is.character(x) || is_binary(x)) "cat"
@@ -52,9 +44,10 @@ optweight.fit <- function(treat.list, covs.list, tols, estimand = "ATE", targets
   else sw <- s.weights
 
   norm.options <- c("l2", "l1", "linf")
-  if (!isTRUE(norm %in% norm.options)) {
+  if (length(norm) != 1 || !is.character(norm) || tolower(norm) %nin% norm.options) {
     stop(paste0("norm must be ", word.list(norm.options, and.or = "or", quotes = TRUE), "."), call. = FALSE)
   }
+  else norm <- tolower(norm)
 
   estimand <- toupper(estimand)
 
@@ -546,7 +539,9 @@ optweight.fit <- function(treat.list, covs.list, tols, estimand = "ATE", targets
 
   opt_out <- list(w = w,
                   duals = duals,
-                  info = out$info)
+                  info = out$info,
+                  out = out,
+                  A = A)
   class(opt_out) <- "optweight.fit"
 
   return(opt_out)
