@@ -6,7 +6,7 @@ check.tols <- function(formula, data = NULL, tols, stop = FALSE) {
 
   #Process treat and covs from formula and data
   tt <- delete.response(terms(formula))
-  t.c <- get.covs.and.treat.from.formula(tt, data)
+  t.c <- get.covs.and.treat.from.formula(tt, data, terms = TRUE, sep = "_")
   formula.covs <- t.c[["reported.covs"]]
   model.covs <- t.c[["model.covs"]]
 
@@ -87,7 +87,7 @@ check.targets <- function(formula, data = NULL, targets, stop = FALSE) {
 
   #Process treat and covs from formula and data
   tt <- delete.response(terms(formula))
-  t.c <- get.covs.and.treat.from.formula(tt, data)
+  t.c <- get.covs.and.treat.from.formula(tt, data, terms = TRUE, sep = "_")
   formula.covs <- t.c[["reported.covs"]]
   model.covs <- t.c[["model.covs"]]
 
