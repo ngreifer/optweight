@@ -12,6 +12,7 @@ optweight(formula,
           s.weights = NULL,
           focal = NULL,
           verbose = FALSE,
+          force = FALSE,
           ...)
 
 \method{print}{optweight}(x, ...)
@@ -45,6 +46,9 @@ When multinomial treatments are used and the "ATT" is requested, which group to 
 }
   \item{verbose}{
 Whether information on the optimization problem solution should be printed. This information contains how many iterations it took to estimate the weights and whether the solution is optimal.
+}
+  \item{force}{
+optweights are currently not valid for use with longitudinal treatments, and will produce an error message if attempted. Set to \code{TRUE} to bypass this error message.
 }
   \item{\dots}{
 For \code{optweight}, arguments passed to \code{\link{optweight.fit}}. Ignored otherwise.
@@ -89,7 +93,7 @@ If standardized tolerance values are requested, the standardization factor corre
 
 For continuous treatments, weights are estimated so that the weighted correlation between the treatment and each covariate is within the specified tolerance threshold. If the ATE is requested or a target population is specified, the means of the weighted covariates and treatment are restricted to be equal to those of the target population to ensure generalizability to the desired target population. The weighted correlation is computed as the weighted covariance divided by the product of the \emph{unweighted} standard deviations. The means used to center the variables in computing the covariance are those specified in the target population.
 
-For longitudinal treatments, only "wide" data sets, where each row corresponds to a unit's entire variable history, are supported. You can use \code{\link{reshape}} or other functions to transform your data into this format; see example in the documentation for \code{weightitMSM} in the \pkg{WeightIt} package.
+For longitudinal treatments, only "wide" data sets, where each row corresponds to a unit's entire variable history, are supported. You can use \code{\link{reshape}} or other functions to transform your data into this format; see example in the documentation for \code{weightitMSM} in the \pkg{WeightIt} package. Currently, longtiduinal treatments are not recommended as optweight's use with them has not been validated.
 
 \subsection{Dual Variables}{
 Two types of constriants may be associated with each covariate: target constraints and balance constraints. Target constraints require the mean of the covariate to be at (or near) a specific target value in each treatment group (or for the whole group when treatment is continuous). Balance constraints require the means of the covariate in pairs of treatments to be near each other. For binary and multinomial treatments, balance constraints are redundant if target constraints are provided for a variable. For continuous variables, balance constraints refer to the correlation between treatment and the covariate and are not redundant with target constraints. In the \code{duals} component of the output, each covariate has a dual variable for each nonredundant constraint placed on it.
@@ -153,22 +157,23 @@ bal.tab(ow1)
                 tols = 0, estimand = "ATT", focal = "black"))
 bal.tab(ow2)
 
-#Balancng covariates with longitudinal treatments
-library("twang")
-data("iptwExWide")
-
-##Weighting more recent covariates more strictly
-(ow3 <- optweight(list(tx1 ~ use0 + gender + age,
-                      tx2 ~ tx1 + use1 + use0  + gender +
-                            age,
-                      tx3 ~ tx2 + use2 + tx1 + use1 +
-                            use0 + gender + age),
-                 data = iptwExWide,
-                 tols = list(c(.001, .001, .001),
-                             c(.001, .001, .01, .01, .01),
-                             c(.001, .001, .01, .01,
-                               .1, .1, .1))))
-bal.tab(ow3)
+# #Balancing covariates with longitudinal treatments
+# #NOT VALID; DO NOT DO THIS.
+# library("twang")
+# data("iptwExWide")
+#
+# ##Weighting more recent covariates more strictly
+# (ow3 <- optweight(list(tx1 ~ use0 + gender + age,
+#                        tx2 ~ tx1 + use1 + use0  + gender +
+#                          age,
+#                        tx3 ~ tx2 + use2 + tx1 + use1 +
+#                          use0 + gender + age),
+#                   data = iptwExWide,
+#                   tols = list(c(.001, .001, .001),
+#                               c(.001, .001, .01, .01, .01),
+#                               c(.001, .001, .01, .01,
+#                                 .1, .1, .1))))
+# bal.tab(ow3)
 
 #Balancing covariates between treatment groups (binary)
 #and requesting a specified target population

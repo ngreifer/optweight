@@ -14,6 +14,7 @@ optweight.fit(treat.list,
               std.cont = TRUE,
               min.w = 1E-8,
               verbose = FALSE,
+              force = FALSE,
               ...)
 }
 \description{
@@ -54,6 +55,9 @@ A single \code{numeric} value between 0 and 1 for the smallest allowable weight.
   \item{verbose}{
 Whether information on the optimization problem solution should be printed. This information contains how many iterations it took to estimate the weights and whether the solution is optimal.
 }
+  \item{force}{
+optweights are currently not valid for use with longitudinal treatments, and will produce an error message if attempted. Set to \code{TRUE} to bypass this error message.
+}
   \item{\dots}{
 Options that are passed to \code{\link[rosqp]{osqpSettings}} for use in the \code{par} arguments of \code{\link[rosqp]{solve_osqp}}. See Details for defaults.
 }
@@ -70,6 +74,8 @@ Options that are passed to \code{\link[rosqp]{osqpSettings}} for use in the \cod
 \code{optweight.fit} transforms the inputs into the required inputs for \code{\link[rosqp]{solve_osqp}}, which are (sparse) matrices and vectors, and then supplies the outputs (the weights, duals variables, and convergence information) back to \code{optweight}. No processing of inputs is performed, as this is normally handled by \code{optweight}.
 
 The default values for some of the parameters sent to \code{solve_osqp} are not the same as those in \code{osqpSettings}. The following are the differences: \code{max_iter} is set to 20000 and \code{eps_abs} and \code{eps_rel} are set to 1E-8 (i.e., 10^-8). All other values are the same.
+
+Note that optweights with longitudinal treatments are not valid and should not be used until further research is done. \code{optweight.fit} will not provide any error messages, but
 }
 
 \author{
