@@ -119,9 +119,10 @@ optweight.fit <- function(treat.list, covs.list, tols, estimand = "ATE", targets
       else if (std.binary && !std.cont) vars.to.standardize <- apply(covs.list[[i]], 2, is_binary)
       else vars.to.standardize <- rep(FALSE, length(tols.list[[i]]))
 
-      tols[[i]] <- ifelse(vars.to.standardize,
+      tols[[i]] <- ifelse(vars.to.standardize & !check_if_zero(tols.list[[i]]),
                           abs(tols.list[[i]]*sds[[i]]), #standardize
                           abs(tols.list[[i]]))
+
       #Note: duals work incorrecly unless tols are > 0, so replace small tols with
       #sqrt(.Machine$double.eps).
       # tols[[i]] <- ifelse(tols[[i]] < sqrt(.Machine$double.eps),
