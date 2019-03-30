@@ -112,6 +112,8 @@ print.summary.optweight <- function(x, ...) {
 }
 
 summary.optweightMSM <- function(object, top = 5, ignore.s.weights = FALSE, ...) {
+  warning("Optweights are currently not valid for longitudinal treatments. Use at your own risk.", call. = FALSE)
+
   outnames <- c("weight.range", "weight.top","weight.ratio",
                 "coef.of.var", "weight.mean",
                 "effective.sample.size")
