@@ -75,14 +75,14 @@ optweight.fit <- function(treat.list, covs.list, tols, estimand = "ATE", targets
         if (i == 1) {
           if (is_null(focal)) focal <- max(treat.list[[i]])
           else if (estimand == "ATC") focal <- min(treat.list[[i]])
-          col.w.m(covs.list[[i]][treat.list[[i]] == focal,], w = sw[treat.list[[i]] == focal])
+          col.w.m(covs.list[[i]][treat.list[[i]] == focal, , drop = FALSE], w = sw[treat.list[[i]] == focal])
         }
         else rep(NA_real_, ncol(covs.list[[i]]))
       })
       sds <- lapply(times, function(i) {
         if (is_null(focal)) focal <- max(treat.list[[i]])
         else if (estimand == "ATC") focal <- min(treat.list[[i]])
-        sqrt(col.w.v(covs.list[[i]][treat.list[[i]] == focal,], w = sw[treat.list[[i]] == focal]))
+        sqrt(col.w.v(covs.list[[i]][treat.list[[i]] == focal, , drop = FALSE], w = sw[treat.list[[i]] == focal]))
       })
       sw[treat.list[[1]]==focal] <- 1
     }
