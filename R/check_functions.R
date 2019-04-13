@@ -11,7 +11,6 @@ check.tols <- function(formula, data = NULL, tols, stop = FALSE) {
   model.covs <- t.c[["model.covs"]]
 
   formula.vars <- attr(attr(formula.covs, "terms"), "term.labels")
-  #formula.vars <- attr(tt, "term.labels")
   if (is_null(formula.vars)) {
     formula.vars <- "(Intercept)"
     attr(model.covs, "assign") <- 1
@@ -92,7 +91,6 @@ check.targets <- function(formula, data = NULL, targets, stop = FALSE) {
   model.covs <- t.c[["model.covs"]]
 
   formula.vars <- attr(attr(formula.covs, "terms"), "term.labels")
-  #formula.vars <- attr(tt, "term.labels")
   if (is_null(formula.vars)) {
     formula.vars <- "(Intercept)"
     attr(model.covs, "assign") <- 1
