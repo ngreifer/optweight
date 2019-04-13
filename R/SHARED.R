@@ -220,6 +220,7 @@ w.v <- function(x, w = NULL) {
   w.cov(x, x, w = w)
 }
 w.cov <- function(x, y, w = NULL) {
+  if (is_null(w)) w <- as.numeric(!is.na(x))
   wmx <- w.m(x, w)
   wmy <- w.m(y, w)
   w.cov.scale <- (sum(w, na.rm = TRUE)^2 - sum(w^2, na.rm = TRUE)) / sum(w, na.rm = TRUE)
@@ -263,22 +264,27 @@ is.formula <- function(f, sides = NULL) {
 }
 
 #treat/covs
-get.covs.and.treat.from.formula <- function(f, data = NULL, env = .GlobalEnv, terms = FALSE, sep = "", ...) {
+get.covs.and.treat.from.formula <- function(f, data = NULL, terms = FALSE, sep = "", ...) {
   A <- list(...)
-
-  tt <- terms(f, data = data)
 
   #Check if data exists
   if (is_not_null(data) && is.data.frame(data)) {
     data.specified <- TRUE
   }
-  else data.specified <- FALSE
+  else {
+    data <- environment(f)
+    data.specified <- FALSE
+  }
+
+  env <- environment(f)
+
+  tt <- terms(f)
 
   #Check if response exists
   if (is.formula(tt, 2)) {
     resp.vars.mentioned <- as.character(tt)[2]
     resp.vars.failed <- vapply(resp.vars.mentioned, function(v) {
-      null.or.error(try(eval(parse(text = v), c(data, env)), silent = TRUE))
+      null.or.error(try(eval(parse(text=v)[[1]], data, env), silent = TRUE))
     }, logical(1L))
 
     if (any(resp.vars.failed)) {
@@ -290,14 +296,7 @@ get.covs.and.treat.from.formula <- function(f, data = NULL, env = .GlobalEnv, te
 
   if (any(!resp.vars.failed)) {
     treat.name <- resp.vars.mentioned[!resp.vars.failed][1]
-    tt.treat <- terms(as.formula(paste0(treat.name, " ~ 1")))
-    mf.treat <- quote(stats::model.frame(tt.treat, data,
-                                         drop.unused.levels = TRUE,
-                                         na.action = "na.pass"))
-
-    tryCatch({mf.treat <- eval(mf.treat, c(data, env))},
-             error = function(e) {stop(conditionMessage(e), call. = FALSE)})
-    treat <- model.response(mf.treat)
+    treat <- eval(parse(text=treat.name)[[1]], data, env)
   }
   else {
     treat <- A[["treat"]]
@@ -308,8 +307,8 @@ get.covs.and.treat.from.formula <- function(f, data = NULL, env = .GlobalEnv, te
   tt.covs <- delete.response(tt)
   rhs.vars.mentioned.lang <- attr(tt.covs, "variables")[-1]
   rhs.vars.mentioned <- vapply(rhs.vars.mentioned.lang, deparse, character(1L))
-  rhs.vars.failed <- vapply(rhs.vars.mentioned.lang, function(v) {
-    null.or.error(try(eval(v, c(data, env)), silent = TRUE))
+  rhs.vars.failed <- vapply(rhs.vars.mentioned, function(v) {
+    null.or.error(try(eval(parse(text=v)[[1]], data, env), silent = TRUE))
   }, logical(1L))
 
   if (any(rhs.vars.failed)) {
@@ -322,14 +321,14 @@ get.covs.and.treat.from.formula <- function(f, data = NULL, env = .GlobalEnv, te
   rhs.term.orders <- attr(tt.covs, "order")
 
   rhs.df <- vapply(rhs.vars.mentioned.lang, function(v) {
-    is.data.frame(try(eval(v, c(data, env)), silent = TRUE))
+    is.data.frame(try(eval(parse(text=v)[[1]], data, env), silent = TRUE))
   }, logical(1L))
 
   if (any(rhs.df)) {
     if (any(rhs.vars.mentioned[rhs.df] %in% unlist(lapply(rhs.term.labels[rhs.term.orders > 1], function(x) strsplit(x, ":", fixed = TRUE))))) {
       stop("Interactions with data.frames are not allowed in the input formula.", call. = FALSE)
     }
-    addl.dfs <- setNames(lapply(rhs.vars.mentioned.lang[rhs.df], function(x) {eval(x, env)}),
+    addl.dfs <- setNames(lapply(rhs.vars.mentioned[rhs.df], function(x) {eval(parse(text=x)[[1]], data, env)}),
                          rhs.vars.mentioned[rhs.df])
 
     for (i in rhs.term.labels[rhs.term.labels %in% rhs.vars.mentioned[rhs.df]]) {
@@ -341,7 +340,7 @@ get.covs.and.treat.from.formula <- function(f, data = NULL, env = .GlobalEnv, te
     new.form <- as.formula(paste("~", paste(rhs.term.labels, collapse = " + ")))
 
     tt.covs <- terms(new.form)
-    if (is_not_null(data)) data <- do.call("cbind", unname(c(addl.dfs, list(data))))
+    if (data.specified) data <- do.call("cbind", unname(c(addl.dfs, list(data))))
     else data <- do.call("cbind", unname(addl.dfs))
   }
 
@@ -350,7 +349,7 @@ get.covs.and.treat.from.formula <- function(f, data = NULL, env = .GlobalEnv, te
                                       drop.unused.levels = TRUE,
                                       na.action = "na.pass"))
 
-  tryCatch({covs <- eval(mf.covs, c(data, env))},
+  tryCatch({covs <- eval(mf.covs)},
            error = function(e) {stop(conditionMessage(e), call. = FALSE)})
 
   if (is_not_null(treat.name) && treat.name %in% names(covs)) stop("The variable on the left side of the formula appears on the right side too.", call. = FALSE)
