@@ -53,11 +53,11 @@ An \code{optweight.svy} object; the output of a call to \code{optweight.svy()}.
   \item{call}{The function call.}
   \item{tols}{The tolerance values for each covariate.}
   \item{duals}{A data.frame containing the dual variables for each covariate. See Details for interpretation of these values.}
-  \item{info}{The \code{info} component of the output of \code{\link[rosqp]{solve_osqp}}, which contains information on the performance of the optimization at termination.}
+  \item{info}{The \code{info} component of the output of \code{\link[osqp]{solve_osqp}}, which contains information on the performance of the optimization at termination.}
 
 }
 \details{
-The optimization is performed by the lower-level function \code{\link{optweight.svy.fit}} using \code{\link[rosqp]{solve_osqp}} in the \pkg{rosqp} package, which provides a straightforward interface to specifying the constraints and objective function for quadratic optimization problems and uses a fast and flexible solving algorithm.
+The optimization is performed by the lower-level function \code{\link{optweight.svy.fit}} using \code{\link[osqp]{solve_osqp}} in the \pkg{osqp} package, which provides a straightforward interface to specifying the constraints and objective function for quadratic optimization problems and uses a fast and flexible solving algorithm.
 
 Weights are estimated so that the standardized differences between the weighted covariate means and the corresponding targets are within the given tolerance thresholds (unless \code{std.binary} or \code{std.cont} are \code{FALSE}, in which case unstandardized mean differences are considered for binary and continuous variables, respectively). For a covariate \eqn{x} with specified tolerance \eqn{\delta}, the weighted mean will be within \eqn{\delta} of teh target. If standardized tolerance values are requested, the standardization factor is the standard deviation of the covariate in the whole sample. The standardization factor is always unweighted.
 
@@ -84,15 +84,15 @@ Noah Greifer
 }
 
 \references{
-Anderson, E. (2018). rosqp: Quadratic Programming Solver using the 'OSQP' Library. R package version 0.1.0. \url{https://CRAN.R-project.org/package=rosqp}
+Anderson, E. (2018). osqp: Quadratic Programming Solver using the 'OSQP' Library. R package version 0.1.0. \url{https://CRAN.R-project.org/package=osqp}
 
 Zubizarreta, J. R. (2015). Stable Weights that Balance Covariates for Estimation With Incomplete Outcome Data. Journal of the American Statistical Association, 110(511), 910–922. \doi{10.1080/01621459.2015.1023805}
 }
 
 \seealso{
-\url{https://osqp.org/docs/index.html} for more information on \pkg{rosqp}, the underlying solver, and the options for \code{\link[rosqp]{solve_osqp}}.
+\url{https://osqp.org/docs/index.html} for more information on \pkg{osqp}, the underlying solver, and the options for \code{\link[osqp]{solve_osqp}}.
 
-\code{\link[rosqp]{osqpSettings}} for details on options for \code{solve_osqp}.
+\code{\link[osqp]{osqpSettings}} for details on options for \code{solve_osqp}.
 
 \code{\link{optweight.svy.fit}}, the lower-level function that performs the fitting.
 }

@@ -70,7 +70,7 @@ An \code{optweight} or \code{optweightMSM} object; the output of a call to \code
   \item{call}{The function call.}
   \item{tols}{The tolerance values for each covariate.}
   \item{duals}{A data.frame containing the dual variables for each covariate. See Details for interpretation of these values.}
-  \item{info}{The \code{info} component of the output of \code{\link[rosqp]{solve_osqp}}, which contains information on the performance of the optimization at termination.}
+  \item{info}{The \code{info} component of the output of \code{\link[osqp]{solve_osqp}}, which contains information on the performance of the optimization at termination.}
 
   Otherwise, if multiple time points are specified, an \code{optmatchMSM} object with the following elements:
   \item{weights}{The estimated weights, one for each unit.}
@@ -81,11 +81,11 @@ An \code{optweight} or \code{optweightMSM} object; the output of a call to \code
   \item{call}{The function call.}
   \item{tols}{A list of tolerance values for each covariate at each time point.}
   \item{duals}{A list of data.frames containing the dual variables for each covariate at each time point. See Details for interpretation of these values.}
-  \item{info}{The \code{info} component of the output of \code{\link[rosqp]{solve_osqp}}, which contains information on the performance of the optimization at termination.}
+  \item{info}{The \code{info} component of the output of \code{\link[osqp]{solve_osqp}}, which contains information on the performance of the optimization at termination.}
 
 }
 \details{
-The optimization is performed by the lower-level function \code{\link{optweight.fit}} using \code{\link[rosqp]{solve_osqp}} in the \pkg{rosqp} package, which provides a straightforward interface to specifying the constraints and objective function for quadratic optimization problems and uses a fast and flexible solving algorithm.
+The optimization is performed by the lower-level function \code{\link{optweight.fit}} using \code{\link[osqp]{solve_osqp}} in the \pkg{osqp} package, which provides a straightforward interface to specifying the constraints and objective function for quadratic optimization problems and uses a fast and flexible solving algorithm.
 
 For binary and multinomial treatments, weights are estimated so that the weighted mean differences of the covariates are within the given tolerance thresholds (unless \code{std.binary} or \code{std.cont} are \code{TRUE}, in which case standardized mean differences are considered for binary and continuous variables, respectively). For a covariate \eqn{x} with specified tolerance \eqn{\delta}, the weighted means of each each group will be within \eqn{\delta} of each other. Additionally, when the ATE is specified as the estimand or a target population is specified, the weighted means of each group will each be within \eqn{\delta/2} of the target means; this ensures generalizability to the same population from which the original sample was drawn.
 
@@ -123,7 +123,7 @@ Noah Greifer
 }
 
 \references{
-Anderson, E. (2018). rosqp: Quadratic Programming Solver using the 'OSQP' Library. R package version 0.1.0. \url{https://CRAN.R-project.org/package=rosqp}
+Anderson, E. (2018). osqp: Quadratic Programming Solver using the 'OSQP' Library. R package version 0.1.0. \url{https://CRAN.R-project.org/package=osqp}
 
 Wang, Y., & Zubizarreta, J. R. (2017). Approximate Balancing Weights: Characterizations from a Shrinkage Estimation Perspective. ArXiv:1705.00998 [Math, Stat]. Retrieved from \url{http://arxiv.org/abs/1705.00998}
 
@@ -133,9 +133,9 @@ Zubizarreta, J. R. (2015). Stable Weights that Balance Covariates for Estimation
 }
 
 \seealso{
-\url{https://osqp.org/docs/index.html} for more information on \pkg{rosqp}, the underlying solver, and the options for \code{\link[rosqp]{solve_osqp}}.
+\url{https://osqp.org/docs/index.html} for more information on \pkg{osqp}, the underlying solver, and the options for \code{\link[osqp]{solve_osqp}}.
 
-\code{\link[rosqp]{osqpSettings}} for details on options for \code{solve_osqp}.
+\code{\link[osqp]{osqpSettings}} for details on options for \code{solve_osqp}.
 
 \code{\link{optweight.fit}}, the lower-level function that performs the fitting.
 }

@@ -22,8 +22,8 @@ opt <- function(A, B, E, F, G, H, method = "quadprog") {
   }
   else if (method == "osqp") {
 
-    out <- rosqp::solve_osqp(P = Dmat, q = -dvec, A = t(Amat), l = bvec, u = upper,
-                             pars = rosqp::osqpSettings(adaptive_rho = FALSE,
+    out <- osqp::solve_osqp(P = Dmat, q = -dvec, A = t(Amat), l = bvec, u = upper,
+                             pars = osqp::osqpSettings(adaptive_rho = FALSE,
                                                         #rho = 5e-3,
                                                         max_iter = 200000L,
                                                         verbose = FALSE))
@@ -146,7 +146,7 @@ H3l = rep(targets, 2)
 H3u = H3l
 
 #Process args
-args[names(args) %nin% names(formals(rosqp::osqpSettings))] <- NULL
+args[names(args) %nin% names(formals(osqp::osqpSettings))] <- NULL
 if (is_null(args[["adaptive_rho"]])) args[["adaptive_rho"]] <- TRUE
 if (is_null(args[["max_iter"]])) args[["max_iter"]] <- 2E5
 if (is_null(args[["eps_abs"]])) args[["eps_abs"]] <- 1E-9
@@ -157,5 +157,5 @@ A  <- rbind(G1, E1, G3, G2)
 lower <- c(H1l, F1l, H3l, H2l)
 upper <- c(H1u, F1u, H3u, H2u)
 
-out <- rosqp::solve_osqp(P = P, q = q, A = A, l = lower, u = upper,
-                         pars = do.call(rosqp::osqpSettings, args))
+out <- osqp::solve_osqp(P = P, q = q, A = A, l = lower, u = upper,
+                         pars = do.call(osqp::osqpSettings, args))

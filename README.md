@@ -9,7 +9,7 @@
 `optweight` contains functions to estimate weights that balance
 treatments to given balance thresholds. It solves a quadratic
 programming problem to minimize an objective function of the weights
-using `solve_osqp()` in the `rosqp` package. This is the method
+using `solve_osqp()` in the `osqp` package. This is the method
 described in Zubizarreta (2015). `optweight` extends the method to
 multinomial, continuous, and longitudinal treatments and provides a
 simple user interface and compatibility with the `cobalt` package.

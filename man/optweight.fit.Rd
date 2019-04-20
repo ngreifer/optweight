@@ -18,7 +18,7 @@ optweight.fit(treat.list,
               ...)
 }
 \description{
-\code{optweight.fit} performs the optimization (via \pkg{rosqp}; Anderson, 2018) for \code{optweight} and should, in most coses, not be used directly. No processing of inputs is performed, so they must be given exactly as described below.
+\code{optweight.fit} performs the optimization (via \pkg{osqp}; Anderson, 2018) for \code{optweight} and should, in most coses, not be used directly. No processing of inputs is performed, so they must be given exactly as described below.
 }
 \arguments{
   \item{treat.list}{
@@ -59,7 +59,7 @@ Whether information on the optimization problem solution should be printed. This
 optweights are currently not valid for use with longitudinal treatments, and will produce an error message if attempted. Set to \code{TRUE} to bypass this error message.
 }
   \item{\dots}{
-Options that are passed to \code{\link[rosqp]{osqpSettings}} for use in the \code{par} arguments of \code{\link[rosqp]{solve_osqp}}. See Details for defaults.
+Options that are passed to \code{\link[osqp]{osqpSettings}} for use in the \code{par} arguments of \code{\link[osqp]{solve_osqp}}. See Details for defaults.
 }
 
 }
@@ -67,11 +67,11 @@ Options that are passed to \code{\link[rosqp]{osqpSettings}} for use in the \cod
   An \code{optweight.fit} object with the following elements:
   \item{w}{The estimated weights, one for each unit.}
   \item{duals}{A data.frame containing the dual variables for each covariate, or a list thereof. See Zubizarreta (2015) for interpretation of these values.}
-  \item{info}{The \code{info} component of the output of \code{\link[rosqp]{solve_osqp}}, which contains information on the performance of the optimization at termination.}
+  \item{info}{The \code{info} component of the output of \code{\link[osqp]{solve_osqp}}, which contains information on the performance of the optimization at termination.}
 
 }
 \details{
-\code{optweight.fit} transforms the inputs into the required inputs for \code{\link[rosqp]{solve_osqp}}, which are (sparse) matrices and vectors, and then supplies the outputs (the weights, duals variables, and convergence information) back to \code{optweight}. No processing of inputs is performed, as this is normally handled by \code{optweight}.
+\code{optweight.fit} transforms the inputs into the required inputs for \code{\link[osqp]{solve_osqp}}, which are (sparse) matrices and vectors, and then supplies the outputs (the weights, duals variables, and convergence information) back to \code{optweight}. No processing of inputs is performed, as this is normally handled by \code{optweight}.
 
 The default values for some of the parameters sent to \code{solve_osqp} are not the same as those in \code{osqpSettings}. The following are the differences: \code{max_iter} is set to 20000 and \code{eps_abs} and \code{eps_rel} are set to 1E-8 (i.e., 10^-8). All other values are the same.
 
@@ -83,7 +83,7 @@ Noah Greifer
 }
 
 \references{
-Anderson, E. (2018). rosqp: Quadratic Programming Solver using the 'OSQP' Library. R package version 0.1.0. \url{https://CRAN.R-project.org/package=rosqp}
+Anderson, E. (2018). osqp: Quadratic Programming Solver using the 'OSQP' Library. R package version 0.1.0. \url{https://CRAN.R-project.org/package=osqp}
 
 Wang, Y., & Zubizarreta, J. R. (2017). Approximate Balancing Weights: Characterizations from a Shrinkage Estimation Perspective. ArXiv:1705.00998 [Math, Stat]. Retrieved from \url{http://arxiv.org/abs/1705.00998}
 
@@ -95,9 +95,9 @@ Zubizarreta, J. R. (2015). Stable Weights that Balance Covariates for Estimation
 \seealso{
 \code{\link{optweight}} which you should use for estimating the balancing weights, unless you know better.
 
-\url{https://osqp.org/docs/index.html} for more information on \pkg{rosqp}, the underlying solver, and the options for \code{\link[rosqp]{solve_osqp}}.
+\url{https://osqp.org/docs/index.html} for more information on \pkg{osqp}, the underlying solver, and the options for \code{\link[osqp]{solve_osqp}}.
 
-\code{\link[rosqp]{osqpSettings}} for details on options for \code{solve_osqp}.
+\code{\link[osqp]{osqpSettings}} for details on options for \code{solve_osqp}.
 }
 
 \examples{

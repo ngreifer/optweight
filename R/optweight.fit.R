@@ -3,7 +3,7 @@ optweight.fit <- function(treat.list, covs.list, tols, estimand = "ATE", targets
   args <- list(...)
 
   #Process args
-  args[names(args) %nin% names(formals(rosqp::osqpSettings))] <- NULL
+  args[names(args) %nin% names(formals(osqp::osqpSettings))] <- NULL
   if (is_null(args[["max_iter"]])) args[["max_iter"]] <- 2E5L
   if (is_null(args[["eps_abs"]])) args[["eps_abs"]] <- 1E-8
   if (is_null(args[["eps_rel"]])) args[["eps_rel"]] <- 1E-8
@@ -242,8 +242,8 @@ optweight.fit <- function(treat.list, covs.list, tols, estimand = "ATE", targets
     lower <- c(H1l, F1l, H3l, H2l)
     upper <- c(H1u, F1u, H3u, H2u)
 
-    out <- rosqp::solve_osqp(P = P, q = q, A = A, l = lower, u = upper,
-                             pars = do.call(rosqp::osqpSettings, args))
+    out <- osqp::solve_osqp(P = P, q = q, A = A, l = lower, u = upper,
+                             pars = do.call(osqp::osqpSettings, args))
 
     #Get dual vars for balance and target constraints
     G3.indices <- if (is_null(G3)) NULL else (NROW(G1)+NROW(E1)+1):(NROW(G1)+NROW(E1)+NROW(G3))
@@ -356,8 +356,8 @@ optweight.fit <- function(treat.list, covs.list, tols, estimand = "ATE", targets
     lowerz = c(lower, H1lz, jl)
     upperz = c(upper, H1uz, ju)
 
-    out <- rosqp::solve_osqp(P = P, q = q, A = Az, l = lowerz, u = upperz,
-                             pars = do.call(rosqp::osqpSettings, args))
+    out <- osqp::solve_osqp(P = P, q = q, A = Az, l = lowerz, u = upperz,
+                             pars = do.call(osqp::osqpSettings, args))
 
     w <- out$x[1:N]
 
@@ -483,8 +483,8 @@ optweight.fit <- function(treat.list, covs.list, tols, estimand = "ATE", targets
     lowerz = c(lower, H1lz, jl)
     upperz = c(upper, H1uz, ju)
 
-    out <- rosqp::solve_osqp(P = P, q = q, A = Az, l = lowerz, u = upperz,
-                             pars = do.call(rosqp::osqpSettings, args))
+    out <- osqp::solve_osqp(P = P, q = q, A = Az, l = lowerz, u = upperz,
+                             pars = do.call(osqp::osqpSettings, args))
 
     w <- out$x[1:N]
 
