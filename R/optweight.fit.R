@@ -1,9 +1,10 @@
 optweight.fit <- function(treat.list, covs.list, tols, estimand = "ATE", targets = NULL, s.weights = NULL, focal = NULL, norm = "l2", std.binary = FALSE, std.cont = TRUE, min.w = 1E-8, verbose = FALSE, force = FALSE, ...) {
-
+  #For corr.type, make sure duals process correctly
   args <- list(...)
 
   #Process args
-  corr.type <- if (is_not_null(args[["corr.type"]])) match_arg(args[["corr.type"]], c("pearson", "spearman", "both")) else "pearson"
+  # corr.type <- if (is_not_null(args[["corr.type"]])) match_arg(tolower(args[["corr.type"]]), c("pearson", "spearman", "both")) else "pearson"
+  corr.type<- "pearson"
 
   args[names(args) %nin% names(formals(osqp::osqpSettings))] <- NULL
   if (is_null(args[["max_iter"]])) args[["max_iter"]] <- 2E5L
@@ -227,7 +228,7 @@ optweight.fit <- function(treat.list, covs.list, tols, estimand = "ATE", targets
           t(covs.list[[i]][, balanced[[i]], drop = FALSE] * (treat.list[[i]] == comb[1]) * sw / n[[i]][comb[1]]) - t(covs.list[[i]][, balanced[[i]], drop = FALSE] * (treat.list[[i]] == comb[2]) * sw / n[[i]][comb[2]])
         }))
         else {
-          correct.factor <- 2
+          correct.factor <- 2 #see w.cov
           if (corr.type == "pearson")  t(covs.list[[i]][, balanced[[i]], drop = FALSE] * treat.list[[i]] * sw / (n[[i]] - correct.factor)) #For cont, all have balancing constraints
           else if (corr.type == "spearman")  t(apply(covs.list[[i]][, balanced[[i]], drop = FALSE], 2, rank) * treat.list[[i]] * sw / (n[[i]] - correct.factor)) #For cont, all have balancing constraints
           else {
