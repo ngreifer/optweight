@@ -1,6 +1,14 @@
 optweight News and Updates
 ======
 
+Version 0.2.3
+
+* The `rosqp` package is now `osqp`, and is faster with fewer bugs.
+
+* If `focal` is set, the estimand is automatically changed to `"ATT"`. In the past, `focal` would be ignored unless `estimand = "ATT"`.
+
+* Fixed some bugs with processing formula inputs. In particular, functions can be used inside `lapply` loops and nested functions more gracefully.
+
 Version 0.2.2
 
 * Fixed bug with duals displaying improperly when factor variables are present.
