@@ -28,7 +28,7 @@ An optional data set in the form of a data frame that contains the variables in 
 A vector of target balance tolerance values for each covariate. The resulting weighted covariate means will be no further away from the targets than the specified values. If only one value is supplied, it will be applied to all covariates. Can also be the output of a call to \code{\link{check.tols}}. See Details.
 }
   \item{targets}{
-A vector of target populaton mean values for each covariate. The resulting weights will yield sample means within \code{tols} units of the target values for each covariate. If any target values are \code{NA}, the corresponding variable will not be targeted and its weighted mean will be wherever the weights yield the smallest variance. To ensure the weighted mean for a covairate is equal to its unweighted mean (i.e., so that its orginal mean is its target mean), its original mean must be supplied as a target. See Details.
+A vector of target populaton mean values for each covariate. The resulting weights will yield sample means within \code{tols} units of the target values for each covariate. If any target values are \code{NA}, the corresponding variable will not be targeted and its weighted mean will be wherever the weights yield the smallest variance. To ensure the weighted mean for a covairate is equal to its unweighted mean (i.e., so that its orginal mean is its target mean), its original mean must be supplied as a target.
 }
   \item{s.weights}{
 A vector of sampling weights or the name of a variable in \code{data} that contains sampling weights. Optimization occurs on the product of the sampling weights and the estimated weights.
@@ -59,23 +59,9 @@ An \code{optweight.svy} object; the output of a call to \code{optweight.svy()}.
 \details{
 The optimization is performed by the lower-level function \code{\link{optweight.svy.fit}} using \code{\link[osqp]{solve_osqp}} in the \pkg{osqp} package, which provides a straightforward interface to specifying the constraints and objective function for quadratic optimization problems and uses a fast and flexible solving algorithm.
 
-Weights are estimated so that the standardized differences between the weighted covariate means and the corresponding targets are within the given tolerance thresholds (unless \code{std.binary} or \code{std.cont} are \code{FALSE}, in which case unstandardized mean differences are considered for binary and continuous variables, respectively). For a covariate \eqn{x} with specified tolerance \eqn{\delta}, the weighted mean will be within \eqn{\delta} of teh target. If standardized tolerance values are requested, the standardization factor is the standard deviation of the covariate in the whole sample. The standardization factor is always unweighted.
+Weights are estimated so that the standardized differences between the weighted covariate means and the corresponding targets are within the given tolerance thresholds (unless \code{std.binary} or \code{std.cont} are \code{FALSE}, in which case unstandardized mean differences are considered for binary and continuous variables, respectively). For a covariate \eqn{x} with specified tolerance \eqn{\delta}, the weighted mean will be within \eqn{\delta} of the target. If standardized tolerance values are requested, the standardization factor is the standard deviation of the covariate in the whole sample. The standardization factor is always unweighted.
 
-\subsection{Dual Variables}{
-Each covariate is associated with a target constraint. In the \code{duals} component of the output, each covariate has a dual variable for the constraint placed on it. The dual variable for each constraint is the instantaneous rate of change of the objective function at the optimum due to a change in the constraint. Because this relationship is not linear, large changes in the constraint will not exactly map onto corresponding changes in the objective function at the optimum, but will be close for small changes in the constraint. For example, for a covariate with a target balance constraint of .01 and a corresponding dual variable of .4, increasing (i.e., relaxing) the constraint to .025 will decrease the value of the objective function at the optimum by approximately (.025 - .01) * .4 = .006. When the L2 norm is used, this change corresponds to a change in the variance of the weights, which directly affects the effective sample size (though the magntidue of this effect depends on the original value of the effective sample size).
-
-For factor variables, \code{optweight} takes the sum of the absolute dual variables for the constraints for all levels and reports it as the the single dual variable for the variable itself. This summed dual variable works the same way as dual variables for continuous variables do.
-}
-
-\subsection{Solving Convergence Failure}{
-
-Sometimes the opimization will fail to converge at a solution. There are a variety of reasons why this might happen, which include that the constraints are nearly impossible to satisfy or that the optimization surface is relatively flat. It can be hard to know the exact cause or how to solve it, but this section offers some solutions one might try.
-
-Rarely is the problem too few iterations, though this is possible. Most problems can be solved in the default 200,000 iterations, but sometimes it can help to increase this number with the \code{max_iter} argument. Usually, though, this just ends up taking more time without a solution found.
-
-If the problem is that the constraints are too tight, it can be helpful to loosen the constraints. Sometimes examining the dual variables of a solution that has failed to converge can reveal which constraints are causing the problem.
-
-Sometimes a suboptimal solution is possible; such a solution does not satisfy the constraints exactly but will come pretty close. To allow these solutions, the arguments \code{eps_abs} and \code{eps_rel} can be increased from 1E-9 to larger values. These should be adjusted together since they both must be satisfied for converge to occur.
+See the \code{\link{optweight}} help page for information on interpreting dual variables and solving convergence failure.
 }
 }
 
@@ -95,6 +81,8 @@ Zubizarreta, J. R. (2015). Stable Weights that Balance Covariates for Estimation
 \code{\link[osqp]{osqpSettings}} for details on options for \code{solve_osqp}.
 
 \code{\link{optweight.svy.fit}}, the lower-level function that performs the fitting.
+
+\code{\link{optweight}} for estimating weights that balance treatment groups.
 }
 
 \examples{

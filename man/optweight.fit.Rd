@@ -75,7 +75,7 @@ Options that are passed to \code{\link[osqp]{osqpSettings}} for use in the \code
 
 The default values for some of the parameters sent to \code{solve_osqp} are not the same as those in \code{osqpSettings}. The following are the differences: \code{max_iter} is set to 20000 and \code{eps_abs} and \code{eps_rel} are set to 1E-8 (i.e., 10^-8). All other values are the same.
 
-Note that optweights with longitudinal treatments are not valid and should not be used until further research is done. \code{optweight.fit} will not provide any error messages, but
+Note that optweights with longitudinal treatments are not valid and should not be used until further research is done.
 }
 
 \author{

@@ -112,9 +112,9 @@ Rarely is the problem too few iterations, though this is possible. Most problems
 
 If the problem is that the constraints are too tight, it can be helpful to loosen the constraints. Sometimes examining the dual variables of a solution that has failed to converge can reveal which constraints are causing the problem.
 
-Sometimes a suboptimal solution is possible; such a solution does not satisfy the constraints exactly but will come pretty close. To allow these solutions, the arguments \code{eps_abs} and \code{eps_rel} can be increased from 1E-8 to larger values. These should be adjusted together since they both must be satisfied for convergence to occur.
+Sometimes a suboptimal solution is possible; such a solution does not satisfy the constraints exactly but will come pretty close. To allow these solutions, the arguments \code{eps_abs} and \code{eps_rel} can be increased from 1E-8 to larger values. These should be adjusted together since they both must be satisfied for convergence to occur; this can be done easily using the shortcut argument \code{eps}, which changes both \code{eps_abs} and \code{eps_rel} to the set value.
 
-With continuous treatments, solutions that failed to converge may still be useable. Make sure to assess balance and examine the weights even after a optimal solution is not found, because the solution that is fond may be good enough.
+With continuous treatments, solutions that failed to converge may still be useable. Make sure to assess balance and examine the weights even after a optimal solution is not found, because the solution that is found may be good enough.
 }
 }
 
