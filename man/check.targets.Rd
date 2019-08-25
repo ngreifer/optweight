@@ -53,6 +53,10 @@ Interactions (e.g., \code{a:b} or \code{a*b} in the \code{formula} input) are al
 Noah Greifer
 }
 
+\seealso{
+\code{\link{check.tols}}
+}
+
 \examples{
 library("cobalt")
 data("lalonde", package = "cobalt")

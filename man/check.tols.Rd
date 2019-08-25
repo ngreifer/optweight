@@ -60,6 +60,10 @@ Note that only one formula and vector of tolerance values can be assessed at a t
 Noah Greifer
 }
 
+\seealso{
+\code{\link{check.targets}}
+}
+
 \examples{
 library("cobalt")
 data("lalonde", package = "cobalt")
