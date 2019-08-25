@@ -6,6 +6,10 @@ optweight.fit <- function(treat.list, covs.list, tols, estimand = "ATE", targets
   # corr.type <- if (is_not_null(args[["corr.type"]])) match_arg(tolower(args[["corr.type"]]), c("pearson", "spearman", "both")) else "pearson"
   corr.type<- "pearson"
 
+  if (is_not_null(args[["eps"]])) {
+    if (is_null(args[["eps_abs"]])) args[["eps_abs"]] <- args[["eps"]]
+    if (is_null(args[["eps_rel"]])) args[["eps_rel"]] <- args[["eps"]]
+  }
   args[names(args) %nin% names(formals(osqp::osqpSettings))] <- NULL
   if (is_null(args[["max_iter"]])) args[["max_iter"]] <- 2E5L
   if (is_null(args[["eps_abs"]])) args[["eps_abs"]] <- 1E-8
@@ -22,8 +26,8 @@ optweight.fit <- function(treat.list, covs.list, tols, estimand = "ATE", targets
       args.not.list[arg] <- TRUE
     }
   }
-  if (any(missing.args)) stop(paste(word.list(names(missing.args)[missing.args]), "must be supplied."), call. = FALSE)
-  if (any(args.not.list)) stop(paste(word.list(names(args.not.list)[args.not.list]), "must be", ifelse(sum(args.not.list) > 1, "lists.", "a list.")), call. = FALSE)
+  if (any(missing.args)) stop(paste(word_list(names(missing.args)[missing.args]), "must be supplied."), call. = FALSE)
+  if (any(args.not.list)) stop(paste(word_list(names(args.not.list)[args.not.list]), "must be", ifelse(sum(args.not.list) > 1, "lists.", "a list.")), call. = FALSE)
 
   if (length(covs.list) > 1 && !force) stop("Optweights are currently not valid for longitudinal treatments. Set force = TRUE to bypass this message at your own risk.", call. = FALSE)
 
@@ -37,6 +41,7 @@ optweight.fit <- function(treat.list, covs.list, tols, estimand = "ATE", targets
   })
   if (!all(vapply(covs.list, function(c) all(apply(c, 2, is.numeric)), logical(1L)))) stop("All covariates must be numeric.", call. = FALSE)
   covs.list <- lapply(covs.list, as.matrix)
+  bin.covs.list <- lapply(covs.list, function(x) apply(x, 2, is_binary))
 
   times <- seq_along(covs.list)
 
@@ -50,9 +55,8 @@ optweight.fit <- function(treat.list, covs.list, tols, estimand = "ATE", targets
 
   norm.options <- c("l2", "l1", "linf")
   if (length(norm) != 1 || !is.character(norm) || tolower(norm) %nin% norm.options) {
-    stop(paste0("norm must be ", word.list(norm.options, and.or = "or", quotes = TRUE), "."), call. = FALSE)
-  }
-  else norm <- tolower(norm)
+    stop(paste0("norm must be ", word_list(norm.options, and.or = "or", quotes = TRUE), "."), call. = FALSE)
+  } else norm <- tolower(norm)
 
   estimand <- toupper(estimand)
 
@@ -85,13 +89,21 @@ optweight.fit <- function(treat.list, covs.list, tols, estimand = "ATE", targets
       sds <- lapply(times, function(i) {
         if (is_null(focal)) focal <- max(treat.list[[i]])
         else if (estimand == "ATC") focal <- min(treat.list[[i]])
-        sqrt(col.w.v(covs.list[[i]][treat.list[[i]] == focal, , drop = FALSE], w = sw[treat.list[[i]] == focal]))
+        sds_i <- rep(NA_real_, ncol(covs.list[[i]]))
+        sds_i[!bin.covs.list[[i]]] <- sqrt(col.w.v(covs.list[[i]][treat.list[[i]] == focal, !bin.covs.list[[i]], drop = FALSE], w = sw[treat.list[[i]] == focal]))
+        sds_i[bin.covs.list[[i]]] <- sqrt(col.w.v.bin(covs.list[[i]][treat.list[[i]] == focal, bin.covs.list[[i]], drop = FALSE], w = sw[treat.list[[i]] == focal]))
+        return(sds_i)
       })
       sw[treat.list[[1]]==focal] <- 1
-    }
-    else if (estimand == "ATE") {
+    } else if (estimand == "ATE") {
       targets <- c(list(means[[1]]), lapply(covs.list[-1], function(c) rep(NA_real_, ncol(c))))
-      sds <- lapply(times, function(i) sqrt(rowMeans(matrix(sapply(unique.treats[[i]], function(t) col.w.v(covs.list[[i]][treat.list[[i]]==t, , drop = FALSE], w = sw[treat.list[[i]] == t]), simplify = "array"), ncol = length(unique.treats[[i]])))))
+      sds <- lapply(times, function(i) sqrt(rowMeans(matrix(sapply(unique.treats[[i]], function(t) {
+        in.treat <- switch(treat.types[i], "cat" = treat.list[[i]] == t, "cont" = rep(TRUE, length(treat.list[[i]])))
+        vars_i <- rep(NA_real_, ncol(covs.list[[i]]))
+        vars_i[!bin.covs.list[[i]]] <- col.w.v(covs.list[[i]][in.treat, !bin.covs.list[[i]], drop = FALSE], w = sw[in.treat])
+        vars_i[bin.covs.list[[i]]] <- col.w.v.bin(covs.list[[i]][in.treat, bin.covs.list[[i]], drop = FALSE], w = sw[in.treat])
+        return(vars_i)
+        }, simplify = "array"), ncol = length(unique.treats[[i]])))))
     }
   }
   else {
@@ -103,8 +115,13 @@ optweight.fit <- function(treat.list, covs.list, tols, estimand = "ATE", targets
     if (length(targets[[1]]) != ncol(covs.list[[1]])) {
       stop("targets must have the same number of values as there are baseline covariates.", call. = FALSE)
     }
-    sds <- lapply(times, function(i) sqrt(rowMeans(matrix(sapply(unique.treats[[i]], function(t) col.w.v(covs.list[[i]][treat.list[[i]]==t, , drop = FALSE], w = sw[treat.list[[i]] == t]), simplify = "array"), ncol = length(unique.treats[[i]])))))
-
+    sds <- lapply(times, function(i) sqrt(rowMeans(matrix(sapply(unique.treats[[i]], function(t) {
+      in.treat <- switch(treat.types[i], "cat" = treat.list[[i]] == t, "cont" = rep(TRUE, length(treat.list[[i]])))
+      vars_i <- rep(NA_real_, ncol(covs.list[[i]]))
+      vars_i[!bin.covs.list[[i]]] <- col.w.v(covs.list[[i]][in.treat, !bin.covs.list[[i]], drop = FALSE], w = sw[in.treat])
+      vars_i[bin.covs.list[[i]]] <- col.w.v.bin(covs.list[[i]][in.treat, bin.covs.list[[i]], drop = FALSE], w = sw[in.treat])
+      return(vars_i)
+    }, simplify = "array"), ncol = length(unique.treats[[i]])))))
   }
 
   targeted <- balanced <- treat.sds <- treat.means <- tols <- vector("list", length(times))
@@ -118,8 +135,8 @@ optweight.fit <- function(treat.list, covs.list, tols, estimand = "ATE", targets
 
       #tols
       if (std.binary && std.cont) vars.to.standardize <- rep(TRUE, length(tols.list[[i]]))
-      else if (!std.binary && std.cont) vars.to.standardize <- !apply(covs.list[[i]], 2, is_binary)
-      else if (std.binary && !std.cont) vars.to.standardize <- apply(covs.list[[i]], 2, is_binary)
+      else if (!std.binary && std.cont) vars.to.standardize <- !bin.covs.list[[i]]
+      else if (std.binary && !std.cont) vars.to.standardize <- bin.covs.list[[i]]
       else vars.to.standardize <- rep(FALSE, length(tols.list[[i]]))
 
       tols[[i]] <- abs(tols.list[[i]])
@@ -127,6 +144,9 @@ optweight.fit <- function(treat.list, covs.list, tols, estimand = "ATE", targets
       covs.list[[i]][, vars.to.standardize & !check_if_zero(tols.list[[i]]) & !check_if_zero(sds[[i]])] <-
         mat_div(covs.list[[i]][, vars.to.standardize & !check_if_zero(tols.list[[i]]) & !check_if_zero(sds[[i]]), drop = FALSE],
             sds[[i]][vars.to.standardize & !check_if_zero(tols.list[[i]]) & !check_if_zero(sds[[i]])])
+      targets[[i]][vars.to.standardize & !check_if_zero(tols.list[[i]]) & !check_if_zero(sds[[i]])] <-
+        targets[[i]][vars.to.standardize & !check_if_zero(tols.list[[i]]) & !check_if_zero(sds[[i]])] /
+        sds[[i]][vars.to.standardize & !check_if_zero(tols.list[[i]]) & !check_if_zero(sds[[i]])]
 
       #Note: duals work incorrecly unless tols are > 0, so replace small tols with
       #sqrt(.Machine$double.eps).
@@ -135,11 +155,14 @@ optweight.fit <- function(treat.list, covs.list, tols, estimand = "ATE", targets
       #                     tols[[i]])
     }
     else {
+      sds[[i]] <- rep(NA_real_, ncol(covs.list[[i]]))
+      sds[[i]][!bin.covs.list[[i]]] <- sqrt(col.w.v(covs.list[[i]][,!bin.covs.list[[i]], drop = FALSE], w = sw))
+      sds[[i]][bin.covs.list[[i]]] <- sqrt(col.w.v.bin(covs.list[[i]][,bin.covs.list[[i]], drop = FALSE], w = sw))
       targeted[[i]] <- !is.na(targets[[i]])
       balanced[[i]] <- rep(TRUE, length(targeted[[i]]))
-      covs.list[[i]][, targeted[[i]]] <- sweep(covs.list[[i]][, targeted[[i]], drop = FALSE], 2, targets[[i]][targeted[[i]]], "-") #center covs at targets (which will be eventual means)
-      covs.list[[i]][, !targeted[[i]]] <- sweep(covs.list[[i]][, !targeted[[i]], drop = FALSE], 2, means[[i]][!targeted[[i]]], "-") #center covs at means
-      sds[[i]] <- sqrt(col.w.v(covs.list[[i]], w = sw))
+      covs.list[[i]][, targeted[[i]]] <- center(covs.list[[i]][, targeted[[i]], drop = FALSE], at = targets[[i]][targeted[[i]]]) #center covs at targets (which will be eventual means)
+      covs.list[[i]][, !targeted[[i]]] <- center(covs.list[[i]][, !targeted[[i]], drop = FALSE], at = means[[i]][!targeted[[i]]]) #center covs at means
+
       treat.sds[[i]] <- sqrt(w.v(treat.list[[i]], w = sw))
       treat.means[[i]] <- col.w.m(matrix(treat.list[[i]], ncol = 1), w = sw)
       treat.list[[i]] <- treat.list[[i]] - treat.means[[i]] #center treat
@@ -147,8 +170,10 @@ optweight.fit <- function(treat.list, covs.list, tols, estimand = "ATE", targets
       # tols[[i]] <- abs(tols.list[[i]]*sds[[i]]*treat.sds[[i]])
 
       tols[[i]] <- abs(tols.list[[i]])
-      covs.list[[i]][ , !check_if_zero(sds[[i]])] <- mat_div(covs.list[[i]][, !check_if_zero(sds[[i]]), drop = FALSE], sds[[i]][!check_if_zero(sds[[i]])])
+      covs.list[[i]][, !check_if_zero(sds[[i]])] <- mat_div(covs.list[[i]][,!check_if_zero(sds[[i]]), drop = FALSE], sds[[i]][!check_if_zero(sds[[i]])])
+      targets[[i]][!check_if_zero(sds[[i]])] <- targets[[i]][!check_if_zero(sds[[i]])] / sds[[i]][!check_if_zero(sds[[i]])]
       treat.list[[i]] <- treat.list[[i]]/treat.sds[[i]]
+
       #Note: duals work incorrecly unless tols are > 0, so replace small tols with
       #sqrt(.Machine$double.eps).
       # tols[[i]] <- ifelse(tols[[i]] < sqrt(.Machine$double.eps),
