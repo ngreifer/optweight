@@ -4,7 +4,7 @@
 #The original file is in cobalt/R/.
 
 #Strings
-word.list <- function(word.list = NULL, and.or = c("and", "or"), is.are = FALSE, quotes = FALSE) {
+word_list <- function(word.list = NULL, and.or = c("and", "or"), is.are = FALSE, quotes = FALSE) {
     #When given a vector of strings, creates a string of the form "a and b"
     #or "a, b, and c"
     #If is.are, adds "is" or "are" appropriately
@@ -136,7 +136,7 @@ round_df_char <- function(df, digits, pad = "0", na_vals = "") {
 
     return(df)
 }
-text.box.plot <- function(range.list, width = 12) {
+text_box_plot <- function(range.list, width = 12) {
     full.range <- range(unlist(range.list))
     ratio = diff(full.range)/(width+1)
     rescaled.range.list <- lapply(range.list, function(x) round(x/ratio))
@@ -194,23 +194,38 @@ between <- function(x, range, inclusive = TRUE, na.action = FALSE) {
 }
 
 #Statistics
-binarize <- function(variable) {
+binarize <- function(variable, zero = NULL, one = NULL) {
     nas <- is.na(variable)
     if (!is_binary(variable[!nas])) stop(paste0("Cannot binarize ", deparse(substitute(variable)), ": more than two levels."))
     if (is.character(variable)) variable <- factor(variable)
     variable.numeric <- as.numeric(variable)
-    if (0 %in% variable.numeric) zero <- 0
-    else zero <- min(variable.numeric, na.rm = TRUE)
-    newvar <- setNames(ifelse(!nas & variable.numeric==zero, 0L, 1L), names(variable))
+    if (is_null(zero)) {
+        if (is_null(one)) {
+            if (0 %in% variable.numeric) zero <- 0
+            else zero <- min(variable.numeric, na.rm = TRUE)
+        }
+        else {
+            if (one %in% levels(variable)) zero <- levels(variable)[levels(variable) != one]
+            else stop("The argument to \"one\" is not the name of a level of variable.", call. = FALSE)
+        }
+    }
+    else {
+        if (zero %in% levels(variable)) zero <- zero
+        else stop("The argument to \"zero\" is not the name of a level of variable.", call. = FALSE)
+    }
+
+    newvar <- setNames(ifelse(!nas & variable.numeric == zero, 0L, 1L), names(variable))
     newvar[nas] <- NA_integer_
     return(newvar)
 }
 ESS <- function(w) {
     sum(w)^2/sum(w^2)
 }
-center <- function(x, na.rm = TRUE, at = NULL) {
-    if (!is.numeric(x)) warning("x is not numeric and will not be centered.")
-    else if (is.matrix(x)) x <- apply(x, 2, center, na.rm = na.rm, at = at)
+.center <- function(x, na.rm = TRUE, at = NULL) {
+    dimx <- dim(x)
+    if (length(dimx) == 2L) x <- apply(x, 2, center, na.rm = na.rm, at = at)
+    else if (length(dimx) > 2L) stop("x must be a numeric or matrix-like (not array).")
+    else if (!is.numeric(x)) warning("x is not numeric and will not be centered.")
     else {
         if (is_null(at)) at <- mean(x, na.rm = na.rm)
         else if (!is.numeric(at)) stop("at must be numeric.")
@@ -218,8 +233,28 @@ center <- function(x, na.rm = TRUE, at = NULL) {
     }
     return(x)
 }
+center <- function(x, at = NULL, na.rm = TRUE) {
+    if (is.data.frame(x)) {
+        x <- as.matrix.data.frame(x)
+        type <- "df"
+    }
+    if (!is.numeric(x)) stop("x must be numeric.")
+    else if (is.array(x) && length(dim(x)) > 2) stop("x must be a numeric or matrix-like (not array).")
+    else if (!is.matrix(x)) {
+        x <- matrix(x, ncol = 1)
+        type <- "vec"
+    }
+    else type <- "matrix"
+    if (is_null(at)) at <- colMeans(x, na.rm = na.rm)
+    else if (length(at) %nin% c(1, ncol(x))) stop("at is not the right length.")
+    out <- x - matrix(at, byrow = TRUE, ncol = ncol(x), nrow = nrow(x))
+    if (type == "df") out <- as.data.frame.matrix(out)
+    else if (type == "vec") out <- drop(out)
+    return(out)
+}
 w.m <- function(x, w = NULL, na.rm = TRUE) {
-    if (is_null(w)) w <- as.numeric(!is.na(x))
+    if (is_null(w)) w <- rep(1, length(x))
+    w[is.na(x)] <- NA_real_
     return(sum(x*w, na.rm=na.rm)/sum(w, na.rm=na.rm))
 }
 w.v <- function(x, w = NULL, na.rm = TRUE) {
@@ -227,7 +262,13 @@ w.v <- function(x, w = NULL, na.rm = TRUE) {
 }
 w.cov <- function(x, y, w = NULL, na.rm = TRUE, type = 3) {
 
-    if (is_null(w)) w <- as.numeric(!is.na(x))
+    if (length(x) != length(y)) stop("x and y must the same length")
+
+    if (is_null(w)) w <- rep(1, length(x))
+    else if (length(w) != length(x)) stop("weights must be same length as x and y")
+
+    w[is.na(x) | is.na(y)] <- NA_real_
+
     wmx <- w.m(x, w, na.rm = na.rm)
     wmy <- w.m(y, w, na.rm = na.rm)
 
@@ -247,21 +288,43 @@ w.cov.scale <- function(w, type = 3, na.rm = TRUE) {
     # else if (type == 4) sw*(n-1)/n - vw2*n/sw
 
 }
+w.r <- function(x, y, w = NULL, s.weights = NULL) {
+    #Computes weighted correlation but using the unweighted (s.weighted) variances
+    #in the denominator.
+    if (is_null(s.weights)) s.weights <- rep(1, length(x))
+    else if (length(s.weights) != length(x)) stop("s.weights must be same length as x and y")
+
+    s.weights[is.na(x) | is.na(y)] <- NA_real_
+
+    w_ <- w*s.weights
+
+    r <- w.cov(x, y, w_) / (sqrt(w.v(x, s.weights) * w.v(y, s.weights)))
+
+    return(r)
+}
 col.w.m <- function(mat, w = NULL, na.rm = TRUE) {
     if (is_null(w)) {
         w <- 1
-        w.sum <- apply(mat, 2, function(x) sum(!is.na(x)))
     }
-    else {
-        w.sum <- rep(sum(w, na.rm = na.rm), ncol(mat))
-    }
+    w.sum <- colSums(w*!is.na(mat))
     return(colSums(mat*w, na.rm = na.rm)/w.sum)
 }
 col.w.v <- function(mat, w = NULL, na.rm = TRUE) {
     if (is_null(w)) {
         w <- rep(1, nrow(mat))
     }
-    return(colSums(t((t(mat) - col.w.m(mat, w, na.rm = na.rm))^2) * w, na.rm = na.rm) / w.cov.scale(w, na.rm = na.rm))
+    means <- col.w.m(mat, w, na.rm)
+    w.scale <- apply(mat, 2, function(x) w.cov.scale(w[!is.na(x)]))
+    vars <- colSums(w*t(t(mat) - means)^2, na.rm = na.rm)/w.scale
+    return(vars)
+}
+col.w.v.bin <- function(mat, w = NULL, na.rm = TRUE) {
+    if (is_null(w)) {
+        w <- rep(1, nrow(mat))
+    }
+    means <- col.w.m(mat, w, na.rm)
+    vars <- means * (1 - means)
+    return(vars)
 }
 coef.of.var <- function(x, pop = TRUE, na.rm = TRUE) {
     if (na.rm) x <- x[!is.na(x)]
@@ -277,6 +340,10 @@ geom.mean <- function(y, na.rm = TRUE) {
 }
 mat_div <- function(mat, vec) {
     mat/vec[col(mat)]
+}
+abs_ <- function(x, ratio = FALSE) {
+    if (ratio) pmax(x, 1/x)
+    else (abs(x))
 }
 
 #Formulas
@@ -323,11 +390,11 @@ get.covs.and.treat.from.formula <- function(f, data = NULL, terms = FALSE, sep =
     if (is.formula(tt, 2)) {
         resp.vars.mentioned <- as.character(tt)[2]
         resp.vars.failed <- vapply(resp.vars.mentioned, function(v) {
-            null.or.error(try(eval(parse(text=v)[[1]], data, env), silent = TRUE))
+            null_or_error(try(eval(parse(text=v)[[1]], data, env), silent = TRUE))
         }, logical(1L))
 
         if (any(resp.vars.failed)) {
-            if (is_null(A[["treat"]])) stop(paste0("The given response variable, \"", as.character(tt)[2], "\", is not a variable in ", word.list(c("data", "the global environment")[c(data.specified, TRUE)], "or"), "."), call. = FALSE)
+            if (is_null(A[["treat"]])) stop(paste0("The given response variable, \"", as.character(tt)[2], "\", is not a variable in ", word_list(c("data", "the global environment")[c(data.specified, TRUE)], "or"), "."), call. = FALSE)
             tt <- delete.response(tt)
         }
     }
@@ -348,7 +415,7 @@ get.covs.and.treat.from.formula <- function(f, data = NULL, terms = FALSE, sep =
     rhs.vars.mentioned.lang <- attr(tt.covs, "variables")[-1]
     rhs.vars.mentioned <- vapply(rhs.vars.mentioned.lang, deparse, character(1L))
     rhs.vars.failed <- vapply(rhs.vars.mentioned, function(v) {
-        null.or.error(try(eval(parse(text=v)[[1]], data, env), silent = TRUE))
+        null_or_error(try(eval(parse(text=v)[[1]], data, env), silent = TRUE))
     }, logical(1L))
 
     if (any(rhs.vars.failed)) {
@@ -433,7 +500,7 @@ get.covs.and.treat.from.formula <- function(f, data = NULL, terms = FALSE, sep =
                 treat = treat,
                 treat.name = treat.name))
 }
-get.treat.type <- function(treat) {
+assign.treat.type <- function(treat) {
     #Returns treat with treat.type attribute
     nunique.treat <- nunique(treat)
     if (nunique.treat == 2) {
@@ -451,6 +518,12 @@ get.treat.type <- function(treat) {
     }
     attr(treat, "treat.type") <- treat.type
     return(treat)
+}
+get.treat.type <- function(treat) {
+    return(attr(treat, "treat.type"))
+}
+has.treat.type <- function(treat) {
+    is_not_null(get.treat.type(treat))
 }
 process.s.weights <- function(s.weights, data = NULL) {
     #Process s.weights
@@ -514,7 +587,7 @@ is_ <- function(x, types, stop = FALSE, arg.to = FALSE) {
             s0 <- ifelse(arg.to, "The argument to ", "")
             s2 <- ifelse(any(types %in% c("factor", "character", "numeric", "logical")),
                          "vector", "")
-            stop(paste0(s0, s1, " must be a ", word.list(types, and.or = "or"), " ", s2, "."), call. = FALSE)
+            stop(paste0(s0, s1, " must be a ", word_list(types, and.or = "or"), " ", s2, "."), call. = FALSE)
         }
     }
     else {
@@ -533,7 +606,7 @@ probably.a.bug <- function() {
                 fun), call. = FALSE)
 }
 `%nin%` <- function(x, table) is.na(match(x, table, nomatch = NA_integer_))
-null.or.error <- function(x) {is_null(x) || class(x) == "try-error"}
+null_or_error <- function(x) {is_null(x) || class(x) == "try-error"}
 match_arg <- function(arg, choices, several.ok = FALSE) {
     #Replaces match.arg() but gives cleaner error message and processing
     #of arg.
@@ -562,10 +635,13 @@ match_arg <- function(arg, choices, several.ok = FALSE) {
 
     i <- pmatch(arg, choices, nomatch = 0L, duplicates.ok = TRUE)
     if (all(i == 0L))
-        stop(paste0("'", arg.name, "' should be one of ", word.list(choices, and.or = "or", quotes = TRUE), "."),
+        stop(paste0("'", arg.name, "' should be one of ", word_list(choices, and.or = "or", quotes = TRUE), "."),
              call. = FALSE)
     i <- i[i > 0L]
     if (!several.ok && length(i) > 1)
         stop("there is more than one match in 'match_arg'")
     choices[i]
+}
+last <- function(x) {
+    x[[length(x)]]
 }
