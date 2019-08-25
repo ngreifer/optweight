@@ -31,7 +31,7 @@ optweight <- function(formula, data = NULL, tols = 0, estimand = "ATE", targets 
     #treat.name <- t.c[["treat.name"]]
 
     #Get treat type
-    treat.list[[i]] <- get.treat.type(treat.list[[i]])
+    treat.list[[i]] <- assign.treat.type(treat.list[[i]])
     treat.type <- attr(treat.list[[i]], "treat.type")
 
     if (onetime) {
@@ -160,7 +160,7 @@ print.optweight <- function(x, ...) {
 print.optweightMSM <- function(x, ...) {
   treat.types <- sapply(x[["treat.list"]], function(y) attr(y, "treat.type"))
 
-  cat("A weightitMSM object\n")
+  cat("An optweightMSM object\n")
   cat(paste0(" - number of obs.: ", length(x[["weights"]]), "\n"))
   cat(paste0(" - sampling weights: ", ifelse(all_the_same(x[["s.weights"]]), "none", "present"), "\n"))
   cat(paste0(" - number of time points: ", length(x[["treat.list"]]), "\n"))
