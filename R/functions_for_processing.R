@@ -11,7 +11,7 @@ process.focal.and.estimand <- function(focal, estimand, targets, treat, treat.ty
                continuous = "ATE")
 
     if (estimand_ %nin% AE[[treat.type]]) {
-      stop(paste0("\"", estimand, "\" is not an allowable estimand with ", treat.type, " treatments. Only ", word.list(AE[[treat.type]], quotes = TRUE, and.or = "and", is.are = TRUE),
+      stop(paste0("\"", estimand, "\" is not an allowable estimand with ", treat.type, " treatments. Only ", word_list(AE[[treat.type]], quotes = TRUE, and.or = "and", is.are = TRUE),
                   " allowed."), call. = FALSE)
     }
 
