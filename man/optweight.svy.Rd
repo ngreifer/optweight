@@ -63,7 +63,6 @@ Weights are estimated so that the standardized differences between the weighted 
 
 See the \code{\link{optweight}} help page for information on interpreting dual variables and solving convergence failure.
 }
-}
 
 \author{
 Noah Greifer

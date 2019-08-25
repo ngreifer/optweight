@@ -9,6 +9,8 @@ Version 0.2.3
 
 * Fixed some bugs with processing formula inputs. In particular, functions can be used inside `lapply` loops and nested functions more gracefully.
 
+* Other bugs fixes and small changes.
+
 Version 0.2.2
 
 * Fixed bug with duals displaying improperly when factor variables are present.
