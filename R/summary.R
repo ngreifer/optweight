@@ -94,7 +94,7 @@ print.summary.optweight <- function(x, ...) {
   top <- max(lengths(x$weight.top))
   cat("Summary of weights:\n\n")
   cat("- Weight ranges:\n")
-  print.data.frame(round_df_char(text.box.plot(x$weight.range, 28), 4), ...)
+  print.data.frame(round_df_char(text_box_plot(x$weight.range, 28), 4), ...)
   df <- setNames(data.frame(do.call("c", lapply(names(x$weight.top), function(x) c(" ", x))),
                             matrix(do.call("c", lapply(x$weight.top, function(x) c(names(x), rep("", top - length(x)), round(x, 4), rep("", top - length(x))))),
                                    byrow = TRUE, nrow = 2*length(x$weight.top))),
@@ -221,7 +221,7 @@ print.summary.optweightMSM <- function(x, ...) {
   for (ti in seq_along(x)) {
     if (!only.one) cat(paste(" - - - - - - - - - - Time", ti, "- - - - - - - - - -\n"))
     cat("- Weight ranges:\n")
-    print.data.frame(round_df_char(text.box.plot(x[[ti]]$weight.range, 28), 4))
+    print.data.frame(round_df_char(text_box_plot(x[[ti]]$weight.range, 28), 4))
 
     df <- setNames(data.frame(do.call("c", lapply(names(x[[ti]]$weight.top), function(y) c(" ", y))),
                               matrix(do.call("c", lapply(x[[ti]]$weight.top, function(y) c(names(y), round(y, 4)))),
@@ -278,7 +278,7 @@ print.summary.optweight.svy <- function(x, ...) {
   top <- max(lengths(x$weight.top))
   cat("Summary of weights:\n\n")
   cat("- Weight ranges:\n")
-  print.data.frame(round_df_char(text.box.plot(x$weight.range, 28), 4), ...)
+  print.data.frame(round_df_char(text_box_plot(x$weight.range, 28), 4), ...)
   df <- setNames(data.frame(do.call("c", lapply(names(x$weight.top), function(x) c(" ", x))),
                             matrix(do.call("c", lapply(x$weight.top, function(x) c(names(x), rep("", top - length(x)), round(x, 4), rep("", top - length(x))))),
                                    byrow = TRUE, nrow = 2*length(x$weight.top))),

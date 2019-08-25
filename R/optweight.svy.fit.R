@@ -15,7 +15,7 @@ optweight.svy.fit <- function(covs, tols = 0, targets, s.weights = NULL, norm = 
       missing.args[arg] <- TRUE
     }
   }
-  if (any(missing.args)) stop(paste(word.list(names(missing.args)[missing.args]), "must be supplied."), call. = FALSE)
+  if (any(missing.args)) stop(paste(word_list(names(missing.args)[missing.args]), "must be supplied."), call. = FALSE)
 
   if (!all(apply(covs, 2, is.numeric))) stop("All covariates must be numeric.", call. = FALSE)
   covs <- as.matrix(covs)
@@ -28,7 +28,7 @@ optweight.svy.fit <- function(covs, tols = 0, targets, s.weights = NULL, norm = 
 
   norm.options <- c("l2", "l1", "linf")
   if (length(norm) != 1 || !is.character(norm) || tolower(norm) %nin% norm.options) {
-    stop(paste0("norm must be ", word.list(norm.options, and.or = "or", quotes = TRUE), "."), call. = FALSE)
+    stop(paste0("norm must be ", word_list(norm.options, and.or = "or", quotes = TRUE), "."), call. = FALSE)
   }
   else norm <- tolower(norm)
 
