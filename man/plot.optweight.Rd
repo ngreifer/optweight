@@ -38,8 +38,13 @@ Noah Greifer
 \code{\link{plot.summary.optweight}} for plots of the distribution of weights
 }
 \examples{
-library("cobalt")
-data("lalonde", package = "cobalt")
+# library("cobalt")
+# data("lalonde", package = "cobalt")
+
+data("lalonde", package = "MatchIt")
+lalonde$race <- factor(ifelse(lalonde$black == 1, "black",
+                              ifelse(lalonde$hispan == 1, "hispan",
+                                     "white")))
 
 #Balancing covariates between treatment groups (binary)
 ow1 <- optweight(treat ~ age + educ + married +

@@ -47,7 +47,7 @@ When multinomial treatments are used and the "ATT" is requested, which group to 
 A string containing the name of the norm corresponding to the objective function to minimize. The options are \code{"l1"} for the L1 norm, \code{"l2"} for the L2 norm (the default), and \code{"linf"} for the L\eqn{\infty} norm. The L1 norm minimizes the average absolute distance between each weight and the mean of the weights; the L2 norm minimizes the variance of the weights; the L\eqn{\infty} norm minimizes the largest weight. The L2 norm has a direct correspondence with the effective sample size, making it ideal if this is your criterion of interest.
 }
   \item{std.binary, std.cont}{
-\code{logical}; whether the tolerances are in standardized mean units (\code{TRUE}) or raw units (\code{FALSE}) for binary variables and continuous variables, respectively. The default is \code{FALSE} for \code{std.binary} because raw proportion differences make more sense than standardized mean difference for binary variables. These arguments are analogous to the \code{binary} and \code{continuous} arguments in \code{\link[cobalt]{bal.tab}} in \pkg{cobalt}.
+\code{logical}; whether the tolerances are in standardized mean units (\code{TRUE}) or raw units (\code{FALSE}) for binary variables and continuous variables, respectively. The default is \code{FALSE} for \code{std.binary} because raw proportion differences make more sense than standardized mean difference for binary variables. These arguments are analogous to the \code{binary} and \code{continuous} arguments in \code{bal.tab} in \pkg{cobalt}.
 }
   \item{min.w}{
 A single \code{numeric} value between 0 and 1 for the smallest allowable weight. Some analyses require nonzero weights for all units, so a small, nonzero minimum may be desirable. Doing so will likely (slightly) increase the variance of the resulting weights depending on the magntiude of the minimum. The default is 1e-8, which does not materially change the properties of the weights from a minimum of 0 but prevents warnings in some packages that use weights to estimate treatment effects.
@@ -101,11 +101,25 @@ Zubizarreta, J. R. (2015). Stable Weights that Balance Covariates for Estimation
 }
 
 \examples{
+\dontrun{
 library("cobalt")
 data("lalonde", package = "cobalt")
 
 treat.list <- list(lalonde$treat)
 covs.list <- list(splitfactor(lalonde[2:8], drop.first = "if2"))
+tols.list <- list(rep(.01, ncol(covs.list[[1]])))
+
+ow.fit <- optweight.fit(treat.list,
+                        covs.list,
+                        tols = tols.list,
+                        estimand = "ATE",
+                        norm = "l2")
+}
+
+data("lalonde", package = "MatchIt")
+
+treat.list <- list(lalonde$treat)
+covs.list <- list(lalonde[2:9])
 tols.list <- list(rep(.01, ncol(covs.list[[1]])))
 
 ow.fit <- optweight.fit(treat.list,

@@ -78,6 +78,7 @@ Zubizarreta, J. R. (2015). Stable Weights that Balance Covariates for Estimation
 }
 
 \examples{
+\dontrun{
 library("cobalt")
 data("lalonde", package = "cobalt")
 
@@ -88,6 +89,27 @@ covs <- splitfactor(lalonde[c("age", "educ", "race",
 targets <- c(23, 9, .3, .3, .4, .2, .5)
 
 tols <- rep(0, 7)
+
+ows.fit <- optweight.svy.fit(covs,
+                             tols = tols,
+                             targets = targets,
+                             norm = "l2")
+
+#Unweighted means
+apply(covs, 2, mean)
+
+#Weighted means; same as targets
+apply(covs, 2, weighted.mean, w = ows.fit$w)
+}
+
+data("lalonde", package = "MatchIt")
+
+covs <- lalonde[c("age", "educ",
+                  "married", "nodegree")]
+
+targets <- c(23, 9, .2, .5)
+
+tols <- rep(0, 4)
 
 ows.fit <- optweight.svy.fit(covs,
                              tols = tols,

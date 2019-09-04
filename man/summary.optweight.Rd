@@ -59,7 +59,7 @@ For longitudinal treatments (i.e., \code{optweightMSM} objects), a list of the a
 
 For \code{optweight.svy} objects, a list of the above elements but with no treatment group divisions.
 
-\code{plot} returns a \code{ggplot} object with a histogram displaying the distribution of the estimaed weights. If the estimand is the ATT or ATC, only the weights for the non-focal group(s) will be displayed (since the weights for the focal group are all 1). A dotted line is displayed at the mean of the weights (usually 1).
+\code{plot} returns a \code{ggplot} object with a histogram displaying the distribution of the estimated weights. If the estimand is the ATT or ATC, only the weights for the non-focal group(s) will be displayed (since the weights for the focal group are all 1). A dotted line is displayed at the mean of the weights (usually 1).
 }
 \references{
 McCaffrey, D. F., Ridgeway, G., & Morral, A. R. (2004). Propensity Score Estimation With Boosted Regression for Evaluating Causal Effects in Observational Studies. Psychological Methods, 9(4), 403–425. \doi{10.1037/1082-989X.9.4.403}
@@ -72,8 +72,13 @@ Noah Greifer
 \code{\link{plot.optweight}} for plotting the values of the dual variables.
 }
 \examples{
-library("cobalt")
-data("lalonde", package = "cobalt")
+# library("cobalt")
+# data("lalonde", package = "cobalt")
+
+data("lalonde", package = "MatchIt")
+lalonde$race <- factor(ifelse(lalonde$black == 1, "black",
+                              ifelse(lalonde$hispan == 1, "hispan",
+                                     "white")))
 
 #Balancing covariates between treatment groups (binary)
 (ow1 <- optweight(treat ~ age + educ + married +

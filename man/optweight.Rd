@@ -141,21 +141,26 @@ Zubizarreta, J. R. (2015). Stable Weights that Balance Covariates for Estimation
 }
 
 \examples{
-library("cobalt")
-data("lalonde", package = "cobalt")
+#library("cobalt")
+#data("lalonde", package = "cobalt")
+
+data("lalonde", package = "MatchIt")
+lalonde$race <- factor(ifelse(lalonde$black == 1, "black",
+                              ifelse(lalonde$hispan == 1, "hispan",
+                                     "white")))
 
 #Balancing covariates between treatment groups (binary)
 (ow1 <- optweight(treat ~ age + educ + married +
                 nodegree + re74, data = lalonde,
                 tols = c(.01, .02, .03, .04, .05),
                 estimand = "ATE"))
-bal.tab(ow1)
+# bal.tab(ow1)
 
 #Exactly alancing covariates with respect to race (multinomial)
 (ow2 <- optweight(race ~ age + educ + married +
                 nodegree + re74, data = lalonde,
                 tols = 0, estimand = "ATT", focal = "black"))
-bal.tab(ow2)
+# bal.tab(ow2)
 
 # #Balancing covariates with longitudinal treatments
 # #NOT VALID; DO NOT DO THIS.
@@ -182,7 +187,7 @@ bal.tab(ow2)
                 tols = 0,
                 targets = c(26, 12, .4, .5, 1000),
                 estimand = NULL))
-bal.tab(ow4a, disp.means = TRUE)
+# bal.tab(ow4a, disp.means = TRUE)
 
 #Balancing covariates between treatment groups (binary)
 #and not requesting a target population
@@ -191,5 +196,5 @@ bal.tab(ow4a, disp.means = TRUE)
                 tols = 0,
                 targets = NULL,
                 estimand = NULL))
-bal.tab(ow4b, disp.means = TRUE)
+# bal.tab(ow4b, disp.means = TRUE)
 }
