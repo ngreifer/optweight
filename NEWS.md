@@ -1,6 +1,10 @@
 optweight News and Updates
 ======
 
+Version 0.2.4
+
+* Reverting back to using `rosqp` instead of `osqp` due to package failure. Also removed reliance on `cobalt` in favor of `MatchIt` for data. Both changes are temporary. 
+
 Version 0.2.3
 
 * The `rosqp` package is now `osqp`, and is faster with fewer bugs.
