@@ -2,7 +2,7 @@ optweight.svy.fit <- function(covs, tols = 0, targets, s.weights = NULL, norm = 
   args <- list(...)
 
   #Process args
-  args[names(args) %nin% names(formals(osqp::osqpSettings))] <- NULL
+  args[names(args) %nin% names(formals(osqpSettings))] <- NULL
   if (is_null(args[["max_iter"]])) args[["max_iter"]] <- 2E5L
   if (is_null(args[["eps_abs"]])) args[["eps_abs"]] <- 1E-8
   if (is_null(args[["eps_rel"]])) args[["eps_rel"]] <- 1E-8
@@ -89,8 +89,8 @@ optweight.svy.fit <- function(covs, tols = 0, targets, s.weights = NULL, norm = 
     lower <- c(H1l, F1l, H2l)
     upper <- c(H1u, F1u, H2u)
 
-    out <- osqp::solve_osqp(P = P, q = q, A = A, l = lower, u = upper,
-                             pars = do.call(osqp::osqpSettings, args))
+    out <- solve_osqp(P = P, q = q, A = A, l = lower, u = upper,
+                             pars = do.call(osqpSettings, args))
 
     #Get dual vars for balance and target constraints
     G2.indices <- if (is_null(G2)) NULL else (NROW(G1)+NROW(E1)+1):(NROW(G1)+NROW(E1)+NROW(G2))
@@ -142,8 +142,8 @@ optweight.svy.fit <- function(covs, tols = 0, targets, s.weights = NULL, norm = 
     lowerz = c(lower, H1lz, jl)
     upperz = c(upper, H1uz, ju)
 
-    out <- osqp::solve_osqp(P = P, q = q, A = Az, l = lowerz, u = upperz,
-                             pars = do.call(osqp::osqpSettings, args))
+    out <- solve_osqp(P = P, q = q, A = Az, l = lowerz, u = upperz,
+                             pars = do.call(osqpSettings, args))
 
     w <- out$x[1:N]
 
@@ -207,8 +207,8 @@ optweight.svy.fit <- function(covs, tols = 0, targets, s.weights = NULL, norm = 
     lowerz = c(lower, H1lz, jl)
     upperz = c(upper, H1uz, ju)
 
-    out <- osqp::solve_osqp(P = P, q = q, A = Az, l = lowerz, u = upperz,
-                             pars = do.call(osqp::osqpSettings, args))
+    out <- solve_osqp(P = P, q = q, A = Az, l = lowerz, u = upperz,
+                             pars = do.call(osqpSettings, args))
 
     w <- out$x[1:N]
 

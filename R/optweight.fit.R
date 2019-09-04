@@ -10,7 +10,7 @@ optweight.fit <- function(treat.list, covs.list, tols, estimand = "ATE", targets
     if (is_null(args[["eps_abs"]])) args[["eps_abs"]] <- args[["eps"]]
     if (is_null(args[["eps_rel"]])) args[["eps_rel"]] <- args[["eps"]]
   }
-  args[names(args) %nin% names(formals(osqp::osqpSettings))] <- NULL
+  args[names(args) %nin% names(formals(osqpSettings))] <- NULL
   if (is_null(args[["max_iter"]])) args[["max_iter"]] <- 2E5L
   if (is_null(args[["eps_abs"]])) args[["eps_abs"]] <- 1E-8
   if (is_null(args[["eps_rel"]])) args[["eps_rel"]] <- 1E-8
@@ -291,8 +291,8 @@ optweight.fit <- function(treat.list, covs.list, tols, estimand = "ATE", targets
     L <- c(L_wmin, L_meanw, L_balance, L_target)
     U <- c(U_wmin, U_meanw, U_balance, U_target)
 
-    out <- osqp::solve_osqp(P = P, q = q, A = A, l = L, u = U,
-                             pars = do.call(osqp::osqpSettings, args))
+    out <- solve_osqp(P = P, q = q, A = A, l = L, u = U,
+                             pars = do.call(osqpSettings, args))
 
     #Get dual vars for balance and target constraints
     A_balance.indices <- if (is_null(A_balance)) NULL else (NROW(A_wmin)+NROW(A_meanw)+1):(NROW(A_wmin)+NROW(A_meanw)+NROW(A_balance))
@@ -419,8 +419,8 @@ optweight.fit <- function(treat.list, covs.list, tols, estimand = "ATE", targets
     Lz = c(L, Lz_wmin, L_conversion)
     Uz = c(U, Uz_wmin, U_conversion)
 
-    out <- osqp::solve_osqp(P = P, q = q, A = Az, l = Lz, u = Uz,
-                             pars = do.call(osqp::osqpSettings, args))
+    out <- solve_osqp(P = P, q = q, A = Az, l = Lz, u = Uz,
+                             pars = do.call(osqpSettings, args))
 
     w <- out$x[1:N]
 
@@ -560,8 +560,8 @@ optweight.fit <- function(treat.list, covs.list, tols, estimand = "ATE", targets
     Lz = c(L, Lz_wmin, L_conversion)
     Uz = c(U, Uz_wmin, U_conversion)
 
-    out <- osqp::solve_osqp(P = P, q = q, A = Az, l = Lz, u = Uz,
-                             pars = do.call(osqp::osqpSettings, args))
+    out <- solve_osqp(P = P, q = q, A = Az, l = Lz, u = Uz,
+                             pars = do.call(osqpSettings, args))
 
     w <- out$x[1:N]
 
