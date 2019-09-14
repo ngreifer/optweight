@@ -72,13 +72,8 @@ Noah Greifer
 \code{\link{plot.optweight}} for plotting the values of the dual variables.
 }
 \examples{
-# library("cobalt")
-# data("lalonde", package = "cobalt")
-
-data("lalonde", package = "MatchIt")
-lalonde$race <- factor(ifelse(lalonde$black == 1, "black",
-                              ifelse(lalonde$hispan == 1, "hispan",
-                                     "white")))
+library("cobalt")
+data("lalonde", package = "cobalt")
 
 #Balancing covariates between treatment groups (binary)
 (ow1 <- optweight(treat ~ age + educ + married +

@@ -49,7 +49,8 @@ bal.tab(ow)
 #Estimate a treatment effect
 library("jtools")
 summ(lm(re78 ~ treat, data = lalonde, weights = ow$weights),
-     confint = TRUE, robust = TRUE, model.fit = FALSE)
+     confint = TRUE, robust = TRUE, model.fit = FALSE, 
+     model.info = FALSE)
 ```
 
 The lower-level function `optweight.fit` operates on the covariates and treatment variables directly.

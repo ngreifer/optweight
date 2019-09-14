@@ -101,7 +101,6 @@ Zubizarreta, J. R. (2015). Stable Weights that Balance Covariates for Estimation
 }
 
 \examples{
-\dontrun{
 library("cobalt")
 data("lalonde", package = "cobalt")
 
@@ -114,17 +113,5 @@ ow.fit <- optweight.fit(treat.list,
                         tols = tols.list,
                         estimand = "ATE",
                         norm = "l2")
-}
 
-data("lalonde", package = "MatchIt")
-
-treat.list <- list(lalonde$treat)
-covs.list <- list(lalonde[2:9])
-tols.list <- list(rep(.01, ncol(covs.list[[1]])))
-
-ow.fit <- optweight.fit(treat.list,
-                        covs.list,
-                        tols = tols.list,
-                        estimand = "ATE",
-                        norm = "l2")
 }

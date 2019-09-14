@@ -9,16 +9,16 @@
 `optweight` contains functions to estimate weights that balance
 treatments to given balance thresholds. It solves a quadratic
 programming problem to minimize an objective function of the weights
-using `solve_osqp()` in the `osqp` package. This is the method
-described in Zubizarreta (2015). `optweight` extends the method to
-multinomial, continuous, and longitudinal treatments and provides a
-simple user interface and compatibility with the `cobalt` package.
+using `solve_osqp()` in the `osqp` package. This is the method described
+in Zubizarreta (2015). `optweight` extends the method to multinomial,
+continuous, and longitudinal treatments and provides a simple user
+interface and compatibility with the `cobalt` package.
 
 Below is an example of estimating weights with `optweight` and assessing
 balance on the covariates with `cobalt`.
 
 ``` r
-devtools::install_github("ngreifer/optweight")  #development version
+devtools::install_github("ngreifer/optweight") #development version
 library("optweight")
 library("cobalt")
 ```
@@ -26,9 +26,10 @@ library("cobalt")
 ``` r
 data("lalonde")
 
-# Estimate weights
-ow <- optweight(treat ~ age + educ + race + nodegree + married + re74 + re75 + 
-    I(re74 == 0) + I(re75 == 0), data = lalonde, estimand = "ATT", tols = 0.01)
+#Estimate weights
+ow <- optweight(treat ~ age + educ + race + nodegree + married +
+                  re74 + re75 + I(re74 == 0) + I(re75 == 0),
+                data = lalonde, estimand = "ATT", tols = .01)
 ow
 ```
 
@@ -46,9 +47,9 @@ summary(ow)
     Summary of weights:
     
     - Weight ranges:
-               Min                                  Max
-    treated 1.0000     ||                        1.0000
-    control 0.0021 |---------------------------| 7.4319
+            Min                                  Max
+    treated   1     ||                        1.0000
+    control   0 |---------------------------| 7.4319
     
     - Units with 5 greatest weights by group:
                                                
@@ -59,7 +60,7 @@ summary(ow)
     
             Coef of Var Mean Abs Dev
     treated      0.0000       0.0000
-    control      1.9018       1.3719
+    control      1.9019       1.3719
     overall      1.5897       0.9585
     
     - Effective Sample Sizes:
@@ -96,21 +97,156 @@ bal.tab(ow)
     Adjusted    92.917     185
 
 ``` r
-# Estimate a treatment effect
+#Estimate a treatment effect
 library("jtools")
-summ(lm(re78 ~ treat, data = lalonde, weights = ow$weights), confint = TRUE, 
-    robust = TRUE, model.fit = FALSE)
+summ(lm(re78 ~ treat, data = lalonde, weights = ow$weights),
+     confint = TRUE, robust = TRUE, model.fit = FALSE, 
+     model.info = FALSE)
 ```
 
-    MODEL INFO:
-    Observations: 614
-    Dependent Variable: re78
-    Type: OLS linear regression 
-    
-    Standard errors: Robust, type = HC3
-                   Est.    2.5%   97.5% t val.    p    
-    (Intercept) 5342.94 4635.09 6050.78  14.85 0.00 ***
-    treat       1006.21   57.22 1955.19   2.09 0.04   *
+<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
+
+<thead>
+
+<tr>
+
+<th style="text-align:left;">
+
+</th>
+
+<th style="text-align:right;">
+
+Est.
+
+</th>
+
+<th style="text-align:right;">
+
+2.5%
+
+</th>
+
+<th style="text-align:right;">
+
+97.5%
+
+</th>
+
+<th style="text-align:right;">
+
+t val.
+
+</th>
+
+<th style="text-align:right;">
+
+p
+
+</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+<tr>
+
+<td style="text-align:left;font-weight: bold;">
+
+(Intercept)
+
+</td>
+
+<td style="text-align:right;">
+
+5342.94
+
+</td>
+
+<td style="text-align:right;">
+
+4058.75
+
+</td>
+
+<td style="text-align:right;">
+
+6627.13
+
+</td>
+
+<td style="text-align:right;">
+
+8.17
+
+</td>
+
+<td style="text-align:right;">
+
+0.00
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;font-weight: bold;">
+
+treat
+
+</td>
+
+<td style="text-align:right;">
+
+1006.20
+
+</td>
+
+<td style="text-align:right;">
+
+\-710.34
+
+</td>
+
+<td style="text-align:right;">
+
+2722.74
+
+</td>
+
+<td style="text-align:right;">
+
+1.15
+
+</td>
+
+<td style="text-align:right;">
+
+0.25
+
+</td>
+
+</tr>
+
+</tbody>
+
+<tfoot>
+
+<tr>
+
+<td style="padding: 0; border: 0;" colspan="100%">
+
+<sup></sup> Standard errors: Robust, type = HC3
+
+</td>
+
+</tr>
+
+</tfoot>
+
+</table>
 
 The lower-level function `optweight.fit` operates on the covariates and
 treatment variables directly.

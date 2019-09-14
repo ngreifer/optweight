@@ -20,10 +20,14 @@ plot(summary(ow))
 plot(ow)
 
 (ow <- optweight(lalonde$treat ~ covs, estimand = "ATT",
-                 tols = (1:9)/100))
+                 tols = (1:7)/100))
 bal.tab(ow)
 
-(ow <- optweight(treat ~ covs + I(re74==0) + I(re75==0), data = lalonde, estimand = "ATE"))
+tols <- check.tols(treat ~ covs + I(re74==0) + I(re75==0), data = lalonde,
+                   tols = rep(.002, 8), stop = T)
+
+(ow <- optweight(treat ~ covs + I(re74==0) + I(re75==0), data = lalonde, estimand = "ATE",
+                 tols = tols))
 bal.tab(ow)
 
 (ow <- optweight(race ~ covs[-3], data = lalonde, estimand = "ATE"))
@@ -32,6 +36,8 @@ bal.tab(ow)
 (ow <- optweight(race ~ covs[-3], data = lalonde, estimand = "ATT", focal = "hispan",
                  tols = .01))
 bal.tab(ow)
+
+
 
 #Continuous Treatment
 (ow <- optweight(re78 ~ covs, data = lalonde, estimand = "ATE",
@@ -73,3 +79,36 @@ ow2 <- optweight(f.build("treat", target.covs), data = lalonde,
                  estimand = NULL, tols = 0,
                  targets = targets)
 bal.tab(ow2, disp.means = TRUE)
+
+#Generate data
+N_ <- 1e3
+npred_ <- 10
+cor_ <- .2
+
+#Generate predictors
+var_X <- 1
+X <- MASS::mvrnorm(N_, mu = rep(0, npred_),
+                   Sigma = var_X*(cor_ + (1-cor_)*diag(npred_)))
+colnames(X) <- paste0("X", seq_len(npred_))
+
+#Generate treatment
+#Strong effects account for 2/3 of explained variance
+#Weak effects account for 1/3 of explained variance
+
+A_r2 = .5
+
+A_strong_covs <- colnames(X)[rep(c(TRUE, FALSE), each = npred_/2)]
+A_weak_covs <- setdiff(colnames(X), A_strong_covs)
+A_r2_strong <- (2/3) * A_r2
+A_r2_weak <- (1/3) * A_r2
+
+A_var_e <- 9
+A_coef_strong <- sqrt(A_var_e*A_r2_strong/(length(A_strong_covs)*var_X*(1-A_r2)))
+A_coef_weak <- sqrt(A_var_e*A_r2_weak/(length(A_weak_covs)*var_X*(1-A_r2)))
+A_coef <- c(rep(A_coef_strong, length(A_strong_covs)),
+            rep(A_coef_weak, length(A_weak_covs)))
+
+A <- drop(X[,c(A_strong_covs, A_weak_covs)] %*% A_coef + rnorm(N_, 0, sqrt(A_var_e)))
+
+A <- as.numeric(A>0)
+ow <- optweight(A ~ X, tols = .1)

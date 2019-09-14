@@ -1,7 +1,7 @@
 import(stats)
 import(Matrix)
 import(ggplot2)
-import(rosqp)
+import(osqp)
 importFrom("graphics", "hist")
 importFrom("utils", "combn")
 
