@@ -2,7 +2,6 @@ optweight.svy.fit <- function(covs, tols = 0, targets, s.weights = NULL, norm = 
   args <- list(...)
 
   #Process args
-  args[names(args) %nin% names(formals(osqpSettings))] <- NULL
   if (is_null(args[["max_iter"]])) args[["max_iter"]] <- 2E5L
   if (is_null(args[["eps_abs"]])) args[["eps_abs"]] <- 1E-8
   if (is_null(args[["eps_rel"]])) args[["eps_rel"]] <- 1E-8
@@ -25,6 +24,11 @@ optweight.svy.fit <- function(covs, tols = 0, targets, s.weights = NULL, norm = 
   N <- nrow(covs)
   if (is_null(s.weights)) sw <- rep(1, N)
   else sw <- s.weights
+
+  if (is_null(args[["maxs_pen"]])) mp <- rep(0, N)
+  else mp <- args[["maxs_pen"]]
+
+  args[names(args) %nin% names(formals(osqpSettings))] <- NULL
 
   norm.options <- c("l2", "l1", "linf")
   if (length(norm) != 1 || !is.character(norm) || tolower(norm) %nin% norm.options) {
@@ -62,7 +66,8 @@ optweight.svy.fit <- function(covs, tols = 0, targets, s.weights = NULL, norm = 
   if (norm == "l2") {
     #Minimizing variance of weights
     P = sparseMatrix(1:N, 1:N, x = 2*(sw^2)/N)
-    q = -sw/N #ensures objective function value is variance of weights
+    # q = -sw/N #ensures objective function value is variance of weights
+    q = -sw/N * (1 + mp - mean(mp)) #minimize variance of weights and maximize cov(mp, w)
 
     #Mean of weights  must equal 1
     E1 = matrix(sw/N, nrow = 1)
