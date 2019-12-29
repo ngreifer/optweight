@@ -49,17 +49,20 @@ optweight.fit <- function(treat.list, covs.list, tols, estimand = "ATE", targets
   if (length(tols.list) == 1) tols.list <- replicate(max(times), tols.list[[1]], simplify = FALSE)
   tols.list <- lapply(times, function(i) if (length(tols.list[[i]]) == 1) rep(tols.list[[i]], ncol(covs.list[[i]])) else tols.list[[i]])
 
+  norm.options <- c("l2", "l1", "linf")
+  if (length(norm) != 1 || !is.character(norm) || tolower(norm) %nin% norm.options) {
+    stop(paste0("norm must be ", word_list(norm.options, and.or = "or", quotes = TRUE), "."), call. = FALSE)
+  } else norm <- tolower(norm)
+
   N <- nrow(covs.list[[1]])
   if (is_null(s.weights)) sw <- rep(1, N)
   else sw <- s.weights
 
   if (is_null(b.weights)) bw <- rep(1, N)
-  else bw <- b.weights
-
-  norm.options <- c("l2", "l1", "linf")
-  if (length(norm) != 1 || !is.character(norm) || tolower(norm) %nin% norm.options) {
-    stop(paste0("norm must be ", word_list(norm.options, and.or = "or", quotes = TRUE), "."), call. = FALSE)
-  } else norm <- tolower(norm)
+  else {
+    if (norm != "l2") stop("Only the l2 norm is compatible with b.weights.", call. = FALSE)
+    bw <- b.weights
+  }
 
   estimand <- toupper(estimand)
 
@@ -180,7 +183,8 @@ optweight.fit <- function(treat.list, covs.list, tols, estimand = "ATE", targets
   if (norm == "l2") {
     #Minimizing variance of weights
     P = sparseMatrix(1:N, 1:N, x = 2*(sw^2)/N)
-    q = -sw/N #ensures objective function value is variance of weights
+    # q = -sw/N #ensures objective function value is variance of weights
+    q = (-2*bw + mean(bw^2))*sw/N
 
     #Minimizing the sum of the variances in each treatment group
     #Note: equiv. to setting targets closer to smaller group

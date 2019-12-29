@@ -1,4 +1,4 @@
-optweight <- function(formula, data = NULL, tols = 0, estimand = "ATE", targets = NULL, s.weights = NULL, focal = NULL, verbose = FALSE, force = FALSE, ...) {
+optweight <- function(formula, data = NULL, tols = 0, estimand = "ATE", targets = NULL, s.weights = NULL, b.weights = NULL, focal = NULL, verbose = FALSE, force = FALSE, ...) {
 
   if (!is.list(formula)) formula.list <- list(formula)
   else formula.list <- formula
@@ -78,6 +78,9 @@ optweight <- function(formula, data = NULL, tols = 0, estimand = "ATE", targets 
   #Process s.weights
   sw <- process.s.weights(s.weights, data)
 
+  #Process b.weights
+  bw <- process.b.weights(b.weights, data)
+
   ###Run optweight.fit
   fit_out <- optweight.fit(treat.list = treat.list,
                            covs.list = covs.list,
@@ -86,6 +89,7 @@ optweight <- function(formula, data = NULL, tols = 0, estimand = "ATE", targets 
                            focal = focal,
                            targets = targets,
                            s.weights = sw,
+                           b.weights = bw,
                            verbose = verbose,
                            force = force,
                            ...)
@@ -121,6 +125,7 @@ optweight <- function(formula, data = NULL, tols = 0, estimand = "ATE", targets 
                 treat = treat.list[[1]],
                 covs = reported.covs.list[[1]],
                 s.weights = sw,
+                b.weights = bw,
                 estimand = if (treat.type == "continuous") NULL else reported.estimand,
                 focal = focal,
                 call = call,
@@ -135,6 +140,7 @@ optweight <- function(formula, data = NULL, tols = 0, estimand = "ATE", targets 
                 treat.list = treat.list,
                 covs.list = reported.covs.list,
                 s.weights = sw,
+                b.weights = bw,
                 #estimand = reported.estimand,
                 call = call,
                 tols = tols.list,

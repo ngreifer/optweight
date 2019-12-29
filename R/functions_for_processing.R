@@ -73,6 +73,25 @@ process.focal.and.estimand <- function(focal, estimand, targets, treat, treat.ty
               estimand = estimand_,
               reported.estimand = reported.estimand))
 }
+process.b.weights <- function(b.weights, data = NULL) {
+  #Process b.weights
+  if (is_not_null(b.weights)) {
+    if (!(is.character(b.weights) && length(b.weights) == 1) && !is.numeric(b.weights)) {
+      stop("The argument to b.weights must be a vector or data frame of base weights or the (quoted) name of the variable in data that contains base weights.", call. = FALSE)
+    }
+    if (is.character(b.weights) && length(b.weights)==1) {
+      if (is_null(data)) {
+        stop("b.weights was specified as a string but there was no argument to data.", call. = FALSE)
+      }
+      else if (b.weights %in% names(data)) {
+        b.weights <- data[[b.weights]]
+      }
+      else stop("The name supplied to b.weights is not the name of a variable in data.", call. = FALSE)
+    }
+  }
+  else b.weights <- NULL
+  return(b.weights)
+}
 
 #To pass CRAN checks:
 utils::globalVariables(c("covs", "dual", "treat", "constraint"))
