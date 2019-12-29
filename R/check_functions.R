@@ -122,7 +122,7 @@ check.targets <- function(formula, data = NULL, targets, stop = FALSE) {
     original.variables <- setNames(formula.vars[attr(model.covs, "assign")], model.vars)
     for (v in formula.vars) {
       if (attr(terms(formula.covs), "order")[formula.vars == v] == 1 &&
-          attr(terms(formula.covs), "dataClasses")[v] == "factor") {
+          attr(terms(formula.covs), "dataClasses")[formula.vars == v] == "factor") {
         if (!any(is.na(internal.targets[original.variables == v])) &&
             !check_if_zero(sum(internal.targets[original.variables == v]) - 1)) {
           stop(paste("The target values for", v, "must add up to 1."), call. = FALSE)
