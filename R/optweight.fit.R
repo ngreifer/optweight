@@ -1,4 +1,4 @@
-optweight.fit <- function(treat.list, covs.list, tols, estimand = "ATE", targets = NULL, s.weights = NULL, focal = NULL, norm = "l2", std.binary = FALSE, std.cont = TRUE, min.w = 1E-8, verbose = FALSE, force = FALSE, ...) {
+optweight.fit <- function(treat.list, covs.list, tols, estimand = "ATE", targets = NULL, s.weights = NULL, b.weights = NULL, focal = NULL, norm = "l2", std.binary = FALSE, std.cont = TRUE, min.w = 1E-8, verbose = FALSE, force = FALSE, ...) {
   #For corr.type, make sure duals process correctly
   args <- list(...)
 
@@ -53,6 +53,9 @@ optweight.fit <- function(treat.list, covs.list, tols, estimand = "ATE", targets
   if (is_null(s.weights)) sw <- rep(1, N)
   else sw <- s.weights
 
+  if (is_null(b.weights)) bw <- rep(1, N)
+  else bw <- b.weights
+
   norm.options <- c("l2", "l1", "linf")
   if (length(norm) != 1 || !is.character(norm) || tolower(norm) %nin% norm.options) {
     stop(paste0("norm must be ", word_list(norm.options, and.or = "or", quotes = TRUE), "."), call. = FALSE)
@@ -89,9 +92,7 @@ optweight.fit <- function(treat.list, covs.list, tols, estimand = "ATE", targets
       sds <- lapply(times, function(i) {
         if (is_null(focal)) focal <- max(treat.list[[i]])
         else if (estimand == "ATC") focal <- min(treat.list[[i]])
-        sds_i <- rep(NA_real_, ncol(covs.list[[i]]))
-        sds_i[!bin.covs.list[[i]]] <- sqrt(col.w.v(covs.list[[i]][treat.list[[i]] == focal, !bin.covs.list[[i]], drop = FALSE], w = sw[treat.list[[i]] == focal]))
-        sds_i[bin.covs.list[[i]]] <- sqrt(col.w.v.bin(covs.list[[i]][treat.list[[i]] == focal, bin.covs.list[[i]], drop = FALSE], w = sw[treat.list[[i]] == focal]))
+        sds_i <- sqrt(col.w.v(covs.list[[i]][treat.list[[i]] == focal, , drop = FALSE], w = sw[treat.list[[i]] == focal], bin.vars = bin.covs.list[[i]]))
         return(sds_i)
       })
       sw[treat.list[[1]]==focal] <- 1
@@ -99,9 +100,7 @@ optweight.fit <- function(treat.list, covs.list, tols, estimand = "ATE", targets
       targets <- c(list(means[[1]]), lapply(covs.list[-1], function(c) rep(NA_real_, ncol(c))))
       sds <- lapply(times, function(i) sqrt(rowMeans(matrix(sapply(unique.treats[[i]], function(t) {
         in.treat <- switch(treat.types[i], "cat" = treat.list[[i]] == t, "cont" = rep(TRUE, length(treat.list[[i]])))
-        vars_i <- rep(NA_real_, ncol(covs.list[[i]]))
-        vars_i[!bin.covs.list[[i]]] <- col.w.v(covs.list[[i]][in.treat, !bin.covs.list[[i]], drop = FALSE], w = sw[in.treat])
-        vars_i[bin.covs.list[[i]]] <- col.w.v.bin(covs.list[[i]][in.treat, bin.covs.list[[i]], drop = FALSE], w = sw[in.treat])
+        vars_i <- col.w.v(covs.list[[i]][in.treat, , drop = FALSE], w = sw[in.treat], bin.vars = bin.covs.list[[i]])
         return(vars_i)
         }, simplify = "array"), ncol = length(unique.treats[[i]])))))
     }
@@ -117,9 +116,7 @@ optweight.fit <- function(treat.list, covs.list, tols, estimand = "ATE", targets
     }
     sds <- lapply(times, function(i) sqrt(rowMeans(matrix(sapply(unique.treats[[i]], function(t) {
       in.treat <- switch(treat.types[i], "cat" = treat.list[[i]] == t, "cont" = rep(TRUE, length(treat.list[[i]])))
-      vars_i <- rep(NA_real_, ncol(covs.list[[i]]))
-      vars_i[!bin.covs.list[[i]]] <- col.w.v(covs.list[[i]][in.treat, !bin.covs.list[[i]], drop = FALSE], w = sw[in.treat])
-      vars_i[bin.covs.list[[i]]] <- col.w.v.bin(covs.list[[i]][in.treat, bin.covs.list[[i]], drop = FALSE], w = sw[in.treat])
+      vars_i <- col.w.v(covs.list[[i]][in.treat, , drop = FALSE], w = sw[in.treat], bin.vars = bin.covs.list[[i]])
       return(vars_i)
     }, simplify = "array"), ncol = length(unique.treats[[i]])))))
   }
@@ -155,15 +152,13 @@ optweight.fit <- function(treat.list, covs.list, tols, estimand = "ATE", targets
       #                     tols[[i]])
     }
     else {
-      sds[[i]] <- rep(NA_real_, ncol(covs.list[[i]]))
-      sds[[i]][!bin.covs.list[[i]]] <- sqrt(col.w.v(covs.list[[i]][,!bin.covs.list[[i]], drop = FALSE], w = sw))
-      sds[[i]][bin.covs.list[[i]]] <- sqrt(col.w.v.bin(covs.list[[i]][,bin.covs.list[[i]], drop = FALSE], w = sw))
+      sds[[i]] <- sqrt(col.w.v(covs.list[[i]], w = sw, bin.vars = bin.covs.list[[i]]))
       targeted[[i]] <- !is.na(targets[[i]])
       balanced[[i]] <- rep(TRUE, length(targeted[[i]]))
       covs.list[[i]][, targeted[[i]]] <- center(covs.list[[i]][, targeted[[i]], drop = FALSE], at = targets[[i]][targeted[[i]]]) #center covs at targets (which will be eventual means)
       covs.list[[i]][, !targeted[[i]]] <- center(covs.list[[i]][, !targeted[[i]], drop = FALSE], at = means[[i]][!targeted[[i]]]) #center covs at means
 
-      treat.sds[[i]] <- sqrt(w.v(treat.list[[i]], w = sw))
+      treat.sds[[i]] <- sqrt(col.w.v(treat.list[[i]], w = sw))
       treat.means[[i]] <- col.w.m(matrix(treat.list[[i]], ncol = 1), w = sw)
       treat.list[[i]] <- treat.list[[i]] - treat.means[[i]] #center treat
 
