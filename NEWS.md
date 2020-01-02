@@ -1,6 +1,10 @@
 optweight News and Updates
 ======
 
+Version 0.2.6
+
+* Added `b.weights` argument to supply base weights. When supplied, rather than minimizing the variance of the weights, the squared distance from each base weight is minimized, mirroring the functionality of the `base.weights` argument in `ebalance` for entropy balancing.
+
 Version 0.2.5
 
 * Reverting back to using `osqp` instead of `rosqp` now that `osqp` works. `cobalt` is back.

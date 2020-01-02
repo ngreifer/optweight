@@ -3,7 +3,7 @@ Type: Package
 Title: Targeted Stable Balancing Weights Using Optimization
 Version: 0.2.5.9000
 Authors@R: c(
-    person(c("Noah", "H."),"Greifer", role=c("aut", "cre"), 
+    person(c("Noah"),"Greifer", role=c("aut", "cre"), 
            email = "noah.greifer@gmail.com",
 	       comment=c(ORCID="0000-0003-3067-7154"))
     )
