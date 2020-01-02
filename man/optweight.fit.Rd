@@ -39,12 +39,14 @@ A vector of target populaton mean values for each baseline covariate. The result
   \item{s.weights}{
 A vector of sampling weights. Optimization occurs on the product of the sampling weights and the estimated weights.
 }
-
+  \item{b.weights}{
+A vector of base weights or the name of a variable in \code{data} that contains base weights. If supplied, the desired norm of the distance between the estimated weights and the base weights is minimized. Currently only supported with \code{norm = "l2"}.
+}
   \item{focal}{
 When multinomial treatments are used and the "ATT" is requested, which group to consider the "treated" or focal group. This group will not be weighted, and the other groups will be weighted to be more like the focal group.
 }
   \item{norm}{
-A string containing the name of the norm corresponding to the objective function to minimize. The options are \code{"l1"} for the L1 norm, \code{"l2"} for the L2 norm (the default), and \code{"linf"} for the L\eqn{\infty} norm. The L1 norm minimizes the average absolute distance between each weight and the mean of the weights; the L2 norm minimizes the variance of the weights; the L\eqn{\infty} norm minimizes the largest weight. The L2 norm has a direct correspondence with the effective sample size, making it ideal if this is your criterion of interest.
+A string containing the name of the norm corresponding to the objective function to minimize. The options are \code{"l1"} for the L1 norm, \code{"l2"} for the L2 norm (the default), and \code{"linf"} for the L\eqn{\infty} norm. The L1 norm minimizes the average absolute distance between each weight and the mean of the weights; the L2 norm minimizes the variance of the weights; the L\eqn{\infty} norm minimizes the largest weight. The L2 norm has a direct correspondence with the effective sample size, making it ideal if this is your criterion of interest. If \code{b.weights} are specified, \code{norm} is the norm fo the distance between the estimated weights and the base weights.
 }
   \item{std.binary, std.cont}{
 \code{logical}; whether the tolerances are in standardized mean units (\code{TRUE}) or raw units (\code{FALSE}) for binary variables and continuous variables, respectively. The default is \code{FALSE} for \code{std.binary} because raw proportion differences make more sense than standardized mean difference for binary variables. These arguments are analogous to the \code{binary} and \code{continuous} arguments in \code{bal.tab} in \pkg{cobalt}.

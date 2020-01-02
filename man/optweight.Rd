@@ -10,6 +10,7 @@ optweight(formula,
           estimand = "ATE",
           targets = NULL,
           s.weights = NULL,
+          b.weights = NULL,
           focal = NULL,
           verbose = FALSE,
           force = FALSE,
@@ -41,6 +42,9 @@ A vector of target populaton mean values for each baseline covariate. The result
   \item{s.weights}{
 A vector of sampling weights or the name of a variable in \code{data} that contains sampling weights. Optimization occurs on the product of the sampling weights and the estimated weights.
 }
+  \item{b.weights}{
+A vector of base weights or the name of a variable in \code{data} that contains base weights. If supplied, the desired norm of the distance between the estimated weights and the base weights is minimized. Currently only supported with \code{norm = "l2"} (the default norm; see \code{\link{optweight.fit}}).
+}
   \item{focal}{
 When multinomial treatments are used and the "ATT" is requested, which group to consider the "treated" or focal group. This group will not be weighted, and the other groups will be weighted to be more like the focal group. If specified, \code{estimand} will automatically be set to \code{"ATT"}.
 }
@@ -65,6 +69,7 @@ An \code{optweight} or \code{optweightMSM} object; the output of a call to \code
   \item{treat}{The values of the treatment variable.}
   \item{covs}{The covariates used in the fitting. Only includes the raw covariates, which may have been altered in the fitting process.}
   \item{s.weights}{The provided sampling weights.}
+  \item{b.weights}{The provided base weights.}
   \item{estimand}{The estimand requested.}
   \item{focal}{The focal variable if the ATT was requested with a multinomial treatment.}
   \item{call}{The function call.}
@@ -77,7 +82,7 @@ An \code{optweight} or \code{optweightMSM} object; the output of a call to \code
   \item{treat.list}{A list of the values of the treatment variables at each time point.}
   \item{covs.list}{A list of the covariates at each time point used in the fitting. Only includes the raw covariates, which may have been altered in the fitting process.}
   \item{s.weights}{The provided sampling weights.}
-  \item{estimand}{The estimand requested; "ATE" for longtiduinal treatments.}
+  \item{b.weights}{The provided base weights.}
   \item{call}{The function call.}
   \item{tols}{A list of tolerance values for each covariate at each time point.}
   \item{duals}{A list of data.frames containing the dual variables for each covariate at each time point. See Details for interpretation of these values.}
