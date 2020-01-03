@@ -183,6 +183,11 @@ c.factor <- function(..., recursive=TRUE) {
     #c() for factors
     unlist(list(...), recursive=recursive)
 }
+can_str2num <- function(x) {
+    nas <- is.na(x)
+    suppressWarnings(x_num <- as.numeric(x))
+    return(!anyNA(x_num[!nas]))
+}
 
 #Numbers
 check_if_zero <- function(x) {
@@ -516,11 +521,11 @@ get.covs.and.treat.from.formula <- function(f, data = NULL, terms = FALSE, sep =
         }
         addl.dfs <- setNames(lapply(rhs.vars.mentioned[rhs.df], function(x) {
             df <- eval(parse(text=x)[[1]], data, env)
-            if (is_(df, "poly")) colnames(df) <- paste(x, colnames(df), sep = sep)
-            else if (is_(df, "rms")) {
+            if (is_(df, "rms")) {
                 if (length(dim(df)) == 2L) class(df) <- "matrix"
                 df <- setNames(as.data.frame(as.matrix(df)), attr(df, "colnames"))
             }
+            else if (can_str2num(colnames(df))) colnames(df) <- paste(x, colnames(df), sep = sep)
             return(as.data.frame(df))
         }),
         rhs.vars.mentioned[rhs.df])
