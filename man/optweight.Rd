@@ -143,6 +143,8 @@ Zubizarreta, J. R. (2015). Stable Weights that Balance Covariates for Estimation
 \code{\link[osqp]{osqpSettings}} for details on options for \code{solve_osqp}.
 
 \code{\link{optweight.fit}}, the lower-level function that performs the fitting.
+
+The package \pkg{sbw}, which was the inspiration for this package and provides additional functionality for binary treatments.
 }
 
 \examples{

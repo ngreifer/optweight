@@ -5,6 +5,8 @@ Version 0.2.6
 
 * Added `b.weights` argument to supply base weights. When supplied, rather than minimizing the variance of the weights, the squared distance from each base weight is minimized, mirroring the functionality of the `base.weights` argument in `ebalance` for entropy balancing.
 
+* Formula interfaces now accept `poly(x, .)` and other matrix-generating functions of variables, including the `rms`-class-generating functions from the `rms` package (e.g., `pol()`, `rcs()`, etc.) (the `rms` package must be loaded to use these latter ones) and the `basis`-class-generating functions from the `splines` package (i.e., `bs()` and `ns()`). A bug in an early version of ths was found by @ahinton-mmc.
+
 Version 0.2.5
 
 * Reverting back to using `osqp` instead of `rosqp` now that `osqp` works. `cobalt` is back.
