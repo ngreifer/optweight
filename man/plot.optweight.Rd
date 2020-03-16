@@ -35,6 +35,7 @@ Noah Greifer
 
 \seealso{
 \code{\link{optweight}} or \code{\link{optweight.svy}} to estimate the weights and the dual variables
+
 \code{\link{plot.summary.optweight}} for plots of the distribution of weights
 }
 \examples{
