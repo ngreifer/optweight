@@ -2,44 +2,48 @@
 
 #Strings
 word_list <- function(word.list = NULL, and.or = c("and", "or"), is.are = FALSE, quotes = FALSE) {
-    #When given a vector of strings, creates a string of the form "a and b"
-    #or "a, b, and c"
-    #If is.are, adds "is" or "are" appropriately
+  #When given a vector of strings, creates a string of the form "a and b"
+  #or "a, b, and c"
+  #If is.are, adds "is" or "are" appropriately
+  L <- length(word.list)
+  if (quotes) {
+    if (as.integer(quotes) == 2) word.list <- vapply(word.list, function(x) paste0("\"", x, "\""), character(1L))
+    else if (as.integer(quotes) == 1) word.list <- vapply(word.list, function(x) paste0("\'", x, "\'"), character(1L))
+    else stop("'quotes' must be boolean, 1, or 2.")
+  }
+  if (L == 0) {
+    out <- ""
+    attr(out, "plural") <- FALSE
+  }
+  else {
+    word.list <- word.list[!word.list %in% c(NA_character_, "")]
     L <- length(word.list)
-    if (quotes) word.list <- vapply(word.list, function(x) paste0("\"", x, "\""), character(1L))
     if (L == 0) {
-        out <- ""
-        attr(out, "plural") = FALSE
+      out <- ""
+      attr(out, "plural") <- FALSE
+    }
+    else if (L == 1) {
+      out <- word.list
+      if (is.are) out <- paste(out, "is")
+      attr(out, "plural") <- FALSE
     }
     else {
-        word.list <- word.list[!word.list %in% c(NA_character_, "")]
-        L <- length(word.list)
-        if (L == 0) {
-            out <- ""
-            attr(out, "plural") = FALSE
-        }
-        else if (L == 1) {
-            out <- word.list
-            if (is.are) out <- paste(out, "is")
-            attr(out, "plural") = FALSE
-        }
-        else {
-            and.or <- match_arg(and.or)
-            if (L == 2) {
-                out <- paste(word.list, collapse = paste0(" ", and.or," "))
-            }
-            else {
-                out <- paste(paste(word.list[seq_len(L-1)], collapse = ", "),
-                             word.list[L], sep = paste0(", ", and.or," "))
+      and.or <- match_arg(and.or)
+      if (L == 2) {
+        out <- paste(word.list, collapse = paste0(" ", and.or," "))
+      }
+      else {
+        out <- paste(paste(word.list[seq_len(L-1)], collapse = ", "),
+                     word.list[L], sep = paste0(", ", and.or," "))
 
-            }
-            if (is.are) out <- paste(out, "are")
-            attr(out, "plural") = TRUE
-        }
-
-
+      }
+      if (is.are) out <- paste(out, "are")
+      attr(out, "plural") <- TRUE
     }
-    return(out)
+
+
+  }
+  return(out)
 }
 firstup <- function(x) {
     #Capitalize first letter
@@ -438,235 +442,241 @@ subbars <- function(term) {
 
 #treat/covs
 get.covs.and.treat.from.formula <- function(f, data = NULL, terms = FALSE, sep = "", ...) {
-    A <- list(...)
+  A <- list(...)
 
-    #Check if data exists
-    if (is_not_null(data)) {
-        if (is.data.frame(data)) {
-            data.specified <- TRUE
-        }
-        else {
-            warning("The argument supplied to data is not a data.frame object. This may causes errors or unexpected results.", call. = FALSE)
-            data <- environment(f)
-            data.specified <- FALSE
-        }
+  #Check if data exists
+  if (is_not_null(data)) {
+    if (is.data.frame(data)) {
+      data.specified <- TRUE
     }
     else {
-        data <- environment(f)
-        data.specified <- FALSE
+      warning("The argument supplied to data is not a data.frame object. This may causes errors or unexpected results.", call. = FALSE)
+      data <- environment(f)
+      data.specified <- FALSE
+    }
+  }
+  else {
+    data <- environment(f)
+    data.specified <- FALSE
+  }
+
+  env <- environment(f)
+
+  if (!is.formula(f)) stop("'f' must be a formula.")
+
+  eval.model.matrx <- !hasbar(f)
+
+  tryCatch(tt <- terms(f, data = data),
+           error = function(e) {
+             if (conditionMessage(e) == "'.' in formula and no 'data' argument") {
+               stop("'.' is not allowed in formulas.", call. = FALSE)
+             }
+             else stop(conditionMessage(e), call. = FALSE)
+           })
+
+  #Check if response exists
+  if (is.formula(tt, 2)) {
+    resp.var.mentioned <- attr(tt, "variables")[[2]]
+    resp.var.mentioned.char <- deparse1(resp.var.mentioned)
+
+    resp.var.failed <- {
+      test <- tryCatch(eval(resp.var.mentioned, data, env), error = function(e) e)
+      if (inherits(test, "simpleError")) {
+        if (startsWith(conditionMessage(test), "object") &&
+            endsWith(conditionMessage(test), "not found")) TRUE
+        else stop(test)
+      }
+      else is_null(test)
     }
 
-    env <- environment(f)
+    if (resp.var.failed) {
+      if (is_null(A[["treat"]])) stop(paste0("The given response variable, \"", resp.var.mentioned.char, "\", is not a variable in ", word_list(c("data", "the global environment")[c(data.specified, TRUE)], "or"), "."), call. = FALSE)
+      tt <- delete.response(tt)
+    }
+  }
+  else resp.var.failed <- TRUE
 
-    if (!is.formula(f)) stop("f must be a formula.")
+  if (resp.var.failed) {
+    treat <- A[["treat"]]
+    treat.name <- NULL
+  }
+  else {
+    treat.name <- as.character(resp.var.mentioned)
+    treat <- eval(resp.var.mentioned, data, env)
+  }
 
-    eval.model.matrx <- identical(f, f <- subbars(f))
+  #Check if RHS variables exist
+  tt.covs <- delete.response(tt)
 
-    tryCatch(tt <- terms(f, data = data),
-             error = function(e) {
-                 if (conditionMessage(e) == "'.' in formula and no 'data' argument") {
-                     stop("'.' is not allowed in formulas.", call. = FALSE)
-                 }
-                 else stop(conditionMessage(e), call. = FALSE)
-             })
+  rhs.vars.mentioned <- attr(tt.covs, "variables")[-1]
+  rhs.vars.mentioned.char <- vapply(rhs.vars.mentioned, deparse1, character(1L))
+  rhs.vars.failed <- vapply(seq_along(rhs.vars.mentioned), function(i) {
+    test <- tryCatch(eval(rhs.vars.mentioned[[i]], data, env), error = function(e) e)
+    if (inherits(test, "simpleError")) {
+      if (startsWith(conditionMessage(test), "object") &&
+          endsWith(conditionMessage(test), "not found")) return(TRUE)
+      else stop(test)
+    }
+    else is_null(test)
+  }, logical(1L))
 
-    #Check if response exists
-    if (is.formula(tt, 2)) {
-        resp.vars.mentioned <- as.character(tt)[2]
-        resp.vars.failed <- vapply(resp.vars.mentioned, function(v) {
-            test <- tryCatch(eval(parse(text=v), data, env), error = function(e) e)
-            if (inherits(test, "simpleError")) {
-                if (conditionMessage(test) == paste0("object '", v, "' not found")) return(TRUE)
-                else stop(test)
-            }
-            else if (is_null(test)) return(TRUE)
-            else return(FALSE)
-        }, logical(1L))
+  if (any(rhs.vars.failed)) {
+    stop(paste0(c("All variables in 'formula' must be variables in 'data' or objects in the global environment.\nMissing variables: ",
+                  paste(rhs.vars.mentioned.char[rhs.vars.failed], collapse= ", "))), call. = FALSE)
 
-        if (any(resp.vars.failed)) {
-            if (is_null(A[["treat"]])) stop(paste0("The given response variable, \"", as.character(tt)[2], "\", is not a variable in ", word_list(c("data", "the global environment")[c(data.specified, TRUE)], "or"), "."), call. = FALSE)
-            tt <- delete.response(tt)
+  }
+
+  rhs.term.labels <- attr(tt.covs, "term.labels")
+  rhs.term.orders <- attr(tt.covs, "order")
+
+  rhs.df <- setNames(vapply(rhs.vars.mentioned, function(v) {
+    length(dim(try(eval(v, data, env), silent = TRUE))) == 2L
+  }, logical(1L)), rhs.vars.mentioned.char)
+
+  rhs.term.labels.list <- setNames(as.list(rhs.term.labels), rhs.term.labels)
+  if (any(rhs.df)) {
+    if (any(rhs.vars.mentioned.char[rhs.df] %in% unlist(lapply(rhs.term.labels[rhs.term.orders > 1], function(x) strsplit(x, ":", fixed = TRUE))))) {
+      stop("Interactions with data.frames are not allowed in the input formula.", call. = FALSE)
+    }
+    addl.dfs <- setNames(lapply(which(rhs.df), function(i) {
+      df <- eval(rhs.vars.mentioned[[i]], data, env)
+      if (is_(df, "rms")) {
+        class(df) <- "matrix"
+        df <- setNames(as.data.frame(as.matrix(df)), attr(df, "colnames"))
+      }
+      else if (can_str2num(colnames(df))) colnames(df) <- paste(rhs.vars.mentioned.char[i], colnames(df), sep = sep)
+      return(as.data.frame(df))
+    }),
+    rhs.vars.mentioned.char[rhs.df])
+
+    for (i in rhs.term.labels[rhs.term.labels %in% rhs.vars.mentioned.char[rhs.df]]) {
+      ind <- which(rhs.term.labels == i)
+      rhs.term.labels <- append(rhs.term.labels[-ind],
+                                values = names(addl.dfs[[i]]),
+                                after = ind - 1)
+      rhs.term.labels.list[[i]] <- names(addl.dfs[[i]])
+    }
+
+    if (data.specified) data <- do.call("cbind", unname(c(addl.dfs, list(data))))
+    else data <- do.call("cbind", unname(addl.dfs))
+  }
+
+  if (is_null(rhs.term.labels)) {
+    new.form <- as.formula("~ 1")
+    tt.covs <- terms(new.form)
+    covs <- data.frame(Intercept = rep(1, if (is_null(treat)) 1 else length(treat)))
+    if (is_not_null(treat.name) && treat.name == "Intercept") {
+      names(covs) <- "Intercept_"
+    }
+  }
+  else {
+    new.form.char <- paste("~", paste(vapply(names(rhs.term.labels.list), function(x) {
+      if (x %in% rhs.vars.mentioned.char[rhs.df]) paste0("`", rhs.term.labels.list[[x]], "`", collapse = " + ")
+      else rhs.term.labels.list[[x]]
+      # try.form <- try(as.formula(paste("~", x)), silent = TRUE)
+      # if (null_or_error(try.form) || (grepl("^", x, fixed = TRUE) && !startsWith(x, "I("))) {
+      #     paste0("`", x, "`")
+      # }
+      # else x
+    } , character(1L)), collapse = " + "))
+
+    new.form <- as.formula(new.form.char)
+    tt.covs <- terms(new.form)
+    attr(tt.covs, "intercept") <- 0
+
+    #Get model.frame, report error
+    mf.covs <- quote(stats::model.frame(tt.covs, data,
+                                        drop.unused.levels = TRUE,
+                                        na.action = "na.pass"))
+
+    tryCatch({covs <- eval(mf.covs)},
+             error = function(e) {stop(conditionMessage(e), call. = FALSE)})
+
+    if (is_not_null(treat.name) && treat.name %in% names(covs)) stop("The variable on the left side of the formula appears on the right side too.", call. = FALSE)
+  }
+
+  if (eval.model.matrx) {
+    if (s <- !identical(sep, "")) {
+      if (!is.character(sep) || length(sep) > 1) stop("'sep' must be a string of length 1.", call. = FALSE)
+      original.covs.levels <- make_list(names(covs))
+      for (i in names(covs)) {
+        if (is.character(covs[[i]])) covs[[i]] <- factor(covs[[i]])
+        if (is.factor(covs[[i]])) {
+          original.covs.levels[[i]] <- levels(covs[[i]])
+          levels(covs[[i]]) <- paste0(sep, original.covs.levels[[i]])
         }
-    }
-    else resp.vars.failed <- TRUE
-
-    if (any(!resp.vars.failed)) {
-        treat.name <- resp.vars.mentioned[!resp.vars.failed][1]
-        treat <- eval(parse(text=treat.name)[[1]], data, env)
-    }
-    else {
-        treat <- A[["treat"]]
-        treat.name <- NULL
+      }
     }
 
-    #Check if RHS variables exist
-    tt.covs <- delete.response(tt)
+    #Get full model matrix with interactions too
+    covs.matrix <- model.matrix(tt.covs, data = covs,
+                                contrasts.arg = lapply(Filter(is.factor, covs),
+                                                       contrasts, contrasts=FALSE))
 
-    rhs.vars.mentioned.lang <- attr(tt.covs, "variables")[-1]
-    rhs.vars.mentioned <- vapply(rhs.vars.mentioned.lang, deparse, character(1L))
-    rhs.vars.failed <- vapply(rhs.vars.mentioned, function(v) {
-        test <- tryCatch(eval(parse(text=v), data, env), error = function(e) e)
-        if (inherits(test, "simpleError")) {
-            if (conditionMessage(test) == paste0("object '", v, "' not found")) return(TRUE)
-            else stop(test)
-        }
-        else if (is_null(test)) return(TRUE)
-        else return(FALSE)
-    }, logical(1L))
-
-    if (any(rhs.vars.failed)) {
-        stop(paste0(c("All variables in formula must be variables in data or objects in the global environment.\nMissing variables: ",
-                      paste(rhs.vars.mentioned[rhs.vars.failed], collapse=", "))), call. = FALSE)
-
+    if (s) {
+      for (i in names(covs)[vapply(covs, is.factor, logical(1L))]) {
+        levels(covs[[i]]) <- original.covs.levels[[i]]
+      }
     }
+  }
+  else {
+    covs.matrix <- NULL
+  }
 
-    rhs.term.labels <- attr(tt.covs, "term.labels")
-    rhs.term.orders <- attr(tt.covs, "order")
+  if (!terms) attr(covs, "terms") <- NULL
 
-    rhs.df <- vapply(rhs.vars.mentioned, function(v) {
-        is_(try(eval(parse(text=v)[[1]], data, env), silent = TRUE),
-            c("data.frame", "matrix", "rms"))
-    }, logical(1L))
-
-    if (any(rhs.df)) {
-        if (any(rhs.vars.mentioned[rhs.df] %in% unlist(lapply(rhs.term.labels[rhs.term.orders > 1], function(x) strsplit(x, ":", fixed = TRUE))))) {
-            stop("Interactions with data.frames are not allowed in the input formula.", call. = FALSE)
-        }
-        addl.dfs <- setNames(lapply(rhs.vars.mentioned[rhs.df], function(x) {
-            df <- eval(parse(text=x)[[1]], data, env)
-            if (is_(df, "rms")) {
-                if (length(dim(df)) == 2L) class(df) <- "matrix"
-                df <- setNames(as.data.frame(as.matrix(df)), attr(df, "colnames"))
-            }
-            else if (can_str2num(colnames(df))) colnames(df) <- paste(x, colnames(df), sep = sep)
-            return(as.data.frame(df))
-        }),
-        rhs.vars.mentioned[rhs.df])
-
-        for (i in rhs.term.labels[rhs.term.labels %in% rhs.vars.mentioned[rhs.df]]) {
-            ind <- which(rhs.term.labels == i)
-            rhs.term.labels <- append(rhs.term.labels[-ind],
-                                      values = names(addl.dfs[[i]]),
-                                      after = ind - 1)
-        }
-
-        if (data.specified) data <- do.call("cbind", unname(c(addl.dfs, list(data))))
-        else data <- do.call("cbind", unname(addl.dfs))
-    }
-
-    if (is_null(rhs.term.labels)) {
-        new.form <- as.formula("~ 1")
-        tt.covs <- terms(new.form)
-        covs <- data.frame(Intercept = rep(1, if (is_null(treat)) 1 else length(treat)))
-        if (is_not_null(treat.name) && treat.name == "Intercept") {
-            names(covs) <- "Intercept_"
-        }
-    }
-    else {
-        new.form.char <- paste("~", paste(vapply(rhs.term.labels, function(x) {
-            try.form <- try(as.formula(paste("~", x)), silent = TRUE)
-            if (null_or_error(try.form) || (grepl("^", x, fixed = TRUE) && !startsWith(x, "I("))) {
-                paste0("`", x, "`")
-            }
-            else x
-        } , character(1L)), collapse = " + "))
-
-        new.form <- as.formula(new.form.char)
-        tt.covs <- terms(new.form)
-        attr(tt.covs, "intercept") <- 0
-
-        #Get model.frame, report error
-        mf.covs <- quote(stats::model.frame(tt.covs, data,
-                                            drop.unused.levels = TRUE,
-                                            na.action = "na.pass"))
-
-        tryCatch({covs <- eval(mf.covs)},
-                 error = function(e) {stop(conditionMessage(e), call. = FALSE)})
-
-        if (is_not_null(treat.name) && treat.name %in% names(covs)) stop("The variable on the left side of the formula appears on the right side too.", call. = FALSE)
-    }
-
-    if (eval.model.matrx) {
-        if (s <- !identical(sep, "")) {
-            if (!is.character(sep) || length(sep) > 1) stop("sep must be a string of length 1.", call. = FALSE)
-            original.covs.levels <- setNames(vector("list", ncol(covs)), names(covs))
-            for (i in names(covs)) {
-                if (is.character(covs[[i]])) covs[[i]] <- factor(covs[[i]])
-                if (is.factor(covs[[i]])) {
-                    original.covs.levels[[i]] <- levels(covs[[i]])
-                    levels(covs[[i]]) <- paste0(sep, original.covs.levels[[i]])
-                }
-            }
-        }
-
-        #Get full model matrix with interactions too
-        covs.matrix <- model.matrix(tt.covs, data = covs,
-                                    contrasts.arg = lapply(Filter(is.factor, covs),
-                                                           contrasts, contrasts=FALSE))
-
-        if (s) {
-            for (i in names(covs)) {
-                if (is.factor(covs[[i]])) {
-                    levels(covs[[i]]) <- original.covs.levels[[i]]
-                }
-            }
-        }
-    }
-    else {
-        covs.matrix <- NULL
-    }
-
-    if (!terms) attr(covs, "terms") <- NULL
-
-    return(list(reported.covs = covs,
-                model.covs = covs.matrix,
-                treat = treat,
-                treat.name = treat.name))
+  return(list(reported.covs = covs,
+              model.covs = covs.matrix,
+              treat = treat,
+              treat.name = treat.name))
 }
-assign.treat.type <- function(treat) {
-    #Returns treat with treat.type attribute
-    nunique.treat <- nunique(treat)
+assign.treat.type <- function(treat, use.multi = FALSE) {
+  #Returns treat with treat.type attribute
+  nunique.treat <- nunique(treat)
 
-    if (nunique.treat < 2) {
-        stop("The treatment must have at least two unique values.", call. = FALSE)
-    }
-    else if (nunique.treat == 2) {
-        treat.type <- "binary"
-    }
-    else if (is_(treat, c("factor", "character"))) {
-        treat.type <- "multinomial"
-        if (!is_(treat, "processed.treat")) treat <- factor(treat)
-    }
-    else {
-        treat.type <- "continuous"
-    }
-    attr(treat, "treat.type") <- treat.type
-    return(treat)
+  if (nunique.treat < 2) {
+    stop("The treatment must have at least two unique values.", call. = FALSE)
+  }
+  else if (!use.multi && nunique.treat == 2) {
+    treat.type <- "binary"
+  }
+  else if (use.multi || is_(treat, c("factor", "character"))) {
+    treat.type <- "multinomial"
+    if (!is_(treat, "processed.treat")) treat <- factor(treat)
+  }
+  else {
+    treat.type <- "continuous"
+  }
+  attr(treat, "treat.type") <- treat.type
+  return(treat)
 }
 get.treat.type <- function(treat) {
-    return(attr(treat, "treat.type"))
+  return(attr(treat, "treat.type"))
 }
 has.treat.type <- function(treat) {
-    is_not_null(get.treat.type(treat))
+  is_not_null(get.treat.type(treat))
 }
-process.s.weights <- function(s.weights, data = NULL) {
-    #Process s.weights
-    if (is_not_null(s.weights)) {
-        if (!(is.character(s.weights) && length(s.weights) == 1) && !is.numeric(s.weights)) {
-            stop("The argument to s.weights must be a vector or data frame of sampling weights or the (quoted) names of the variable in data that contains sampling weights.", call. = FALSE)
-        }
-        if (is.character(s.weights) && length(s.weights)==1) {
-            if (is_null(data)) {
-                stop("s.weights was specified as a string but there was no argument to data.", call. = FALSE)
-            }
-            else if (s.weights %in% names(data)) {
-                s.weights <- data[[s.weights]]
-            }
-            else stop("The name supplied to s.weights is not the name of a variable in data.", call. = FALSE)
-        }
-    }
-    else s.weights <- NULL
-    return(s.weights)
+get.treated.level <- function(treat) {
+  if (!is_binary(treat)) stop("'treat' must be a binary variable.")
+  if (is.character(treat) || is.factor(treat)) {
+    treat <- factor(treat, nmax = 2)
+    unique.vals <- levels(treat)
+  }
+  else {
+    unique.vals <- unique(treat, nmax = 2)
+  }
+
+  if (can_str2num(unique.vals)) {
+    unique.vals.numeric <- str2num(unique.vals)
+  }
+  else {
+    unique.vals.numeric <- seq_along(unique.vals)
+  }
+
+  if (0 %in% unique.vals.numeric) treated <- unique.vals[unique.vals.numeric != 0]
+  else treated <- unique.vals[which.max(unique.vals.numeric)]
+
+  return(treated)
 }
 
 #Uniqueness
