@@ -15,8 +15,7 @@ Imports:
     Matrix (>= 1.2-13),
     ggplot2 (>= 3.0.0)
 Suggests:
-    cobalt (>= 3.8.0),
-    twang (>= 1.5)
+    cobalt (>= 3.8.0)
 License: GPL
 Encoding: UTF-8
 LazyData: true
