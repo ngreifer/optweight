@@ -10,7 +10,7 @@ optweight.fit <- function(treat.list, covs.list, tols, estimand = "ATE", targets
     if (is_null(args[["eps_abs"]])) args[["eps_abs"]] <- args[["eps"]]
     if (is_null(args[["eps_rel"]])) args[["eps_rel"]] <- args[["eps"]]
   }
-  args[names(args) %nin% names(formals(osqpSettings))] <- NULL
+  args[names(args) %nin% names(formals(osqp::osqpSettings))] <- NULL
   if (is_null(args[["max_iter"]])) args[["max_iter"]] <- 2E5L
   if (is_null(args[["eps_abs"]])) args[["eps_abs"]] <- 1E-8
   if (is_null(args[["eps_rel"]])) args[["eps_rel"]] <- 1E-8
@@ -182,7 +182,7 @@ optweight.fit <- function(treat.list, covs.list, tols, estimand = "ATE", targets
 
   if (norm == "l2") {
     #Minimizing variance of weights
-    P = sparseMatrix(1:N, 1:N, x = 2*(sw^2)/N)
+    P = Matrix::sparseMatrix(1:N, 1:N, x = 2*(sw^2)/N)
     # q = -sw/N #ensures objective function value is variance of weights
     q = (-2*bw + mean(bw^2))*sw/N
 
@@ -199,16 +199,15 @@ optweight.fit <- function(treat.list, covs.list, tols, estimand = "ATE", targets
     L_meanw = do.call("c", lapply(times, function(i) rep(1, length(unique.treats[[i]]))))
     U_meanw = L_meanw
 
-    #All weights must be >= min; focal weights must be 1, weights where sw = 0 must be 0
-    min <- min.w
-    A_wmin = sparseMatrix(1:N, 1:N, x = 1)
+    #All weights must be >= min.w; focal weights must be 1, weights where sw = 0 must be 0
+    A_wmin = Matrix::sparseMatrix(1:N, 1:N, x = 1)
     if (is_not_null(focal)) {
-      L_wmin <- ifelse(check_if_zero(sw), min, ifelse(treat.list[[1]] == focal, 1, min))
-      U_wmin <- ifelse(check_if_zero(sw), min, ifelse(treat.list[[1]] == focal, 1, Inf))
+      L_wmin <- ifelse(check_if_zero(sw), min.w, ifelse(treat.list[[1]] == focal, 1, min.w))
+      U_wmin <- ifelse(check_if_zero(sw), min.w, ifelse(treat.list[[1]] == focal, 1, Inf))
     }
     else {
-      L_wmin <- rep(min, N)
-      U_wmin <- ifelse(check_if_zero(sw), min, Inf)
+      L_wmin <- rep(min.w, N)
+      U_wmin <- ifelse(check_if_zero(sw), min.w, Inf)
     }
 
     #Targeting constraints
@@ -290,8 +289,8 @@ optweight.fit <- function(treat.list, covs.list, tols, estimand = "ATE", targets
     L <- c(L_wmin, L_meanw, L_balance, L_target)
     U <- c(U_wmin, U_meanw, U_balance, U_target)
 
-    out <- solve_osqp(P = P, q = q, A = A, l = L, u = U,
-                             pars = do.call(osqpSettings, args))
+    out <- osqp::solve_osqp(P = P, q = q, A = A, l = L, u = U,
+                             pars = do.call(osqp::osqpSettings, args))
 
     #Get dual vars for balance and target constraints
     A_balance.indices <- if (is_null(A_balance)) NULL else (NROW(A_wmin)+NROW(A_meanw)+1):(NROW(A_wmin)+NROW(A_meanw)+NROW(A_balance))
