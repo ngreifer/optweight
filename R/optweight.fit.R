@@ -66,9 +66,13 @@ optweight.fit <- function(treat.list, covs.list, tols, estimand = "ATE", targets
 
   estimand <- toupper(estimand)
 
-  if (length(min.w) != 1 || !is.numeric(min.w) || min.w < 0 || min.w >= 1) stop("min.w must be a single number in the interval [0, 1).", call. = FALSE)
+  if (length(min.w) != 1 || !is.numeric(min.w) || min.w >= 1) {
+    stop("'min.w' must be a single number less than 1.", call. = FALSE)
+  }
 
-  if (length(times) > 1 && is_not_null(estimand) && estimand %nin% "ATE") stop("Only the ATE or specified targets are compatible with longitduinal treatments.", call. = FALSE)
+  if (length(times) > 1 && is_not_null(estimand) && estimand %nin% "ATE") {
+    stop("Only the ATE or specified targets are compatible with longitduinal treatments.", call. = FALSE)
+  }
 
   unique.treats <- lapply(times, function(i) {
     if (treat.types[i] == "cat") sort(unique(treat.list[[i]]))
