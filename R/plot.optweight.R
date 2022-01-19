@@ -20,7 +20,7 @@ plot.optweight <- function(x, which.time = 1, ...) {
          x = "Covariate",
          title = title) +
     theme_bw() +
-    scale_y_continuous(expand = expand_scale(c(0, .05)))
+    scale_y_continuous(expand = expansion(c(0, .05)))
 
   p <- p + facet_grid(rows = vars(constraint),
                       scales = "free_y", space = "free")
@@ -42,7 +42,7 @@ plot.optweight.svy <- function(x, ...) {
          x = "Covariate",
          title = title) +
     theme_bw() +
-    scale_y_continuous(expand = expand_scale(c(0, .05)))
+    scale_y_continuous(expand = expansion(c(0, .05)))
 
   p
 }

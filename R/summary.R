@@ -307,7 +307,7 @@ plot.summary.optweight <- function(x, ...) {
                                  ...)$breaks,
                    color = "black",
                    fill = "gray", alpha = .8) +
-    scale_y_continuous(expand = expand_scale(c(0, .05))) +
+    scale_y_continuous(expand = expansion(c(0, .05))) +
     geom_vline(xintercept = mean(w), linetype = "12") +
     labs(x = "Weight", y = "Count", title = "Distribution of Weights",
          subtitle = subtitle) +
