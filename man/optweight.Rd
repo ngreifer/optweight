@@ -21,7 +21,7 @@ optweight(formula,
 \method{print}{optweightMSM}(x, ...)
 }
 \description{
-Estimate balancing weights for treatments and covariates specified in \code{formula}. The degree of balance for each covariate is specified by \code{tols} and the target population can be specified with \code{targets} or \code{estimand}. See Zubizarreta (2015), Wang & Zubizarreta (2017), and Yiu & Su (2018) for details of the properties of the weights and the methods used to fit them.
+Estimate balancing weights for treatments and covariates specified in \code{formula}. The degree of balance for each covariate is specified by \code{tols} and the target population can be specified with \code{targets} or \code{estimand}. See Zubizarreta (2015), Wang & Zubizarreta (2019), and Yiu & Su (2018) for details of the properties of the weights and the methods used to fit them.
 }
 \arguments{
   \item{formula}{
@@ -130,7 +130,7 @@ Noah Greifer
 \references{
 Anderson, E. (2018). osqp: Quadratic Programming Solver using the 'OSQP' Library. R package version 0.1.0. \url{https://CRAN.R-project.org/package=osqp}
 
-Wang, Y., & Zubizarreta, J. R. (2017). Approximate Balancing Weights: Characterizations from a Shrinkage Estimation Perspective. ArXiv:1705.00998 [Math, Stat]. Retrieved from \url{http://arxiv.org/abs/1705.00998}
+Wang, Y., & Zubizarreta, J. R. (2020). Minimal dispersion approximately balancing weights: Asymptotic properties and practical considerations. Biometrika, 107(1), 93–105. \doi{10.1093/biomet/asz050}
 
 Yiu, S., & Su, L. (2018). Covariate association eliminating weights: a unified weighting framework for causal effect estimation. Biometrika. \doi{10.1093/biomet/asy015}
 
