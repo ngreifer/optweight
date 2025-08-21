@@ -1,630 +1,386 @@
-optweight.fit <- function(treat.list, covs.list, tols, estimand = "ATE", targets = NULL, s.weights = NULL, b.weights = NULL, focal = NULL, norm = "l2", std.binary = FALSE, std.cont = TRUE, min.w = 1E-8, verbose = FALSE, force = FALSE, ...) {
-  #For corr.type, make sure duals process correctly
-  args <- list(...)
+#' Fitting Function for Stable Balancing Weights
+#'
+#' `optweight.fit()` performs the optimization (via \CRANpkg{osqp}) for [optweight()] and should, in most cases, not be used directly. Little processing of inputs is performed, so they must be given exactly as described below.
+#'
+#' @param treat.list A list containing one vector of treatment statuses for each time point. Non-numeric (i.e., factor or character) vectors are allowed.
+#' @param covs.list A list containing one matrix of covariates to be balanced for each time point. All matrices must be numeric but do not have to be full rank.
+#' @param tols A list containing one vector of balance tolerance values for each time point.
+#' @param estimand The desired estimand, which determines the target population. For binary treatments, can be "ATE", "ATT", "ATC", or `NULL`. For multi-category treatments, can be "ATE", "ATT", or `NULL`. For continuous treatments, can be "ATE" or `NULL`. The default for both is "ATE". For longitudinal treatments, only "ATE" is supported. `estimand` is ignored when `targets` is non-`NULL`. If both `estimand` and `targets` are `NULL`, no targeting will take place. See Details.
+#' @param targets A vector of target population mean values for each baseline covariate. The resulting weights will yield sample means within `tols`/2 units of the target values for each covariate. If `NULL` or all `NA`, `estimand` will be used to determine targets. Otherwise, `estimand` is ignored. If any target values are `NA`, the corresponding variable will not be targeted and its weighted mean will be wherever the weights yield the smallest variance.
+#' @param s.weights A vector of sampling weights. Optimization occurs on the product of the sampling weights and the estimated weights.
+#' @param b.weights A vector of base weights. Default is a vector of 1s. The desired norm of the distance between the estimated weights and the base weights is minimized.
+#' @param focal When multi-categorical treatments are used and the "ATT" is requested, which group to consider the "treated" or focal group. This group will not be weighted, and the other groups will be weighted to resemble the focal group.
+#' @param norm A string containing the name of the norm corresponding to the objective function to minimize. The options are `"l1"` for the L1 norm, `"l2"` for the L2 norm (the default), and `"linf"` for the L\eqn{\infty} norm. The L1 norm minimizes the average absolute distance between each weight and the base weights; the L2 norm minimizes the average squared distance between each weight and the base weights; the L\eqn{\infty} norm minimizes the largest absolute distance between each weight and the base weights. The L2 norm has a direct correspondence with the effective sample size, making it ideal if this is your criterion of interest.
+#' @param std.binary,std.cont `logical`; whether the tolerances are in standardized mean units (`TRUE`) or raw units (`FALSE`) for binary variables and continuous variables, respectively. The default is `FALSE` for `std.binary` because raw proportion differences make more sense than standardized mean difference for binary variables. These arguments are analogous to the `binary` and `continuous` arguments in `bal.tab()` in \pkg{cobalt}.
+#' @param min.w A single `numeric` value less than 1 for the smallest allowable weight. Some analyses require nonzero weights for all units, so a small, nonzero minimum may be desirable. Doing so will likely (slightly) increase the variance of the resulting weights depending on the magnitude of the minimum. The default is 1e-8, which does not materially change the properties of the weights from a minimum of 0 but prevents warnings in some packages that use weights to estimate treatment effects.
+#' @param verbose Whether information on the optimization problem solution should be printed. This information contains how many iterations it took to estimate the weights and whether the solution is optimal.
+#' @param force Stable balancing weights are currently not valid for use with longitudinal treatments, and will produce an error message if attempted. Set to `TRUE` to bypass this error message.
+#' @param \dots Options that are passed to [osqp::osqpSettings()] for use in the `par` arguments of [osqp::solve_osqp()]. See Details for defaults.
+#'
+#' @returns
+#' An `optweight.fit` object with the following elements:
+#'   \item{w}{The estimated weights, one for each unit.}
+#'   \item{duals}{A data.frame containing the dual variables for each covariate, or a list thereof. See Zubizarreta (2015) for interpretation of these values.}
+#'   \item{info}{The `info` component of the output of [osqp::solve_osqp()], which contains information on the performance of the optimization at termination.}
+#'
+#' @details
+#' `optweight.fit()` transforms the inputs into the required inputs for [osqp::solve_osqp()], which are (sparse) matrices and vectors, and then supplies the outputs (the weights, dual variables, and convergence information) back to [optweight()]. Little processing of inputs is performed, as this is normally handled by `optweight()`.
+#'
+#'   The default values for some of the parameters sent to [osqp::solve_osqp()] are not the same as those in [osqp::osqpSettings()]. The following are the differences: `max_iter` is set to 20000, `eps_abs` and `eps_rel` are set to 1e-8 (i.e., \eqn{10^{-8}}), and `adaptive_rho_interval` is set to 10. All other values are the same.
+#'
+#'   Note that stable balancing weights with longitudinal treatments are not valid and should not be used until further research is done.
+#'
+#' @references
+#' Wang, Y., & Zubizarreta, J. R. (2020). Minimal dispersion approximately balancing weights: Asymptotic properties and practical considerations. *Biometrika*, 107(1), 93–105. \doi{10.1093/biomet/asz050}
+#'
+#' Yiu, S., & Su, L. (2018). Covariate association eliminating weights: a unified weighting framework for causal effect estimation. *Biometrika*. \doi{10.1093/biomet/asy015}
+#'
+#' Zubizarreta, J. R. (2015). Stable Weights that Balance Covariates for Estimation With Incomplete Outcome Data. *Journal of the American Statistical Association*, 110(511), 910–922. \doi{10.1080/01621459.2015.1023805}
+#'
+#' @seealso
+#' [optweight()] which you should use for estimating the balancing weights, unless you know better.
+#'
+#' The OSQP [docs](https://osqp.org/docs/index.html) for more information on \pkg{osqp}, the underlying solver, and the options for [osqp::solve_osqp()]. [osqp::osqpSettings()] for details on options for `solve_osqp()`.
+#'
+#' @examplesIf requireNamespace("cobalt", quietly = TRUE)
+#' library("cobalt")
+#' data("lalonde", package = "cobalt")
+#'
+#' treat.list <- list(lalonde$treat)
+#' covs.list <- list(splitfactor(lalonde[2:8], drop.first = "if2"))
+#' tols.list <- list(rep(.01, ncol(covs.list[[1]])))
+#'
+#' ow.fit <- optweight.fit(treat.list,
+#'                         covs.list,
+#'                         tols = tols.list,
+#'                         estimand = "ATE",
+#'                         norm = "l2")
+#'
+#' @export
+optweight.fit <- function(treat.list, covs.list, tols, estimand = "ATE", targets = NULL,
+                          s.weights = NULL, b.weights = NULL, focal = NULL, norm = "l2",
+                          std.binary = FALSE, std.cont = TRUE, min.w = 1e-8, verbose = FALSE,
+                          force = FALSE, ...) {
 
-  #Process args
-  # corr.type <- if (is_not_null(args[["corr.type"]])) match_arg(tolower(args[["corr.type"]]), c("pearson", "spearman", "both")) else "pearson"
-  corr.type<- "pearson"
+  chk::chk_not_missing(treat.list, "`treat.list`")
+  chk::chk_not_missing(covs.list, "`covs.list`")
+  chk::chk_not_missing(tols, "`tols`")
 
-  if (is_not_null(args[["eps"]])) {
-    if (is_null(args[["eps_abs"]])) args[["eps_abs"]] <- args[["eps"]]
-    if (is_null(args[["eps_rel"]])) args[["eps_rel"]] <- args[["eps"]]
-  }
-  args[names(args) %nin% names(formals(osqp::osqpSettings))] <- NULL
-  if (is_null(args[["max_iter"]])) args[["max_iter"]] <- 2E5L
-  if (is_null(args[["eps_abs"]])) args[["eps_abs"]] <- 1E-8
-  if (is_null(args[["eps_rel"]])) args[["eps_rel"]] <- 1E-8
-  args[["verbose"]] <- verbose
+  chk::chk_list(treat.list)
+  chk::chk_list(covs.list)
+  chk::chk_list(tols)
 
-  key.args <- c("treat.list", "covs.list", "tols")
-  missing.args <- args.not.list <- setNames(rep(FALSE, length(key.args)), key.args)
-  for (arg in key.args) {
-    if (eval(substitute(missing(q), list(q = arg)))) {
-      missing.args[arg] <- TRUE
+  if (length(covs.list) > 1L) {
+    chk::chk_flag(force)
+    if (!force) {
+      .err("optweights are currently not valid for longitudinal treatments. Set `force = TRUE` to bypass this message at your own risk")
     }
-    else if (!is.vector(get(arg), mode = "list")) {
-      args.not.list[arg] <- TRUE
-    }
   }
-  if (any(missing.args)) stop(paste(word_list(names(missing.args)[missing.args]), "must be supplied."), call. = FALSE)
-  if (any(args.not.list)) stop(paste(word_list(names(args.not.list)[args.not.list]), "must be", ifelse(sum(args.not.list) > 1, "lists.", "a list.")), call. = FALSE)
 
-  if (length(covs.list) > 1 && !force) stop("Optweights are currently not valid for longitudinal treatments. Set force = TRUE to bypass this message at your own risk.", call. = FALSE)
+  if (!all_apply(covs.list, function(c) all(apply(c, 2L, is.numeric)))) {
+    .err("all covariates must be numeric")
+  }
 
-  treat.types <- vapply(treat.list, function(x) {
-    if (is.factor(x) || is.character(x) || is_binary(x)) "cat"
-    else "cont"
-  }, character(1L))
-  treat.list <- lapply(seq_along(treat.types), function(x) {
-    if (treat.types[x] == "cat") as.character(treat.list[[x]])
-    else as.numeric(treat.list[[x]])
-  })
-  if (!all(vapply(covs.list, function(c) all(apply(c, 2, is.numeric)), logical(1L)))) stop("All covariates must be numeric.", call. = FALSE)
-  covs.list <- lapply(covs.list, as.matrix)
-  bin.covs.list <- lapply(covs.list, function(x) apply(x, 2, is_binary))
+  chk::chk_string(norm)
+  norm <- tolower(norm)
+  chk::chk_subset(norm, c("l2", "l1", "linf"))
 
   times <- seq_along(covs.list)
 
-  tols.list <- tols
-  if (length(tols.list) == 1) tols.list <- replicate(max(times), tols.list[[1]], simplify = FALSE)
-  tols.list <- lapply(times, function(i) if (length(tols.list[[i]]) == 1) rep(tols.list[[i]], ncol(covs.list[[i]])) else tols.list[[i]])
+  if (is_not_null(estimand)) {
+    chk::chk_string(estimand)
+    estimand <- toupper(estimand)
+    chk::chk_subset(estimand, c("ATE", "ATT", "ATC"))
 
-  norm.options <- c("l2", "l1", "linf")
-  if (length(norm) != 1 || !is.character(norm) || tolower(norm) %nin% norm.options) {
-    stop(paste0("norm must be ", word_list(norm.options, and.or = "or", quotes = TRUE), "."), call. = FALSE)
-  } else norm <- tolower(norm)
-
-  N <- nrow(covs.list[[1]])
-  if (is_null(s.weights)) sw <- rep(1, N)
-  else sw <- s.weights
-
-  if (is_null(b.weights)) bw <- rep(1, N)
-  else {
-    if (norm != "l2") stop("Only the l2 norm is compatible with b.weights.", call. = FALSE)
-    bw <- b.weights
-  }
-
-  estimand <- toupper(estimand)
-
-  if (length(min.w) != 1 || !is.numeric(min.w) || min.w >= 1) {
-    stop("'min.w' must be a single number less than 1.", call. = FALSE)
-  }
-
-  if (length(times) > 1 && is_not_null(estimand) && estimand %nin% "ATE") {
-    stop("Only the ATE or specified targets are compatible with longitduinal treatments.", call. = FALSE)
-  }
-
-  unique.treats <- lapply(times, function(i) {
-    if (treat.types[i] == "cat") sort(unique(treat.list[[i]]))
-    else "treat"
-  })
-  n <- lapply(times, function(i) {
-    if (treat.types[i] == "cat") vapply(unique.treats[[i]],
-                                        function(t) sum(treat.list[[i]] == t),
-                                        numeric(1)) #faster than tapply
-    else c(treat = N)
-  })
-
-  means <- lapply(covs.list, col.w.m, w = sw)
-  if (is_not_null(estimand) && (is_null(targets) || all(is.na(targets)))) {
-    if (estimand %in% c("ATT", "ATC")) {
-      targets <- lapply(times, function(i) {
-        if (i == 1) {
-          if (is_null(focal)) focal <- max(treat.list[[i]])
-          else if (estimand == "ATC") focal <- min(treat.list[[i]])
-          col.w.m(covs.list[[i]][treat.list[[i]] == focal, , drop = FALSE], w = sw[treat.list[[i]] == focal])
-        }
-        else rep(NA_real_, ncol(covs.list[[i]]))
-      })
-      sds <- lapply(times, function(i) {
-        if (is_null(focal)) focal <- max(treat.list[[i]])
-        else if (estimand == "ATC") focal <- min(treat.list[[i]])
-        sds_i <- sqrt(col.w.v(covs.list[[i]][treat.list[[i]] == focal, , drop = FALSE], w = sw[treat.list[[i]] == focal], bin.vars = bin.covs.list[[i]]))
-        return(sds_i)
-      })
-      sw[treat.list[[1]]==focal] <- 1
-    } else if (estimand == "ATE") {
-      targets <- c(list(means[[1]]), lapply(covs.list[-1], function(c) rep(NA_real_, ncol(c))))
-      sds <- lapply(times, function(i) sqrt(rowMeans(matrix(sapply(unique.treats[[i]], function(t) {
-        in.treat <- switch(treat.types[i], "cat" = treat.list[[i]] == t, "cont" = rep(TRUE, length(treat.list[[i]])))
-        vars_i <- col.w.v(covs.list[[i]][in.treat, , drop = FALSE], w = sw[in.treat], bin.vars = bin.covs.list[[i]])
-        return(vars_i)
-        }, simplify = "array"), ncol = length(unique.treats[[i]])))))
+    if (length(times) > 1L && !identical(estimand, "ATE")) {
+      .err("only the ATE or specified targets are compatible with longitudinal treatments")
     }
   }
-  else {
-    if (is_null(targets)) targets <- rep(NA_real_, ncol(covs.list[[1]]))
-    else if (!is.atomic(targets) || (!all(is.na(targets)) && !is.numeric(targets))) stop("targets must be a vector of target values for each baseline covariate.", call. = FALSE)
 
-    targets <- c(list(targets), lapply(covs.list[-1], function(c) rep(NA_real_, ncol(c))))
+  chk::chk_number(min.w)
+  chk::chk_lt(min.w, 1)
 
-    if (length(targets[[1]]) != ncol(covs.list[[1]])) {
-      stop("targets must have the same number of values as there are baseline covariates.", call. = FALSE)
-    }
-    sds <- lapply(times, function(i) sqrt(rowMeans(matrix(sapply(unique.treats[[i]], function(t) {
-      in.treat <- switch(treat.types[i], "cat" = treat.list[[i]] == t, "cont" = rep(TRUE, length(treat.list[[i]])))
-      vars_i <- col.w.v(covs.list[[i]][in.treat, , drop = FALSE], w = sw[in.treat], bin.vars = bin.covs.list[[i]])
-      return(vars_i)
-    }, simplify = "array"), ncol = length(unique.treats[[i]])))))
+  if (length(tols) == 1L) {
+    tols <- rep_with(tols, times)
   }
 
-  targeted <- balanced <- treat.sds <- treat.means <- tols <- vector("list", length(times))
+  for (i in which(lengths(tols) == 1L)) {
+    tols[[i]] <- rep.int(tols[[i]], ncol(covs.list[[i]]))
+  }
+
+  if (is_not_null(estimand) || is_null(targets) || all(is.na(targets))) {
+    targets <- NULL
+  }
+  else if (!is.atomic(targets) || !is.numeric(targets)) {
+    .err("`targets` must be a vector of target values for each baseline covariate")
+  }
+  else if (length(targets) != ncol(covs.list[[1L]])) {
+    .err("`targets` must have the same number of values as there are baseline covariates")
+  }
+
+  N <- length(treat.list[[1L]])
+
+  sw <- {
+    if (is_null(s.weights)) rep.int(1, N)
+    else s.weights
+  }
+
+  bw <- {
+    if (is_null(b.weights)) rep.int(1, N)
+    else b.weights
+  }
+
+  corr.type <- "pearson"
+
+  args <- ...mget(names(formals(osqp::osqpSettings)))
+
+  for (e in c("eps_abs", "eps_rel")) {
+    if (!utils::hasName(args, e)) {
+      args[[e]] <- ...get("eps", 1e-8)
+    }
+  }
+
+  if (!utils::hasName(args, "max_iter")) {
+    args[["max_iter"]] <- 2e5
+  }
+
+  if (!utils::hasName(args, "adaptive_rho_interval")) {
+    args[["adaptive_rho_interval"]] <- 10L
+  }
+
+  if (!utils::hasName(args, "polish")) {
+    args[["polish"]] <- TRUE
+  }
+
+  args[["verbose"]] <- verbose
+
+  treat.types <- character(length(times))
+
+  unique.treats <- n <- bin.covs.list <- means <- sds <- targets.list <- targeted <-
+    balanced <- treat.sds <- treat.means <- tols.list <- make_list(length(times))
+
+  constraint_df <- expand.grid(time = times,
+                               type = c("range_w", "mean_w", "balance", "target"),
+                               constraint = list(NULL),
+                               stringsAsFactors = FALSE,
+                               KEEP.OUT.ATTRS = FALSE)
+
   for (i in times) {
+    covs.list[[i]] <- as.matrix(covs.list[[i]])
+
+    bin.covs.list[[i]] <- is_binary_col(covs.list[[i]])
+
+    means[[i]] <- col.w.m(covs.list[[i]], w = sw)
+
+    treat.types[i] <- {
+      if (chk::vld_character_or_factor(treat.list[[i]]) || is_binary(treat.list[[i]])) "cat"
+      else "cont"
+    }
+
     if (treat.types[i] == "cat") {
-      targeted[[i]] <- !is.na(targets[[i]])
+      treat.list[[i]] <- as.character(treat.list[[i]])
+
+      unique.treats[[i]] <- sort(unique(treat.list[[i]]))
+
+      n[[i]] <- vapply(unique.treats[[i]],
+                       function(t) sum(sw[treat.list[[i]] == t]),
+                       numeric(1L))
+
+      in_focal <- {
+        if (is_not_null(estimand) && estimand %in% c("ATT", "ATC"))
+          in_focal <- which(treat.list[[i]] == focal)
+        else
+          NULL
+      }
+
+      sds[[i]] <- {
+        if (is_not_null(estimand) && estimand %in% c("ATT", "ATC"))
+          sqrt(col.w.v(covs.list[[i]][in_focal, , drop = FALSE],
+                       w = sw[in_focal],
+                       bin.vars = bin.covs.list[[i]]))
+        else
+          sqrt(colMeans(do.call("rbind", lapply(unique.treats[[i]], function(t) {
+            in_treat <- which(treat.list[[i]] == t)
+
+            col.w.v(covs.list[[i]][in_treat, , drop = FALSE],
+                    w = sw[in_treat], bin.vars = bin.covs.list[[i]])
+          }))))
+      }
+    }
+    else {
+      treat.list[[i]] <- as.numeric(treat.list[[i]])
+
+      n[[i]] <- sum(sw) #N
+
+      sds[[i]] <- sqrt(col.w.v(covs.list[[i]], w = sw,
+                               bin.vars = bin.covs.list[[i]]))
+    }
+
+    targets.list[[i]] <- {
+      if (i > 1L)
+        rep.int(NA_real_, ncol(covs.list[[i]]))
+      else if (is_not_null(targets))
+        targets
+      else if (is_null(estimand)) {
+        rep.int(NA_real_, ncol(covs.list[[i]]))
+      }
+      else if (estimand %in% c("ATT", "ATC"))
+        col.w.m(covs.list[[i]][in_focal, , drop = FALSE],
+                w = sw[in_focal])
+      else
+        means[[i]]
+    }
+
+    targeted[[i]] <- !is.na(targets.list[[i]])
+
+    names(tols[[i]]) <- colnames(covs.list[[i]])
+
+    tols.list[[i]] <- abs(tols[[i]])
+
+    if (treat.types[i] == "cat") {
       balanced[[i]] <- !targeted[[i]]
-      #balanced[[i]] <- rep(TRUE, length(targeted[[i]]))
+
       treat.sds[[i]] <- NA_real_
       treat.means[[i]] <- NA_real_
 
       #tols
-      if (std.binary && std.cont) vars.to.standardize <- rep(TRUE, length(tols.list[[i]]))
-      else if (!std.binary && std.cont) vars.to.standardize <- !bin.covs.list[[i]]
-      else if (std.binary && !std.cont) vars.to.standardize <- bin.covs.list[[i]]
-      else vars.to.standardize <- rep(FALSE, length(tols.list[[i]]))
+      vars.to.standardize <- {
+        if (std.binary && std.cont) rep_with(TRUE, tols.list[[i]])
+        else if (!std.binary && std.cont) !bin.covs.list[[i]]
+        else if (std.binary && !std.cont) bin.covs.list[[i]]
+        else rep_with(FALSE, tols.list[[i]])
+      }
 
-      tols[[i]] <- abs(tols.list[[i]])
-
-      covs.list[[i]][, vars.to.standardize & !check_if_zero(tols.list[[i]]) & !check_if_zero(sds[[i]])] <-
-        mat_div(covs.list[[i]][, vars.to.standardize & !check_if_zero(tols.list[[i]]) & !check_if_zero(sds[[i]]), drop = FALSE],
-            sds[[i]][vars.to.standardize & !check_if_zero(tols.list[[i]]) & !check_if_zero(sds[[i]])])
-      targets[[i]][vars.to.standardize & !check_if_zero(tols.list[[i]]) & !check_if_zero(sds[[i]])] <-
-        targets[[i]][vars.to.standardize & !check_if_zero(tols.list[[i]]) & !check_if_zero(sds[[i]])] /
-        sds[[i]][vars.to.standardize & !check_if_zero(tols.list[[i]]) & !check_if_zero(sds[[i]])]
-
-      #Note: duals work incorrecly unless tols are > 0, so replace small tols with
-      #sqrt(.Machine$double.eps).
-      # tols[[i]] <- ifelse(tols[[i]] < sqrt(.Machine$double.eps),
-      #                     sqrt(.Machine$double.eps),
-      #                     tols[[i]])
+      to_std <- which(vars.to.standardize & !check_if_zero(tols.list[[i]]) & !check_if_zero(sds[[i]]))
     }
     else {
-      sds[[i]] <- sqrt(col.w.v(covs.list[[i]], w = sw, bin.vars = bin.covs.list[[i]]))
-      targeted[[i]] <- !is.na(targets[[i]])
-      balanced[[i]] <- rep(TRUE, length(targeted[[i]]))
-      covs.list[[i]][, targeted[[i]]] <- center(covs.list[[i]][, targeted[[i]], drop = FALSE], at = targets[[i]][targeted[[i]]]) #center covs at targets (which will be eventual means)
-      covs.list[[i]][, !targeted[[i]]] <- center(covs.list[[i]][, !targeted[[i]], drop = FALSE], at = means[[i]][!targeted[[i]]]) #center covs at means
+      sds[[i]] <- sqrt(col.w.v(covs.list[[i]], w = sw,
+                               bin.vars = bin.covs.list[[i]]))
+
+      balanced[[i]] <- rep_with(TRUE, targeted[[i]])
+
+      targets_i <- ifelse(targeted[[i]], targets.list[[i]], means[[i]])
+
+      covs.list[[i]] <- center(covs.list[[i]], at = targets_i) #center covs at targets (which will be eventual means)
 
       treat.sds[[i]] <- sqrt(col.w.v(treat.list[[i]], w = sw))
-      treat.means[[i]] <- col.w.m(matrix(treat.list[[i]], ncol = 1), w = sw)
-      treat.list[[i]] <- treat.list[[i]] - treat.means[[i]] #center treat
+      treat.means[[i]] <- w.m(treat.list[[i]], w = sw)
 
-      # tols[[i]] <- abs(tols.list[[i]]*sds[[i]]*treat.sds[[i]])
+      treat.list[[i]] <- (treat.list[[i]] - treat.means[[i]]) / treat.sds[[i]]
 
-      tols[[i]] <- abs(tols.list[[i]])
-      covs.list[[i]][, !check_if_zero(sds[[i]])] <- mat_div(covs.list[[i]][,!check_if_zero(sds[[i]]), drop = FALSE], sds[[i]][!check_if_zero(sds[[i]])])
-      targets[[i]][!check_if_zero(sds[[i]])] <- targets[[i]][!check_if_zero(sds[[i]])] / sds[[i]][!check_if_zero(sds[[i]])]
-      treat.list[[i]] <- treat.list[[i]]/treat.sds[[i]]
-
-      #Note: duals work incorrecly unless tols are > 0, so replace small tols with
-      #sqrt(.Machine$double.eps).
-      # tols[[i]] <- ifelse(tols[[i]] < sqrt(.Machine$double.eps),
-      #                     sqrt(.Machine$double.eps),
-      #                     tols[[i]])
+      to_std <- !check_if_zero(sds[[i]])
     }
+
+    if (is_not_null(to_std)) {
+      covs.list[[i]][, to_std] <- mat_div(covs.list[[i]][, to_std, drop = FALSE], sds[[i]][to_std])
+      targets.list[[i]][to_std] <- targets.list[[i]][to_std] / sds[[i]][to_std]
+    }
+
+    constraint_df[["constraint"]][constraint_df[["time"]] == i] <- list(
+      range_w = if (i == 1L) constraint_range_w(sw, min.w, focal, treat.list[[i]]),
+      mean_w = switch(treat.types[i],
+                      cat = constraint_mean_w_cat(treat.list[[i]], unique.treats[[i]], sw, n[[i]]),
+                      cont = constraint_mean_w_cont(sw)),
+      balance = switch(treat.types[i],
+                       cat = constraint_balance_cat(covs.list[[i]], treat.list[[i]], sw, tols.list[[i]],
+                                                    balanced[[i]], unique.treats[[i]], n[[i]]),
+                       cont = constraint_balance_cont(covs.list[[i]], treat.list[[i]], sw, tols.list[[i]],
+                                                      balanced[[i]], corr.type)),
+      target = switch(treat.types[i],
+                      cat = constraint_target_cat(covs.list[[i]], treat.list[[i]], sw, targets.list[[i]],
+                                                  tols[[i]], targeted[[i]], unique.treats[[i]], n[[i]], focal),
+                      cont = constraint_target_cont(covs.list[[i]], treat.list[[i]], sw, targeted[[i]]))
+    )
   }
 
   if (norm == "l2") {
-    #Minimizing variance of weights
-    P = Matrix::sparseMatrix(1:N, 1:N, x = 2*(sw^2)/N)
-    # q = -sw/N #ensures objective function value is variance of weights
-    q = (-2*bw + mean(bw^2))*sw/N
-
-    #Minimizing the sum of the variances in each treatment group
-    #Note: equiv. to setting targets closer to smaller group
-    # P = sparseMatrix(1:N, 1:N, x = (2*sw^2)/ifelse(treat.list[[1]]==1, n[[1]]["1"], n[[1]]["0"]))
-    # q = -sw/ifelse(treat.list[[1]]==1, n[[1]]["1"], n[[1]]["0"]) #ensures objective function value is variance of weights
-
-    #Mean of weights in each treat must equal 1
-    A_meanw = do.call("rbind", lapply(times, function(i) {
-      if (treat.types[i] == "cat") do.call("rbind", lapply(unique.treats[[i]], function(t) (treat.list[[i]] == t) * sw / n[[i]][t]))
-      else sw/n[[i]]
-    }))
-    L_meanw = do.call("c", lapply(times, function(i) rep(1, length(unique.treats[[i]]))))
-    U_meanw = L_meanw
-
-    #All weights must be >= min.w; focal weights must be 1, weights where sw = 0 must be 0
-    A_wmin = Matrix::sparseMatrix(1:N, 1:N, x = 1)
-    if (is_not_null(focal)) {
-      L_wmin <- ifelse(check_if_zero(sw), min.w, ifelse(treat.list[[1]] == focal, 1, min.w))
-      U_wmin <- ifelse(check_if_zero(sw), min.w, ifelse(treat.list[[1]] == focal, 1, Inf))
-    }
-    else {
-      L_wmin <- rep(min.w, N)
-      U_wmin <- ifelse(check_if_zero(sw), min.w, Inf)
-    }
-
-    #Targeting constraints
-    #Note: need 2 * in order to simulate tols/2 but using original tols.
-    #This makes dual variables work as expected.
-    A_target = do.call("rbind", lapply(times, function(i) {
-      if (any(targeted[[i]])) {
-        if (treat.types[i] == "cat") do.call("rbind", lapply(unique.treats[[i]], function(t)
-          if (is_null(focal)) 2 * t(covs.list[[i]][, targeted[[i]], drop = FALSE] * (treat.list[[i]] == t) * sw / n[[i]][t])
-          else if (is_not_null(focal) && t != focal) t(covs.list[[i]][, targeted[[i]], drop = FALSE] * (treat.list[[i]] == t) * sw / n[[i]][t])
-        ))
-        else rbind(t(covs.list[[i]][, targeted[[i]], drop = FALSE] * sw), treat.list[[i]] * sw) #variables are centered
-      }
-      else NULL
-    }))
-    L_target = do.call("c", lapply(times, function(i) {
-      if (any(targeted[[i]])) {
-        if (treat.types[i] == "cat") do.call("c", lapply(unique.treats[[i]], function(t) {
-          if (is_null(focal)) 2 * targets[[i]][targeted[[i]]] - tols[[i]][targeted[[i]]]
-          else if (is_not_null(focal) && t != focal) targets[[i]][targeted[[i]]] - tols[[i]][targeted[[i]]]
-        }))
-        else rep(0, sum(targeted[[i]]) + 1) #variables are centered at targets; +1 for treat
-      }
-      else NULL
-    }))
-    U_target = do.call("c", lapply(times, function(i) {
-      if (any(targeted[[i]])) {
-        if (treat.types[i] == "cat") do.call("c", lapply(unique.treats[[i]], function(t) {
-          if (is_null(focal)) 2 * targets[[i]][targeted[[i]]] + tols[[i]][targeted[[i]]]
-          else if (is_not_null(focal) && t != focal) targets[[i]][targeted[[i]]] + tols[[i]][targeted[[i]]]
-        }))
-        else rep(0, sum(targeted[[i]]) + 1) #variables are centered at targets; +1 for treat
-      }
-      else NULL
-    }))
-
-    #Balancing constraints for all covariates
-    A_balance <- do.call("rbind", lapply(times, function(i) {
-      if (any(balanced[[i]])) {
-        if (treat.types[i] == "cat") do.call("rbind", lapply(combn(unique.treats[[i]], 2, simplify = FALSE), function(comb) {
-          t(covs.list[[i]][, balanced[[i]], drop = FALSE] * (treat.list[[i]] == comb[1]) * sw / n[[i]][comb[1]]) - t(covs.list[[i]][, balanced[[i]], drop = FALSE] * (treat.list[[i]] == comb[2]) * sw / n[[i]][comb[2]])
-        }))
-        else {
-          correct.factor <- 2 #see w.cov
-          if (corr.type == "pearson")  t(covs.list[[i]][, balanced[[i]], drop = FALSE] * treat.list[[i]] * sw / (n[[i]] - correct.factor)) #For cont, all have balancing constraints
-          else if (corr.type == "spearman")  t(apply(covs.list[[i]][, balanced[[i]], drop = FALSE], 2, rank) * treat.list[[i]] * sw / (n[[i]] - correct.factor)) #For cont, all have balancing constraints
-          else {
-            rbind(t(covs.list[[i]][, balanced[[i]], drop = FALSE] * treat.list[[i]] * sw / (n[[i]] - correct.factor)),
-                  t(apply(covs.list[[i]][, balanced[[i]], drop = FALSE], 2, rank) * treat.list[[i]] * sw / (n[[i]] - correct.factor)))
-          }
-        }
-      }
-      else NULL
-
-    }))
-    L_balance <- do.call("c", lapply(times, function(i) {
-      if (any(balanced[[i]])) {
-        if (treat.types[i] == "cat") rep(-tols[[i]][balanced[[i]]], length(combn(unique.treats[[i]], 2, simplify = FALSE)))
-        else {
-          if (corr.type %in% c("pearson", "spearman")) -tols[[i]][balanced[[i]]]
-          else rep(-tols[[i]][balanced[[i]]], 2)
-        }
-
-      }
-      else NULL
-    }))
-    U_balance <- do.call("c", lapply(times, function(i) {
-      if (any(balanced[[i]])) {
-        if (treat.types[i] == "cat") rep(tols[[i]][balanced[[i]]], length(combn(unique.treats[[i]], 2, simplify = FALSE)))
-        else {
-          if (corr.type %in% c("pearson", "spearman")) tols[[i]][balanced[[i]]]
-          else rep(tols[[i]][balanced[[i]]], 2)
-        }
-      }
-      else NULL
-    }))
-
-    A  <- rbind(A_wmin, A_meanw, A_balance, A_target)
-    L <- c(L_wmin, L_meanw, L_balance, L_target)
-    U <- c(U_wmin, U_meanw, U_balance, U_target)
-
-    out <- osqp::solve_osqp(P = P, q = q, A = A, l = L, u = U,
-                             pars = do.call(osqp::osqpSettings, args))
-
-    #Get dual vars for balance and target constraints
-    A_balance.indices <- if (is_null(A_balance)) NULL else (NROW(A_wmin)+NROW(A_meanw)+1):(NROW(A_wmin)+NROW(A_meanw)+NROW(A_balance))
-    A_target.indices <- if (is_null(A_target)) NULL else (NROW(A_wmin)+NROW(A_meanw)+NROW(A_balance)+1):(NROW(A_wmin)+NROW(A_meanw)+NROW(A_balance)+NROW(A_target))
-
-    w <- out$x
+    objective <- objective_L2(bw, sw)
   }
   else if (norm == "l1") {
-    #Minimizing mean absolute deviation of weights
-    P = sparseMatrix(NULL, NULL, dims = c(2*N, 2*N))
-    q = c(rep(0, N), 2*sw/N)
+    objective <- objective_L1(bw, sw)
 
-    #Mean of weights in each treat must equal 1
-    A_meanw = do.call("rbind", lapply(times, function(i) {
-      if (treat.types[i] == "cat") do.call("rbind", lapply(unique.treats[[i]], function(t) (treat.list[[i]] == t) * sw / n[[i]][t]))
-      else sw/n[[i]]
-    }))
-    L_meanw = do.call("c", lapply(times, function(i) rep(1, length(unique.treats[[i]]))))
-    U_meanw = L_meanw
-
-    #All weights must be >= min; focal weights must be 1, weights where sw = 0 must be 0
-    #Auxilliary vars must be >= 0
-    min <- min.w
-    A_wmin = sparseMatrix(1:(2*N), 1:(2*N), x = 1)
-    if (is_not_null(focal)) {
-      L_wmin <- ifelse(check_if_zero(sw), min, ifelse(treat.list[[1]] == focal, 1, min))
-      U_wmin <- ifelse(check_if_zero(sw), min, ifelse(treat.list[[1]] == focal, 1, Inf))
-    }
-    else {
-      L_wmin <- rep(min, N)
-      U_wmin <- ifelse(check_if_zero(sw), min, Inf)
-    }
-    Lz_wmin <- c(L_wmin, rep(0, N))
-    Uz_wmin <- c(U_wmin, rep(Inf, N))
-
-    #Targeting constraints
-    A_target = do.call("rbind", lapply(times, function(i) {
-      if (any(targeted[[i]])) {
-        if (treat.types[i] == "cat") do.call("rbind", lapply(unique.treats[[i]], function(t)
-          if (is_null(focal) || (is_not_null(focal) && t != focal)) t(covs.list[[i]][, targeted[[i]], drop = FALSE] * (treat.list[[i]] == t) * sw / n[[i]][t])
-        ))
-        else rbind(t(covs.list[[i]][, targeted[[i]], drop = FALSE] * sw), treat.list[[i]] * sw) #variables are centered
-      }
-      else NULL
-    }))
-    L_target = do.call("c", lapply(times, function(i) {
-      if (any(targeted[[i]])) {
-        if (treat.types[i] == "cat") do.call("c", lapply(unique.treats[[i]], function(t) {
-          if (is_null(focal)) targets[[i]][targeted[[i]]] - tols[[i]][targeted[[i]]]/2
-          else if (is_not_null(focal) && t != focal) targets[[i]][targeted[[i]]] - tols[[i]][targeted[[i]]]
-        }))
-        else rep(0, sum(targeted[[i]]) + 1) #variables are centered at targets; +1 for treat
-      }
-      else NULL
-    }))
-    U_target = do.call("c", lapply(times, function(i) {
-      if (any(targeted[[i]])) {
-        if (treat.types[i] == "cat") do.call("c", lapply(unique.treats[[i]], function(t) {
-          if (is_null(focal)) targets[[i]][targeted[[i]]] + tols[[i]][targeted[[i]]]/2
-          else if (is_not_null(focal) && t != focal) targets[[i]][targeted[[i]]] + tols[[i]][targeted[[i]]]
-        }))
-        else rep(0, sum(targeted[[i]]) + 1) #variables are centered at targets; +1 for treat
-      }
-      else NULL
-    }))
-
-    #Balancing constraints for all covariates
-    A_balance <- do.call("rbind", lapply(times, function(i) {
-      if (any(balanced[[i]])) {
-        if (treat.types[i] == "cat") do.call("rbind", lapply(combn(unique.treats[[i]], 2, simplify = FALSE), function(comb) {
-          t(covs.list[[i]][, balanced[[i]], drop = FALSE] * (treat.list[[i]] == comb[1]) * sw / n[[i]][comb[1]]) - t(covs.list[[i]][, balanced[[i]], drop = FALSE] * (treat.list[[i]] == comb[2]) * sw / n[[i]][comb[2]])
-        }))
-        else {
-          correct.factor <- 2
-          if (corr.type == "pearson")  t(covs.list[[i]][, balanced[[i]], drop = FALSE] * treat.list[[i]] * sw / (n[[i]] - correct.factor)) #For cont, all have balancing constraints
-          else if (corr.type == "spearman")  t(apply(covs.list[[i]][, balanced[[i]], drop = FALSE], 2, rank) * treat.list[[i]] * sw / (n[[i]] - correct.factor)) #For cont, all have balancing constraints
-          else {
-            rbind(t(covs.list[[i]][, balanced[[i]], drop = FALSE] * treat.list[[i]] * sw / (n[[i]] - correct.factor)),
-                  t(apply(covs.list[[i]][, balanced[[i]], drop = FALSE], 2, rank) * treat.list[[i]] * sw / (n[[i]] - correct.factor)))
-          }
-        }
-      }
-      else NULL
-
-    }))
-    L_balance <- do.call("c", lapply(times, function(i) {
-      if (any(balanced[[i]])) {
-        if (treat.types[i] == "cat") rep(-tols[[i]][balanced[[i]]], length(combn(unique.treats[[i]], 2, simplify = FALSE)))
-        else {
-          if (corr.type %in% c("pearson", "spearman")) -tols[[i]][balanced[[i]]]
-          else rep(-tols[[i]][balanced[[i]]], 2)
-        }
-      }
-      else NULL
-    }))
-    U_balance <- do.call("c", lapply(times, function(i) {
-      if (any(balanced[[i]])) {
-        if (treat.types[i] == "cat") rep(tols[[i]][balanced[[i]]], length(combn(unique.treats[[i]], 2, simplify = FALSE)))
-        else {
-          if (corr.type %in% c("pearson", "spearman")) tols[[i]][balanced[[i]]]
-          else rep(tols[[i]][balanced[[i]]], 2)
-        }
-      }
-      else NULL
-    }))
-
-    #Conversion constraints
-    Inxn = sparseMatrix(1:N, 1:N, x = 1)
-    A_conversion = rbind(cbind(Inxn, -Inxn),
-              cbind(-Inxn, -Inxn))
-    # A_conversion = sparseMatrix(c(1:N, 1:N, (N+1):(2*N), (N+1):(2*N)),
-    #                  c(1:N, (N+1):(2*N), 1:N, (N+1):(2*N)),
-    #                  x = c(rep(1, N), rep(-1, 3*N)))
-    L_conversion = rep(-Inf, 2*N)
-    U_conversion = rep(1, 2*N)
-
-    A  <- rbind(A_meanw, A_balance, A_target)
-    L <- c(L_meanw, L_balance, L_target)
-    U <- c(U_meanw, U_balance, U_target)
-
-    Au <- cbind(A, matrix(0, nrow = nrow(A), ncol = N))
-
-    Az <- rbind(Au, A_wmin, A_conversion)
-    Lz = c(L, Lz_wmin, L_conversion)
-    Uz = c(U, Uz_wmin, U_conversion)
-
-    out <- solve_osqp(P = P, q = q, A = Az, l = Lz, u = Uz,
-                             pars = do.call(osqpSettings, args))
-
-    w <- out$x[1:N]
-
-    #Get dual vars for constraints
-    A_balance.indices <- if (is_null(A_balance)) NULL else (NROW(A_meanw)+1):(NROW(A_meanw)+NROW(A_balance))
-    A_target.indices <- if (is_null(A_target)) NULL else (NROW(A_meanw)+NROW(A_balance)+1):(NROW(A_meanw)+NROW(A_balance)+NROW(A_target))
-
+    constraint_df <- modify_constraints_L1(constraint_df, bw) |>
+      rbind(expand.grid(time = 0, type = "conversion",
+                        constraint = list(constraint_conversion_L1(bw, sw)),
+                        stringsAsFactors = FALSE,
+                        KEEP.OUT.ATTRS = FALSE))
   }
   else if (norm == "linf") {
-    #Minimizing largest weight
-    P = sparseMatrix(NULL, NULL, dims = c(2*N, 2*N))
-    q = rep(sw/N, 2)
+    objective <- objective_Linf(bw, sw)
 
-    #Mean of weights in each treat must equal 1
-    A_meanw = do.call("rbind", lapply(times, function(i) {
-      if (treat.types[i] == "cat") do.call("rbind", lapply(unique.treats[[i]], function(t) (treat.list[[i]] == t) * sw / n[[i]][t]))
-      else sw/n[[i]]
-    }))
-    L_meanw = do.call("c", lapply(times, function(i) rep(1, length(unique.treats[[i]]))))
-    U_meanw = L_meanw
-
-    #All weights must be >= min; focal weights must be 1, weights where sw = 0 must be 0
-    #Auxilliary var must be >= 0
-    min <- min.w
-    A_wmin = sparseMatrix(1:(2*N), 1:(2*N), x = 1)
-    if (is_not_null(focal)) {
-      L_wmin = ifelse(check_if_zero(sw), min, ifelse(treat.list[[1]] == focal, 1, min))
-      U_wmin = ifelse(check_if_zero(sw), min, ifelse(treat.list[[1]] == focal, 1, Inf))
-    }
-    else {
-      L_wmin = rep(min, N)
-      U_wmin = ifelse(check_if_zero(sw), min, Inf)
-    }
-    Lz_wmin = c(L_wmin, rep(0, N))
-    Uz_wmin = c(U_wmin, rep(Inf, N))
-
-    #Targeting constraints
-    A_target = do.call("rbind", lapply(times, function(i) {
-      if (any(targeted[[i]])) {
-        if (treat.types[i] == "cat") do.call("rbind", lapply(unique.treats[[i]], function(t)
-          if (is_null(focal) || (is_not_null(focal) && t != focal)) t(covs.list[[i]][, targeted[[i]], drop = FALSE] * (treat.list[[i]] == t) * sw / n[[i]][t])
-        ))
-        else rbind(t(covs.list[[i]][, targeted[[i]], drop = FALSE] * sw), treat.list[[i]] * sw) #variables are centered
-      }
-      else NULL
-    }))
-    L_target = do.call("c", lapply(times, function(i) {
-      if (any(targeted[[i]])) {
-        if (treat.types[i] == "cat") do.call("c", lapply(unique.treats[[i]], function(t) {
-          if (is_null(focal)) targets[[i]][targeted[[i]]] - tols[[i]][targeted[[i]]]/2
-          else if (is_not_null(focal) && t != focal) targets[[i]][targeted[[i]]] - tols[[i]][targeted[[i]]]
-        }))
-        else rep(0, sum(targeted[[i]]) + 1) #variables are centered at targets; +1 for treat
-      }
-      else NULL
-    }))
-    U_target = do.call("c", lapply(times, function(i) {
-      if (any(targeted[[i]])) {
-        if (treat.types[i] == "cat") do.call("c", lapply(unique.treats[[i]], function(t) {
-          if (is_null(focal)) targets[[i]][targeted[[i]]] + tols[[i]][targeted[[i]]]/2
-          else if (is_not_null(focal) && t != focal) targets[[i]][targeted[[i]]] + tols[[i]][targeted[[i]]]
-        }))
-        else rep(0, sum(targeted[[i]]) + 1) #variables are centered at targets; +1 for treat
-      }
-      else NULL
-    }))
-
-    #Balancing constraints for all covariates
-    A_balance = do.call("rbind", lapply(times, function(i) {
-      if (any(balanced[[i]])) {
-        if (treat.types[i] == "cat") do.call("rbind", lapply(combn(unique.treats[[i]], 2, simplify = FALSE), function(comb) {
-          t(covs.list[[i]][, balanced[[i]], drop = FALSE] * (treat.list[[i]] == comb[1]) * sw / n[[i]][comb[1]]) - t(covs.list[[i]][, balanced[[i]], drop = FALSE] * (treat.list[[i]] == comb[2]) * sw / n[[i]][comb[2]])
-        }))
-        else {
-          correct.factor <- 2
-          if (corr.type == "pearson")  t(covs.list[[i]][, balanced[[i]], drop = FALSE] * treat.list[[i]] * sw / (n[[i]] - correct.factor)) #For cont, all have balancing constraints
-          else if (corr.type == "spearman")  t(apply(covs.list[[i]][, balanced[[i]], drop = FALSE], 2, rank) * treat.list[[i]] * sw / (n[[i]] - correct.factor)) #For cont, all have balancing constraints
-          else {
-            rbind(t(covs.list[[i]][, balanced[[i]], drop = FALSE] * treat.list[[i]] * sw / (n[[i]] - correct.factor)),
-                  t(apply(covs.list[[i]][, balanced[[i]], drop = FALSE], 2, rank) * treat.list[[i]] * sw / (n[[i]] - correct.factor)))
-          }
-        }
-      }
-      else NULL
-
-    }))
-    L_balance = do.call("c", lapply(times, function(i) {
-      if (any(balanced[[i]])) {
-        if (treat.types[i] == "cat") rep(-tols[[i]][balanced[[i]]], length(combn(unique.treats[[i]], 2, simplify = FALSE)))
-        else {
-          if (corr.type %in% c("pearson", "spearman")) -tols[[i]][balanced[[i]]]
-          else rep(-tols[[i]][balanced[[i]]], 2)
-        }
-      }
-      else NULL
-    }))
-    U_balance = do.call("c", lapply(times, function(i) {
-      if (any(balanced[[i]])) {
-        if (treat.types[i] == "cat") rep(tols[[i]][balanced[[i]]], length(combn(unique.treats[[i]], 2, simplify = FALSE)))
-        else {
-          if (corr.type %in% c("pearson", "spearman")) tols[[i]][balanced[[i]]]
-          else rep(tols[[i]][balanced[[i]]], 2)
-        }
-      }
-      else NULL
-    }))
-
-
-    #Conversion constraints
-    Inxn = sparseMatrix(1:N, 1:N, x = 1)
-    #one = matrix(1, nrow = N, ncol = 1)
-    A_conversion1 = rbind(cbind(Inxn, -Inxn),
-              cbind(-Inxn, -Inxn))
-    # A_conversion = sparseMatrix(c(1:N, 1:N, (N+1):(2*N), (N+1):(2*N)),
-    #                  c(1:N, rep(N+1, N), 1:N, rep(N+1, N)),
-    #                  x = c(rep(1, N), rep(-1, 3*N)))
-    L_conversion1 = rep(-Inf, 2*N)
-    U_conversion1 = rep(1, 2*N)
-
-    A_conversion2 = cbind(sparseMatrix(NULL, NULL, dims = c(N-1, N)),
-               matrix(1, ncol = 1, nrow = N-1),
-               sparseMatrix(1:(N-1), 1:(N-1), x = -1))
-    L_conversion2 = rep(0, N-1)
-    U_conversion2 = rep(0, N-1)
-
-    A_conversion = rbind(A_conversion1, A_conversion2)
-    L_conversion = c(L_conversion1, L_conversion2)
-    U_conversion = c(U_conversion1, U_conversion2)
-
-    A = rbind(A_meanw, A_balance, A_target)
-    L = c(L_meanw, L_balance, L_target)
-    U = c(U_meanw, U_balance, U_target)
-
-    Au = cbind(A, matrix(0, nrow = NROW(A), ncol = ncol(A)))
-
-    Az = rbind(Au, A_wmin, A_conversion)
-    Lz = c(L, Lz_wmin, L_conversion)
-    Uz = c(U, Uz_wmin, U_conversion)
-
-    out <- solve_osqp(P = P, q = q, A = Az, l = Lz, u = Uz,
-                             pars = do.call(osqpSettings, args))
-
-    w <- out$x[1:N]
-
-    #Get dual vars for constraints
-    A_balance.indices <- if (is_null(A_balance)) NULL else (NROW(A_meanw)+1):(NROW(A_meanw)+NROW(A_balance))
-    A_target.indices <- if (is_null(A_target)) NULL else (NROW(A_meanw)+NROW(A_balance)+1):(NROW(A_meanw)+NROW(A_balance)+NROW(A_target))
+    constraint_df <- modify_constraints_Linf(constraint_df, bw) |>
+      rbind(expand.grid(time = 0, type = "conversion",
+                        constraint = list(constraint_conversion_Linf(bw, sw)),
+                        stringsAsFactors = FALSE,
+                        KEEP.OUT.ATTRS = FALSE))
   }
 
-  w[w < min.w] <- min.w
+  constraint_df$nc <- lengths(grab(constraint_df[["constraint"]], "L"))
+  constraint_df$nc_cum <- cumsum(constraint_df$nc)
+
+  out <- osqp::solve_osqp(P = objective$P,
+                          q = objective$q,
+                          A = combine_constraints("A", constraint_df[["constraint"]]),
+                          l = combine_constraints("L", constraint_df[["constraint"]]),
+                          u = combine_constraints("U", constraint_df[["constraint"]]),
+                          pars = do.call(osqp::osqpSettings, args))
+
+  #Get dual vars for balance and target constraints
+  balance_indices <- unlist(lapply(which(constraint_df$type == "balance"), function(i) {
+    seq(constraint_df$nc_cum[i] - constraint_df$nc[i], constraint_df$nc_cum[i])[-1L]
+  }))
+
+  target_indices <- unlist(lapply(which(constraint_df$type == "target"), function(i) {
+    seq(constraint_df$nc_cum[i] - constraint_df$nc[i], constraint_df$nc_cum[i])[-1L]
+  }))
+
+  w <- out$x[seq_len(N)]
+
+  if (abs(min.w) < .Machine$double.eps) {
+    w[abs(w) < .Machine$double.eps] <- 0
+  }
 
   #Duals
-  balance_duals <- abs(out$y[A_balance.indices]) #A_balance
-  target_duals <- abs(out$y[A_target.indices]) #A_target
-  duals <- vector("list", length(times))
+  duals <- make_list(length(times))
 
-  kb <- kt <- 1
   for (i in times) {
-    if (is_not_null(target_duals)) {
-      non.focal.treats <- if (is_null(focal)) unique.treats[[i]] else unique.treats[[i]][unique.treats[[i]] != focal]
+    td <- bd <- NULL
 
-      targeted.covs <- colnames(covs.list[[i]])[targeted[[i]]]
-      if (length(non.focal.treats) > 0 && length(targeted.covs) > 0) {
-        td <- data.frame(expand.grid(constraint = "target",
-                                     cov = targeted.covs,
-                                     treat = non.focal.treats,
-                                     stringsAsFactors = FALSE),
-                         dual = target_duals[kt:(kt + length(non.focal.treats) * length(targeted.covs) - 1)]
-        )
-      }
-      else td <- NULL
+    ti <- which(constraint_df[["time"]] == i & constraint_df[["type"]] == "target")[1L]
+    if (constraint_df[["nc"]][ti] > 0) {
+      cons <- constraint_df[["constraint"]][[ti]][-(1:3)]
+      target_ind <- seq(constraint_df$nc_cum[ti] - constraint_df$nc[ti],
+                        constraint_df$nc_cum[ti])[-1L]
 
-      kt <- kt + length(non.focal.treats) * length(targeted.covs)
+      td <- data.frame(constraint = "target",
+                       cov = if_null_then(cons$covs, NA_character_),
+                       treat = if_null_then(cons$treat, NA_character_),
+                       dual = abs(out$y[target_ind]))
     }
-    else td <- NULL
-    if (is_not_null(balance_duals)) {
-      if (treat.types[i] == "cat") treat.combs <- vapply(combn(unique.treats[[i]], 2, simplify = FALSE),
-                                                         paste, character(1L), collapse = " vs. ")
-      else treat.combs <- unique.treats[[i]]
-      balanced.covs <- colnames(covs.list[[i]])[balanced[[i]]]
-      if (length(treat.combs) > 0 && length(balanced.covs) > 0) {
-        bd <- data.frame(expand.grid(constraint = "balance",
-                                     cov = balanced.covs,
-                                     treat = treat.combs,
-                                     stringsAsFactors = FALSE),
-                         dual = balance_duals[kb:(kb + length(treat.combs) * length(balanced.covs) - 1)]
-        )
-      }
-      else bd <- NULL
-      kb <- kb + length(treat.combs) * length(balanced.covs)
-    }
-    else bd <- NULL
 
-    duals[[i]] <- rbind(td, bd)
+    bi <- which(constraint_df[["time"]] == i & constraint_df[["type"]] == "balance")[1L]
+    if (constraint_df[["nc"]][bi] > 0) {
+      cons <- constraint_df[["constraint"]][[bi]][-(1:3)]
+      balance_ind <- seq(constraint_df$nc_cum[bi] - constraint_df$nc[bi],
+                         constraint_df$nc_cum[bi])[-1L]
+
+      bd <- data.frame(constraint = "balance",
+                       cov = if_null_then(cons$covs, NA_character_),
+                       treat = if_null_then(cons$treat.comb, NA_character_),
+                       dual = abs(out$y[balance_ind]))
+    }
+
+    if (is_not_null(td) || is_not_null(bd)) {
+      duals[[i]] <- rbind(td, bd)
+    }
   }
 
   opt_out <- list(w = w,
                   duals = duals,
                   info = out$info,
                   out = out,
-                  A = A)
+                  constraint_df = constraint_df)
   class(opt_out) <- "optweight.fit"
 
-  return(opt_out)
+  opt_out
 }
