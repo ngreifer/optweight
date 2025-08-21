@@ -1,13 +1,23 @@
 optweight News and Updates
 ======
 
-# optweight (development version)
+# optweight 0.3.0
 
-* Added `b.weights` argument to supply base weights. When supplied, rather than minimizing the variance of the weights, the squared distance from each base weight is minimized, mirroring the functionality of the `base.weights` argument in `ebalance` for entropy balancing.
+A major rewrite, though without too much change in functionality.
+
+* Documentation is now in `roxygen2`.
+
+* Added `b.weights` argument to supply base weights. When supplied, rather than minimizing the variance of the weights, the squared distance from each base weight is minimized, mirroring the functionality of the `base.weights` argument in `ebalance` for entropy balancing. The L1 and L$\infinity$ norms now support base weights. Omitting base weights is equivalent to setting them equal to 1.
+
+* `summary()` now displays the L2, L1, and L$\infinity$ of the distance between the estimated weights and the base weights, and the number of weights estimated to be 0.
+
+* `check_tols()` and `check_targets()` have replaced `check.tols()` and `check.targets()`, though the latter can still be used for now.
+
+* `polish` is now `TRUE` by default; this slightly improves estimation.
 
 * Formula interfaces now accept `poly(x, .)` and other matrix-generating functions of variables, including the `rms`-class-generating functions from the `rms` package (e.g., `pol()`, `rcs()`, etc.) (the `rms` package must be loaded to use these latter ones) and the `basis`-class-generating functions from the `splines` package (i.e., `bs()` and `ns()`). A bug in an early version of this was found by @ahinton-mmc.
 
-* Negative values are now allowed for the `min.w` argument of `optweight.fit()`.
+* Negative values are now allowed for the `min.w` argument of `optweight.fit()` and `optweight.svy.fit()`.
 
 # optweight 0.2.5
 
