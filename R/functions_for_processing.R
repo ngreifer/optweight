@@ -85,7 +85,7 @@ process.s.weights <- function(s.weights, data = NULL) {
   }
 
   if (chk::vld_numeric(s.weights)) {
-    return(s.weights)
+    return(as.numeric(s.weights))
   }
 
   if (!chk::vld_string(s.weights)) {
@@ -100,7 +100,7 @@ process.s.weights <- function(s.weights, data = NULL) {
     .err("the name supplied to `s.weights` is not the name of a variable in `data`")
   }
 
-  data[[s.weights]]
+  as.numeric(data[[s.weights]])
 }
 process.b.weights <- function(b.weights, data = NULL) {
   #Process b.weights
@@ -109,7 +109,7 @@ process.b.weights <- function(b.weights, data = NULL) {
   }
 
   if (chk::vld_numeric(b.weights)) {
-    return(b.weights)
+    return(as.numeric(b.weights))
   }
 
   if (!chk::vld_string(b.weights)) {
@@ -124,7 +124,7 @@ process.b.weights <- function(b.weights, data = NULL) {
     .err("the name supplied to `b.weights` is not the name of a variable in `data`")
   }
 
-  data[[b.weights]]
+  as.numeric(data[[b.weights]])
 }
 
 process.bin.vars <- function(bin.vars, mat) {

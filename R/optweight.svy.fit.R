@@ -107,19 +107,23 @@ optweight.svy.fit <- function(covs, tols = 0, targets, s.weights = NULL, b.weigh
 
   sw <- {
     if (is_null(s.weights)) rep.int(1, N)
-    else s.weights
+    else as.numeric(s.weights)
   }
 
   bw <- {
     if (is_null(b.weights)) rep.int(1, N)
-    else b.weights
+    else as.numeric(b.weights)
+  }
+
+  if (norm == "linf" && !all_the_same(sw)) {
+    .err("the L-inf norm cannot be used with sampling weights")
   }
 
   args <- ...mget(names(formals(osqp::osqpSettings)))
 
   for (e in c("eps_abs", "eps_rel")) {
     if (!utils::hasName(args, e)) {
-      args[[e]] <- ...get("eps", 1e-8)
+      args[[e]] <- ...get("eps", 1e-5)
     }
   }
 
@@ -154,15 +158,11 @@ optweight.svy.fit <- function(covs, tols = 0, targets, s.weights = NULL, b.weigh
 
   tols <- abs(tols)
 
-  vars.to.standardize <- {
-    if (std.binary && std.cont) rep_with(TRUE, tols)
-    else if (!std.binary && std.cont) !bin.covs
-    else if (std.binary && !std.cont) bin.covs
-    else rep_with(FALSE, tols)
-  }
+  vars.to.standardize <- rep_with(FALSE, tols)
+  if (std.binary) vars.to.standardize[bin.covs] <- TRUE
+  if (std.cont) vars.to.standardize[!bin.covs] <- TRUE
 
-  to_std <- which(vars.to.standardize & targeted & !check_if_zero(tols) &
-                    !is.na(sds) & !check_if_zero(sds))
+  to_std <- which(vars.to.standardize & targeted & !is.na(sds) & !check_if_zero(sds))
 
   if (is_not_null(to_std)) {
     covs[, to_std] <- mat_div(covs[, to_std, drop = FALSE], sds[to_std])
@@ -171,7 +171,7 @@ optweight.svy.fit <- function(covs, tols = 0, targets, s.weights = NULL, b.weigh
 
   constraint_df[["constraint"]] <- list(
     range_w = constraint_range_w(sw, min.w),
-    mean_w = constraint_mean_w_svy(sw),
+    mean_w = constraint_mean_w_svy(sw, n),
     target = constraint_target_svy(covs, sw, targets, targeted, tols)
   )
 
@@ -217,6 +217,8 @@ optweight.svy.fit <- function(covs, tols = 0, targets, s.weights = NULL, b.weigh
   if (abs(min.w) < .Machine$double.eps) {
     w[abs(w) < .Machine$double.eps] <- 0
   }
+
+  w[w < min.w] <- min.w
 
   #Duals
   duals <- NULL
