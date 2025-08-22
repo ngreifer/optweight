@@ -1,6 +1,7 @@
 for (i in dir("R/")) source(paste0("R/", i))
 library(Matrix)
 library(ggplot2)
+library(osqp)
 stop("Done sourcing.", call. = FALSE)
 
 library("cobalt")
