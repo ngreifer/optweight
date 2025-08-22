@@ -62,7 +62,7 @@ check_tols <- function(formula, data = NULL, tols, stop = FALSE) {
 
   #Process treat and covs from formula and data
   tt <- delete.response(terms(formula))
-  t.c <- get_covs_and_treat_from_formula(tt, data, terms = TRUE, sep = "_")
+  t.c <- get_covs_and_treat_from_formula2(tt, data, terms = TRUE, sep = "_")
   formula.covs <- t.c[["reported.covs"]]
   model.covs <- t.c[["model.covs"]]
 

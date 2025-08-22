@@ -110,7 +110,7 @@ optweight.svy <- function(formula, data = NULL, tols = 0, targets = NULL, s.weig
   targets <- check_targets(formula, data, targets, stop = TRUE)
 
   #Process treat and covs from formula and data
-  t.c <- get_covs_and_treat_from_formula(formula, data, sep = "_")
+  t.c <- get_covs_and_treat_from_formula2(formula, data, sep = "_")
   reported.covs <- t.c[["reported.covs"]]
   covs <- t.c[["model.covs"]]
 

@@ -182,7 +182,7 @@ optweight <- function(formula, data = NULL, tols = 0, estimand = "ATE",
 
   for (i in times) {
     #Process treat and covs from formula and data
-    t.c <- get_covs_and_treat_from_formula2(formula.list[[i]], data)
+    t.c <- get_covs_and_treat_from_formula2(formula.list[[i]], data, sep = "_")
     simple.covs.list[[i]] <- t.c[["simple.covs"]]
     reported.covs.list[[i]] <- t.c[["reported.covs"]]
 
