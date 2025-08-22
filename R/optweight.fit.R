@@ -122,12 +122,16 @@ optweight.fit <- function(treat.list, covs.list, tols, estimand = "ATE", targets
 
   sw <- {
     if (is_null(s.weights)) rep.int(1, N)
-    else s.weights
+    else as.numeric(s.weights)
   }
 
   bw <- {
     if (is_null(b.weights)) rep.int(1, N)
-    else b.weights
+    else as.numeric(b.weights)
+  }
+
+  if (norm == "linf" && !all_the_same(sw)) {
+    .err("the L-inf norm cannot be used with sampling weights")
   }
 
   corr.type <- "pearson"
@@ -136,7 +140,7 @@ optweight.fit <- function(treat.list, covs.list, tols, estimand = "ATE", targets
 
   for (e in c("eps_abs", "eps_rel")) {
     if (!utils::hasName(args, e)) {
-      args[[e]] <- ...get("eps", 1e-8)
+      args[[e]] <- ...get("eps", 1e-5)
     }
   }
 
@@ -217,13 +221,10 @@ optweight.fit <- function(treat.list, covs.list, tols, estimand = "ATE", targets
     }
 
     targets.list[[i]] <- {
-      if (i > 1L)
+      if (i > 1L || (is_null(targets) && is_null(estimand)))
         rep.int(NA_real_, ncol(covs.list[[i]]))
       else if (is_not_null(targets))
         targets
-      else if (is_null(estimand)) {
-        rep.int(NA_real_, ncol(covs.list[[i]]))
-      }
       else if (estimand %in% c("ATT", "ATC"))
         col.w.m(covs.list[[i]][in_focal, , drop = FALSE],
                 w = sw[in_focal])
@@ -243,20 +244,13 @@ optweight.fit <- function(treat.list, covs.list, tols, estimand = "ATE", targets
       treat.sds[[i]] <- NA_real_
       treat.means[[i]] <- NA_real_
 
-      #tols
-      vars.to.standardize <- {
-        if (std.binary && std.cont) rep_with(TRUE, tols.list[[i]])
-        else if (!std.binary && std.cont) !bin.covs.list[[i]]
-        else if (std.binary && !std.cont) bin.covs.list[[i]]
-        else rep_with(FALSE, tols.list[[i]])
-      }
+      vars.to.standardize <- rep_with(FALSE, tols.list[[i]])
+      if (std.binary) vars.to.standardize[bin.covs.list[[i]]] <- TRUE
+      if (std.cont) vars.to.standardize[!bin.covs.list[[i]]] <- TRUE
 
-      to_std <- which(vars.to.standardize & !check_if_zero(tols.list[[i]]) & !check_if_zero(sds[[i]]))
+      to_std <- which(vars.to.standardize & !check_if_zero(sds[[i]]))
     }
     else {
-      sds[[i]] <- sqrt(col.w.v(covs.list[[i]], w = sw,
-                               bin.vars = bin.covs.list[[i]]))
-
       balanced[[i]] <- rep_with(TRUE, targeted[[i]])
 
       targets_i <- ifelse(targeted[[i]], targets.list[[i]], means[[i]])
@@ -280,7 +274,7 @@ optweight.fit <- function(treat.list, covs.list, tols, estimand = "ATE", targets
       range_w = if (i == 1L) constraint_range_w(sw, min.w, focal, treat.list[[i]]),
       mean_w = switch(treat.types[i],
                       cat = constraint_mean_w_cat(treat.list[[i]], unique.treats[[i]], sw, n[[i]]),
-                      cont = constraint_mean_w_cont(sw)),
+                      cont = constraint_mean_w_cont(sw, n[[i]])),
       balance = switch(treat.types[i],
                        cat = constraint_balance_cat(covs.list[[i]], treat.list[[i]], sw, tols.list[[i]],
                                                     balanced[[i]], unique.treats[[i]], n[[i]]),
@@ -339,6 +333,8 @@ optweight.fit <- function(treat.list, covs.list, tols, estimand = "ATE", targets
   if (abs(min.w) < .Machine$double.eps) {
     w[abs(w) < .Machine$double.eps] <- 0
   }
+
+  w[w < min.w] <- min.w
 
   #Duals
   duals <- make_list(length(times))
