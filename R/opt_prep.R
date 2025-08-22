@@ -10,21 +10,21 @@ constraint_mean_w_cat <- function(treat, unique.treats, sw, n) {
 
   out
 }
-constraint_mean_w_cont <- function(sw) {
+constraint_mean_w_cont <- function(sw, n) {
   #Mean of weights must equal 1
   out <- make_list(c("A", "L", "U"))
 
-  out$A <- rbind(sw / length(sw))
+  out$A <- rbind(sw / n)
   out$L <- 1
   out$U <- 1
 
   out
 }
-constraint_mean_w_svy <- function(sw) {
+constraint_mean_w_svy <- function(sw, n) {
   #Mean of weights must equal 1
   out <- make_list(c("A", "L", "U"))
 
-  out$A <- rbind(sw / length(sw))
+  out$A <- rbind(sw / n)
   out$L <- 1
   out$U <- 1
 
@@ -40,16 +40,16 @@ constraint_range_w <- function(sw, min.w, focal = NULL, treat = NULL) {
   out$L <- rep.int(min.w, N)
   out$U <- rep.int(Inf, N)
 
-  if (is_not_null(focal)) {
-    in_focal <- which(treat == focal)
-    out$L[in_focal] <- 1
-    out$U[in_focal] <- 1
-  }
-
   zero_sw <- check_if_zero(sw)
   if (any(zero_sw)) {
     out$L[zero_sw] <- 0
     out$U[zero_sw] <- 0
+  }
+
+  if (is_not_null(focal)) {
+    in_focal <- which(treat == focal)
+    out$L[in_focal] <- 1
+    out$U[in_focal] <- 1
   }
 
   out
@@ -65,17 +65,16 @@ constraint_target_cat <- function(covs, treat, sw, targets, tols, targeted, uniq
     covs_targeted_sw <- covs[, targeted, drop = FALSE] * sw
 
     out$A <- do.call("rbind", lapply(unique.treats, function(i) {
-      if (is_null(focal)) 2 * t(covs_targeted_sw * (treat == i) / n[i])
-      else if (i != focal) t(covs_targeted_sw * (treat == i) / n[i])
+      if (is_null(focal) || i != focal) t(covs_targeted_sw * (treat == i) / n[i])
     }))
 
     out$L <- unlist(lapply(unique.treats, function(i) {
-      if (is_null(focal)) 2 * targets[targeted] - tols[targeted]
+      if (is_null(focal)) targets[targeted] - tols[targeted] / 2
       else if (i != focal) targets[targeted] - tols[targeted]
     }))
 
     out$U <- unlist(lapply(unique.treats, function(i) {
-      if (is_null(focal)) 2 * targets[targeted] + tols[targeted]
+      if (is_null(focal)) targets[targeted] + tols[targeted] / 2
       else if (i != focal) targets[targeted] + tols[targeted]
     }))
 
@@ -188,7 +187,7 @@ objective_L2 <- function(bw, sw) {
   N <- length(bw)
   #Minimizing variance of weights
   P <- Matrix::sparseMatrix(seq_len(N), seq_len(N),
-                            x = 2 * sw^2/ N)
+                            x = 2 * sw / N)
   # q = -sw/N #ensures objective function value is variance of weights
   q <- -2 * bw * sw / N
 
@@ -198,13 +197,14 @@ objective_L2 <- function(bw, sw) {
 ## L1
 objective_L1 <- function(bw, sw) {
   N <- length(bw)
+  eps <- 1e-9
 
   P <- Matrix::sparseMatrix(seq_len(N), seq_len(N),
-                            x = 1e-9 * 2 * sw^2 / N,
+                            x = eps * 2 * sw / N,
                             dims = c(2 * N, 2 * N))
 
-  q <- c(1e-9 * -2 * bw * sw / N,
-         rep.int(1 / N, N))
+  q <- c(eps * -2 * bw * sw / N,
+         sw / N)
 
   list(P = P, q = q)
 }
@@ -244,7 +244,7 @@ constraint_conversion_L1 <- function(bw, sw) {
     list(
       A = Matrix::sparseMatrix(c(seq_len(N), seq_len(N)),
                                c(seq_len(N), N + seq_len(N)),
-                               x = c(sw, rep.int(1, N)),
+                               x = 1,
                                dims = c(N, 2 * N)),
       L = bw,
       U = rep.int(Inf, N),
@@ -255,7 +255,7 @@ constraint_conversion_L1 <- function(bw, sw) {
     list(
       A = Matrix::sparseMatrix(c(seq_len(N), seq_len(N)),
                                c(seq_len(N), N + seq_len(N)),
-                               x = c(sw, rep.int(-1, N)),
+                               x = c(rep.int(1, N), rep.int(-1, N)),
                                dims = c(N, 2 * N)),
       L = rep.int(-Inf, N),
       U = bw,
@@ -271,13 +271,14 @@ constraint_conversion_L1 <- function(bw, sw) {
 ## Linf
 objective_Linf <- function(bw, sw) {
   N <- length(bw)
+  eps <- 1e-5
 
   #Minimizing Linf norm of w - bw
   P <- Matrix::sparseMatrix(seq_len(N), seq_len(N),
-                            x = 1e-9 * 2 * sw ^ 2/ N,
+                            x = eps * 2 * sw / N,
                             dims = c(N + 1, N + 1))
 
-  q <- c(1e-9 * -2 * bw * sw / N,
+  q <- c(eps * -2 * bw * sw / N,
          1)
 
   list(P = P, q = q)
@@ -319,7 +320,7 @@ constraint_conversion_Linf <- function(bw, sw) {
                                c(seq_len(N), rep.int(N + 1L, N)),
                                x = c(sw, rep.int(1L, N)),
                                dims = c(N, N + 1L)),
-      L = bw,
+      L = sw * bw,
       U = rep.int(Inf, N),
       treat = rep.int(NA, N),
       covs = rep.int(NA, N)
@@ -330,7 +331,7 @@ constraint_conversion_Linf <- function(bw, sw) {
                                x = c(sw, rep.int(-1L, N)),
                                dims = c(N, N + 1L)),
       L = rep.int(-Inf, N),
-      U = bw,
+      U = sw * bw,
       treat = rep.int(NA, N),
       covs = rep.int(NA, N)
     )
