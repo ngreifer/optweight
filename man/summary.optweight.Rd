@@ -41,8 +41,8 @@ elements:
 each treatment group.}
 \item{weight.top}{The units with the greatest weights
 in each treatment group; how many are included is determined by \code{top}.}
-\item{rms.dev}{The root-mean-squared deviation of the estimated weights from the base weights (L2 norm).}
-\item{mean.abs.dev}{The mean absolute deviation of the estimated weights from the base weights (L1 norm).}
+\item{rms.dev}{The root-mean-squared deviation of the estimated weights from the base weights (L2 norm), weighted by the sampling weights (if any).}
+\item{mean.abs.dev}{The mean absolute deviation of the estimated weights from the base weights (L1 norm), weighted by the sampling weights (if any).}
 \item{max.abs.dev}{The maximum absolute deviation of the estimated weights from the base weights (L\eqn{\infinity} norm).}
 \item{num.zeros}{The number of units with a weight equal to 0.}
 \item{effective.sample.size}{The effective sample size for each treatment group before and after weighting.}

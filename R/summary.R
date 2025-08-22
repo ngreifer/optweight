@@ -26,8 +26,8 @@
 #' each treatment group.}
 #' \item{weight.top}{The units with the greatest weights
 #' in each treatment group; how many are included is determined by `top`.}
-#' \item{rms.dev}{The root-mean-squared deviation of the estimated weights from the base weights (L2 norm).}
-#' \item{mean.abs.dev}{The mean absolute deviation of the estimated weights from the base weights (L1 norm).}
+#' \item{rms.dev}{The root-mean-squared deviation of the estimated weights from the base weights (L2 norm), weighted by the sampling weights (if any).}
+#' \item{mean.abs.dev}{The mean absolute deviation of the estimated weights from the base weights (L1 norm), weighted by the sampling weights (if any).}
 #' \item{max.abs.dev}{The maximum absolute deviation of the estimated weights from the base weights (L\eqn{\infinity} norm).}
 #' \item{num.zeros}{The number of units with a weight equal to 0.}
 #' \item{effective.sample.size}{The effective sample size for each treatment group before and after weighting.}
@@ -79,12 +79,12 @@ summary.optweight <- function(object, top = 5, ignore.s.weights = FALSE, ...) {
     else object$b.weights
   }
 
-  w <- object$weights * sw
   t <- object$treat
   treat.type <- attr(t, "treat.type")
 
-  out <- .summary_internal(t, treat.type, w, sw, bw, top)
+  out <- .summary_internal(t, treat.type, object$weights, sw, bw, top)
 
+  w <- object$weights * sw
   if (is_not_null(object$focal)) {
     w <- w[t != object$focal]
     attr(w, "focal") <- object$focal
@@ -120,16 +120,15 @@ summary.optweightMSM <- function(object, top = 5, ignore.s.weights = FALSE, ...)
     else object$b.weights
   }
 
-  w <- object$weights * sw
   treat.types <- vapply(object[["treat.list"]], attr, character(1L), "treat.type")
 
   out.list <- make_list(names(object$treat.list))
   for (ti in seq_along(object$treat.list)) {
     out.list[[ti]] <- .summary_internal(object$treat.list[[ti]],
-                                        treat.types[ti], w, sw, bw, top)
+                                        treat.types[ti], object$weights, sw, bw, top)
   }
 
-  attr(out.list, "weights") <- w
+  attr(out.list, "weights") <- object$weights * sw
 
   class(out.list) <- c("summary.optweightMSM", "summary.optweight")
 
@@ -138,7 +137,7 @@ summary.optweightMSM <- function(object, top = 5, ignore.s.weights = FALSE, ...)
 
 #' @exportS3Method print summary.optweightMSM
 print.summary.optweightMSM <- function(x, ...) {
-  only.one <- all_apply(x, identical, x[[1L]])
+  only.one <- length(x) == 1L || all_apply(x, identical, x[[1L]])
 
   cat("Summary of weights:\n\n")
   for (ti in seq_along(x)) {
@@ -169,11 +168,9 @@ summary.optweight.svy <- function(object, top = 5, ignore.s.weights = FALSE, ...
     else object$b.weights
   }
 
-  w <- object$weights * sw
+  out <- .summary_internal(NULL, "svy", object$weights, sw, bw, top)
 
-  out <- .summary_internal(NULL, "svy", w, sw, bw, top)
-
-  attr(out, "weights") <- w
+  attr(out, "weights") <- object$weights * sw
 
   class(out) <- c("summary.optweight.svy", "summary.optweight")
 
@@ -215,66 +212,68 @@ plot.summary.optweight <- function(x, ...) {
 
   out <- make_list(outnames)
 
+  ww <- w * sw
+
   if (treat.type %in% c("continuous", "svy")) {
-    out$weight.range <- list(all = c(min(w[w != 0]),
-                                     max(w[w != 0])))
-    top.weights <- sort(w, decreasing = TRUE)[seq_len(top)]
-    out$weight.top <- list(all = sort(setNames(top.weights, which(w %in% top.weights)[seq_len(top)])))
-    out$rms.dev <- c(all = rms_dev(w, bw = bw))
-    out$mean.abs.dev <- c(all = mean_abs_dev(w, bw = bw))
-    out$max.abs.dev <- c(all = max_abs_dev(w, bw = bw))
-    out$num.zeros <- c(all = sum(w == 0))
+    out$weight.range <- list(all = c(min(ww[ww != 0]),
+                                     max(ww[ww != 0])))
+    top.weights <- sort(ww, decreasing = TRUE)[seq_len(top)]
+    out$weight.top <- list(all = sort(setNames(top.weights, which(ww %in% top.weights)[seq_len(top)])))
+    out$rms.dev <- c(all = rms_dev(w, bw = bw, sw = sw))
+    out$mean.abs.dev <- c(all = mean_abs_dev(w, bw = bw, sw = sw))
+    out$max.abs.dev <- c(all = max_abs_dev(w, bw = bw, sw = sw))
+    out$num.zeros <- c(all = sum(ww == 0))
 
     nn <- make_df("Total", c("Unweighted", "Weighted"))
-    nn[["Total"]] <- c(ESS(sw), ESS(w))
+    nn[["Total"]] <- c(ESS(sw), ESS(ww))
   }
   else if (treat.type == "binary") {
-    out$weight.range <- list(treated = c(min(w[w != 0 & t == 1]),
-                                         max(w[w != 0 & t == 1])),
-                             control = c(min(w[w != 0 & t == 0]),
-                                         max(w[w != 0 & t == 0])))
-    top.weights <- list(treated = sort(w[t == 1], decreasing = TRUE)[seq_len(top)],
-                        control = sort(w[t == 0], decreasing = TRUE)[seq_len(top)])
+    out$weight.range <- list(treated = c(min(ww[ww != 0 & t == 1]),
+                                         max(ww[ww != 0 & t == 1])),
+                             control = c(min(ww[ww != 0 & t == 0]),
+                                         max(ww[ww != 0 & t == 0])))
+    top.weights <- list(treated = sort(ww[t == 1], decreasing = TRUE)[seq_len(top)],
+                        control = sort(ww[t == 0], decreasing = TRUE)[seq_len(top)])
 
-    out$weight.top <- setNames(lapply(names(top.weights), function(x) sort(setNames(top.weights[[x]], which(w[t == switch(x, control = 0, 1)] %in% top.weights[[x]])[seq_len(top)]))),
+    out$weight.top <- setNames(lapply(names(top.weights), function(x) sort(setNames(top.weights[[x]], which(ww[t == switch(x, control = 0, 1)] %in% top.weights[[x]])[seq_len(top)]))),
                                names(top.weights))
 
-    out$rms.dev <- c(treated = rms_dev(w[t==1], bw = bw[t==1]),
-                     control = rms_dev(w[t==0], bw = bw[t==0]))
-    out$mean.abs.dev <- c(treated = mean_abs_dev(w[t==1], bw = bw[t==1]),
-                          control = mean_abs_dev(w[t==0], bw = bw[t==0]))
-    out$max.abs.dev <- c(treated = max_abs_dev(w[t==1], bw = bw[t==1]),
-                         control = max_abs_dev(w[t==0], bw = bw[t==0]))
-    out$num.zeros <- c(treated = sum(w[t==1] == 0),
-                       control = sum(w[t==0] == 0))
+    out$rms.dev <- c(treated = rms_dev(w[t==1], bw = bw[t==1], sw = sw[t==1]),
+                     control = rms_dev(w[t==0], bw = bw[t==0], sw = sw[t==0]))
+    out$mean.abs.dev <- c(treated = mean_abs_dev(w[t==1], bw = bw[t==1], sw = sw[t==1]),
+                          control = mean_abs_dev(w[t==0], bw = bw[t==0], sw = sw[t==0]))
+    out$max.abs.dev <- c(treated = max_abs_dev(w[t==1], bw = bw[t==1], sw = sw[t==1]),
+                         control = max_abs_dev(w[t==0], bw = bw[t==0], sw = sw[t==0]))
+    out$num.zeros <- c(treated = sum(ww[t==1] == 0),
+                       control = sum(ww[t==0] == 0))
 
     #dc <- weightit$discarded
 
     nn <- make_df(c("Control", "Treated"), c("Unweighted", "Weighted"))
 
-    nn[["Control"]] <- c(ESS(sw[t == 0]), ESS(w[t == 0]))
-    nn[["Treated"]] <- c(ESS(sw[t == 1]), ESS(w[t == 1]))
+    nn[["Control"]] <- c(ESS(sw[t == 0]), ESS(ww[t == 0]))
+    nn[["Treated"]] <- c(ESS(sw[t == 1]), ESS(ww[t == 1]))
   }
   else if (treat.type == "multi-category") {
-    out$weight.range <- setNames(lapply(levels(t), function(x) c(min(w[w != 0 & t == x]),
-                                                                 max(w[w != 0 & t == x]))),
+    out$weight.range <- setNames(lapply(levels(t), function(x) c(min(ww[ww != 0 & t == x]),
+                                                                 max(ww[ww != 0 & t == x]))),
                                  levels(t))
 
-    top.weights <- setNames(lapply(levels(t), function(x) sort(w[t == x], decreasing = TRUE)[seq_len(top)]),
+    top.weights <- setNames(lapply(levels(t), function(x) sort(ww[t == x], decreasing = TRUE)[seq_len(top)]),
                             levels(t))
 
-    out$weight.top <- setNames(lapply(names(top.weights), function(x) sort(setNames(top.weights[[x]], which(w[t == x] %in% top.weights[[x]])[seq_len(top)]))),
+    out$weight.top <- setNames(lapply(names(top.weights), function(x) sort(setNames(top.weights[[x]], which(ww[t == x] %in% top.weights[[x]])[seq_len(top)]))),
                                names(top.weights))
 
-    out$rms.dev <- vapply(levels(t), function(x) rms_dev(w[t==x], bw = bw[t==x]), numeric(1L))
-    out$mean.abs.dev <- vapply(levels(t), function(x) mean_abs_dev(w[t==x], bw = bw[t==x]), numeric(1L))
-    out$max.abs.dev <- vapply(levels(t), function(x) max_abs_dev(w[t==x], bw = bw[t==x]), numeric(1L))
-    out$num.zeros <- vapply(levels(t), function(x) sum(w[t==x] == 0), numeric(1L))
+    out$rms.dev <- vapply(levels(t), function(x) rms_dev(w[t==x], bw = bw[t==x], sw = sw[t==x]), numeric(1L))
+    out$mean.abs.dev <- vapply(levels(t), function(x) mean_abs_dev(w[t==x], bw = bw[t==x], sw = sw[t==x]), numeric(1L))
+    out$max.abs.dev <- vapply(levels(t), function(x) max_abs_dev(w[t==x], bw = bw[t==x], sw = sw[t==x]), numeric(1L))
+    out$num.zeros <- vapply(levels(t), function(x) sum(ww[t==x] == 0), numeric(1L))
 
     nn <- make_df(levels(t), c("Unweighted", "Weighted"))
 
     for (i in levels(t)) {
-      nn[[i]] <- c(ESS(sw[t == i]), ESS(w[t == i]))
+      nn[[i]] <- c(ESS(sw[t == i]), ESS(ww[t == i]))
     }
   }
 

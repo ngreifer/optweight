@@ -492,31 +492,38 @@ col.w.r <- function(mat, y, w = NULL, s.weights = NULL, bin.vars = NULL, na.rm =
 
   cov / den
 }
-rms_dev <- function(x, pop = TRUE, bw = NULL) {
+rms_dev <- function(x, bw = NULL, sw = NULL) {
   if (is_null(bw)) {
     bw <- mean_fast(x, TRUE)
   }
 
-  if (pop) {
-    sqrt(mean_fast((x - bw)^2, TRUE)) / mean_fast(x, TRUE)
+  if (is_null(sw)) {
+    sw <- rep.int(1, length(x))
   }
-  else {
-    sqrt(sum((x - bw)^2, TRUE) / (length(x) - 1)) / mean_fast(x, TRUE)
-  }
+
+  sqrt(mean(sw * (x - bw)^2))
 }
-mean_abs_dev <- function(x, bw = NULL) {
+mean_abs_dev <- function(x, bw = NULL, sw = NULL) {
   if (is_null(bw)) {
-    bw <- mean_fast(x, TRUE)
+    bw <- mean(x)
   }
 
-  mean_fast(abs(x - bw), TRUE)
+  if (is_null(sw)) {
+    sw <- rep.int(1, length(x))
+  }
+
+  mean(sw * abs(x - bw))
 }
-max_abs_dev <- function(x, bw = NULL) {
+max_abs_dev <- function(x, bw = NULL, sw = NULL) {
   if (is_null(bw)) {
-    bw <- mean_fast(x, TRUE)
+    bw <- mean(x)
   }
 
-  max(abs(x - bw))
+  if (is_null(sw)) {
+    sw <- rep.int(1, length(x))
+  }
+
+  max(sw * abs(x - bw))
 }
 mat_div <- function(mat, vec) {
   mat / vec[col(mat)]
