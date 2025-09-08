@@ -67,7 +67,7 @@ summary(ow)
     #> 
     #> - Weight ranges:
     #>         Min                                  Max
-    #> treated   1      ||                       1.0000
+    #> treated   1      ||                       1.    
     #> control   0 |---------------------------| 5.5885
     #> 
     #> - Units with 5 greatest weights by group:
@@ -77,14 +77,14 @@ summary(ow)
     #>             423    388    226    196    118
     #>  control 5.2698 5.2985 5.3241 5.4795 5.5885
     #> 
-    #>         RMSE Dev Mean Abs Dev Max Abs Dev # Zeros
-    #> treated   0.0000       0.0000      0.0000       0
-    #> control   1.6633       1.3017      4.5885     231
+    #>             L2     L1     L∞ # Zeros
+    #> treated 0.     0.     0.           0
+    #> control 1.6633 1.3017 4.5885     231
     #> 
     #> - Effective Sample Sizes:
     #>            Control Treated
-    #> Unweighted 429.000     185
-    #> Weighted   113.896     185
+    #> Unweighted   429.      185
+    #> Weighted     113.9     185
 
 ``` r
 # Covariate balance

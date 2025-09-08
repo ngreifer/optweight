@@ -299,7 +299,7 @@ plot.summary.optweight <- function(x, ...) {
 
     x$weight.range |>
       text_box_plot(width = 28L) |>
-      round_df_char(digits = 4) |>
+      round_df_char(digits = 4, pad = " ") |>
       print.data.frame(...)
 
     cat(sprintf("\n- Units with %s greatest weights by group:\n",
@@ -316,21 +316,20 @@ plot.summary.optweight <- function(x, ...) {
     cat("\n")
   }
 
-  matrix(c(x$l2, x$l1,
-           x$linf, x$rel.ent, x$num.zeros),
-         nrow = length(x$rms.dev),
+  matrix(c(x$l2, x$l1, x$linf, x$rel.ent, x$num.zeros),
+         nrow = length(x$l2),
          byrow = FALSE,
-         dimnames = list(names(x$rms.dev),
+         dimnames = list(names(x$l2),
                          c("L2", "L1", "L\u221E",
                            "Rel Ent"[is_not_null(x$rel.ent)],
                            "# Zeros"))) |>
     as.data.frame() |>
-    round_df_char(digits = 4) |>
+    round_df_char(digits = 3, pad = " ") |>
     print.data.frame(...)
 
   cat("\n- Effective Sample Sizes:\n")
   x$effective.sample.size |>
-    round_df_char(digits = 3) |>
+    round_df_char(digits = 2, pad = " ") |>
     print.data.frame(...)
   cat("\n")
 
