@@ -1,4 +1,19 @@
 url: https://ngreifer.github.io/optweight/
 template:
   bootstrap: 5
+  math-rendering: mathjax
+reference:
+- title: Estimate Balancing Weights
+- contents:
+  - optweight
+  - optweightMV
+  - optweight.svy
+- title: Process Inputs
+- contents: starts_with("process_")
+- title: Assessing Weights
+- contents:
+  - plot.optweight
+  - summary.optweight
+- title: Lower-Level Functions
+- contents: ends_with(".fit")
 
