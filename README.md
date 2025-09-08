@@ -1,10 +1,10 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# optweight
+# optweight: Optimization-Based Stable Balancing Weights <img src="man/figures/logo.png" align="right" width="150"/>
 
-[![CRAN_Status_Badge](http://r-pkg.org/badges/version-last-release/optweight?color=0047ab)](https://cran.r-project.org/package=optweight)
-[![CRAN_Downloads_Badge](http://cranlogs.r-pkg.org/badges/optweight?color=0047ab)](https://cran.r-project.org/package=optweight)
+[![CRAN_Status_Badge](http://r-pkg.org/badges/version-last-release/optweight?color=737373)](https://cran.r-project.org/package=optweight)
+[![CRAN_Downloads_Badge](http://cranlogs.r-pkg.org/badges/optweight?color=737373)](https://cran.r-project.org/package=optweight)
 
 *optweight* contains functions to estimate stable balancing weights that
 balance covariates up to given thresholds. It solves a convex
@@ -77,9 +77,9 @@ summary(ow)
     #>             423    388    226    196    118
     #>  control 5.2698 5.2985 5.3241 5.4795 5.5885
     #> 
-    #>             L2     L1     L∞ # Zeros
-    #> treated 0.     0.     0.           0
-    #> control 1.6633 1.3017 4.5885     231
+    #>            L2    L1    L∞ # Zeros
+    #> treated 0.    0.    0.          0
+    #> control 1.663 1.302 4.588     231
     #> 
     #> - Effective Sample Sizes:
     #>            Control Treated

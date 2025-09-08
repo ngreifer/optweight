@@ -39,6 +39,8 @@ The version involved a full rewrite and may not be backward compatible with prio
 
 * Updated the README.
 
+* Added a new logo.
+
 # optweight 0.2.5
 
 * Reverting back to using *osqp* instead of *rosqp* now that *osqp* works. *cobalt* is back.

@@ -1,6 +1,6 @@
 Package: optweight
 Type: Package
-Title: Targeted Stable Balancing Weights Using Optimization
+Title: Optimization-Based Stable Balancing Weights
 Version: 0.2.5.9003
 Authors@R: c(
     person("Noah", "Greifer", role = c("aut", "cre"), 
