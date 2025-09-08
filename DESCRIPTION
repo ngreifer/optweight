@@ -1,31 +1,43 @@
 Package: optweight
 Type: Package
 Title: Targeted Stable Balancing Weights Using Optimization
-Version: 0.2.5.9002
+Version: 0.2.5.9003
 Authors@R: c(
-    person("Noah", "Greifer", role=c("aut", "cre"), 
+    person("Noah", "Greifer", role = c("aut", "cre"), 
            email = "noah.greifer@gmail.com",
 	       comment=c(ORCID="0000-0003-3067-7154"))
     )
-Description: Use optimization to estimate weights that balance covariates for binary, multinomial, and continuous treatments in the spirit of Zubizarreta (2015) <doi:10.1080/01621459.2015.1023805>. The degree of balance can be specified for each covariate. In addition, sampling weights can be estimated that allow a sample to generalize to a population specified with given target moments of covariates.
+Description: Use optimization to estimate weights that balance covariates for binary, multi-category, continuous, and multivariate treatments in the spirit of Zubizarreta (2015) <doi:10.1080/01621459.2015.1023805>. The degree of balance can be specified for each covariate. In addition, sampling weights can be estimated that allow a sample to generalize to a population specified with given target moments of covariates.
 Depends:
     R (>= 4.1.0)
 Imports:
-    osqp (>= 0.6.0.2),
+    osqp (>= 0.6.3.3),
     chk (>= 0.10.0),
-    rlang,
+    rlang (>= 1.1.6),
     Matrix (>= 1.2-13),
-    ggplot2 (>= 3.0.0),
+    ggplot2 (>= 3.5.0),
     graphics,
     stats,
     utils
 Suggests:
-    cobalt (>= 3.8.0)
+    cobalt (>= 4.6.0),
+    scs (>= 3.2.7),
+    clarabel (>= 0.10.1),
+    highs (>= 1.10.0-3),
+    lpSolve (>= 5.6.23),
+    WeightIt,
+    gbm,
+    marginaleffects,
+    sandwich,
+    fwb,
+    knitr,
+    rmarkdown,
+    testthat (>= 3.0.0)
 License: GPL
 Encoding: UTF-8
 URL: https://ngreifer.github.io/optweight/, https://github.com/ngreifer/optweight
 BugReports: https://github.com/ngreifer/optweight/issues
-LazyData: true
+VignetteBuilder: knitr
 RoxygenNote: 7.3.2
 Roxygen: list(markdown = TRUE)
-
+Config/testthat/edition: 3
