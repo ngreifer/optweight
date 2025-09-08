@@ -5,14 +5,26 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Targeted Stable Balancing Weights Using Optimization • optweight</title>
-<script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>Optimization-Based Stable Balancing Weights • optweight</title>
+<!-- favicons --><link rel="icon" type="image/png" sizes="96x96" href="favicon-96x96.png">
+<link rel="icon" type="”image/svg+xml”" href="favicon.svg">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="icon" sizes="any" href="favicon.ico">
+<link rel="manifest" href="site.webmanifest">
+<!-- mathjax math --><script src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js" integrity="sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI=" crossorigin="anonymous"></script><script>
+  window.MathJax = {
+    chtml: {
+      fontURL: "https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/output/chtml/fonts/woff-v2"
+    }
+  };
+</script><script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
 <script src="deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Targeted Stable Balancing Weights Using Optimization">
+<script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Optimization-Based Stable Balancing Weights">
 <meta name="description" content="Use optimization to estimate weights that balance covariates for binary, multi-category, continuous, and multivariate treatments in the spirit of Zubizarreta (2015) &lt;doi:10.1080/01621459.2015.1023805&gt;. The degree of balance can be specified for each covariate. In addition, sampling weights can be estimated that allow a sample to generalize to a population specified with given target moments of covariates.">
 <meta property="og:description" content="Use optimization to estimate weights that balance covariates for binary, multi-category, continuous, and multivariate treatments in the spirit of Zubizarreta (2015) &lt;doi:10.1080/01621459.2015.1023805&gt;. The degree of balance can be specified for each covariate. In addition, sampling weights can be estimated that allow a sample to generalize to a population specified with given target moments of covariates.">
+<meta property="og:image" content="https://ngreifer.github.io/optweight/logo.png">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -48,9 +60,11 @@
 </nav><div class="container template-home">
 <div class="row">
   <main id="main" class="col-md-9"><div class="section level1">
-<div class="page-header"><h1 id="optweight">optweight<a class="anchor" aria-label="anchor" href="#optweight"></a>
-</h1></div>
-<p><a href="https://cran.r-project.org/package=optweight" class="external-link"><img src="http://r-pkg.org/badges/version-last-release/optweight?color=0047ab" alt="CRAN_Status_Badge"></a> <a href="https://cran.r-project.org/package=optweight" class="external-link"><img src="http://cranlogs.r-pkg.org/badges/optweight?color=0047ab" alt="CRAN_Downloads_Badge"></a></p>
+<div class="page-header">
+<img src="logo.png" class="logo" alt=""><h1 id="optweight-optimization-based-stable-balancing-weights-">optweight: Optimization-Based Stable Balancing Weights <a class="anchor" aria-label="anchor" href="#optweight-optimization-based-stable-balancing-weights-"></a>
+</h1>
+</div>
+<p><a href="https://cran.r-project.org/package=optweight" class="external-link"><img src="http://r-pkg.org/badges/version-last-release/optweight?color=737373" alt="CRAN_Status_Badge"></a> <a href="https://cran.r-project.org/package=optweight" class="external-link"><img src="http://cranlogs.r-pkg.org/badges/optweight?color=737373" alt="CRAN_Downloads_Badge"></a></p>
 <p><em>optweight</em> contains functions to estimate stable balancing weights that balance covariates up to given thresholds. It solves a convex optimization problem to minimize a function of the weights that captures their variability (or divergence from a set of base weights). This is the method described in Zubizarreta (<a href="#ref-zubizarretaStableWeightsThat2015">2015</a>), Källberg and Waernbaum (<a href="#ref-kallbergLargeSampleProperties2023">2023</a>), and Wang and Zubizarreta (<a href="#ref-wangMinimalDispersionApproximately2020">2020</a>). <em>optweight</em> extends the method to multi-category, continuous, and multivariate treatments and provides a simple user interface and compatibility with the <em>cobalt</em> package for balance assessment. See <code><a href="articles/optweight.html">vignette("optweight")</a></code> for a more thorough description of the package’s capabilities.</p>
 <p>To install <em>optweight</em>, use the code below:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
@@ -99,9 +113,9 @@
 <span id="cb5-12"><a href="#cb5-12" tabindex="-1"></a><span class="co">#&gt;             423    388    226    196    118</span></span>
 <span id="cb5-13"><a href="#cb5-13" tabindex="-1"></a><span class="co">#&gt;  control 5.2698 5.2985 5.3241 5.4795 5.5885</span></span>
 <span id="cb5-14"><a href="#cb5-14" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb5-15"><a href="#cb5-15" tabindex="-1"></a><span class="co">#&gt;             L2     L1     L∞ # Zeros</span></span>
-<span id="cb5-16"><a href="#cb5-16" tabindex="-1"></a><span class="co">#&gt; treated 0.     0.     0.           0</span></span>
-<span id="cb5-17"><a href="#cb5-17" tabindex="-1"></a><span class="co">#&gt; control 1.6633 1.3017 4.5885     231</span></span>
+<span id="cb5-15"><a href="#cb5-15" tabindex="-1"></a><span class="co">#&gt;            L2    L1    L∞ # Zeros</span></span>
+<span id="cb5-16"><a href="#cb5-16" tabindex="-1"></a><span class="co">#&gt; treated 0.    0.    0.          0</span></span>
+<span id="cb5-17"><a href="#cb5-17" tabindex="-1"></a><span class="co">#&gt; control 1.663 1.302 4.588     231</span></span>
 <span id="cb5-18"><a href="#cb5-18" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb5-19"><a href="#cb5-19" tabindex="-1"></a><span class="co">#&gt; - Effective Sample Sizes:</span></span>
 <span id="cb5-20"><a href="#cb5-20" tabindex="-1"></a><span class="co">#&gt;            Control Treated</span></span>
@@ -126,7 +140,7 @@
 <span id="cb7-14"><a href="#cb7-14" tabindex="-1"></a><span class="co">#&gt;            Control Treated</span></span>
 <span id="cb7-15"><a href="#cb7-15" tabindex="-1"></a><span class="co">#&gt; Unadjusted   429.      185</span></span>
 <span id="cb7-16"><a href="#cb7-16" tabindex="-1"></a><span class="co">#&gt; Adjusted     113.9     185</span></span></code></pre></div>
-<p>We can see that all standardized mean differences are at or below .01 in absolute value, as requested using the <code>tols</code> argument. Because we set <code>min.w = 0</code>, some units received weights of 0, effectively dropping them from the sample (by default, the smallest weight allowed is <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mn>10</mn><mrow><mo>−</mo><mn>8</mn></mrow></msup><annotation encoding="application/x-tex">10^{-8}</annotation></semantics></math>).</p>
+<p>We can see that all standardized mean differences are at or below .01 in absolute value, as requested using the <code>tols</code> argument. Because we set <code>min.w = 0</code>, some units received weights of 0, effectively dropping them from the sample (by default, the smallest weight allowed is <span class="math inline">\(10^{-8}\)</span>).</p>
 <p>We can use <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> to examine the dual variables for each constraint, which represent how active that constraint is at the optimal point. Highly active constraints affect the objective function value the most when their tolerances are changed.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">ow</span><span class="op">)</span></span></code></pre></div>

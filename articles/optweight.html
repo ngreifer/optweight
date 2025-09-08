@@ -6,7 +6,18 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Using optweight to Estimate Stable Balancing Weights • optweight</title>
-<script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<!-- favicons --><link rel="icon" type="image/png" sizes="96x96" href="../favicon-96x96.png">
+<link rel="icon" type="”image/svg+xml”" href="../favicon.svg">
+<link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
+<link rel="icon" sizes="any" href="../favicon.ico">
+<link rel="manifest" href="../site.webmanifest">
+<!-- mathjax math --><script src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js" integrity="sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI=" crossorigin="anonymous"></script><script>
+  window.MathJax = {
+    chtml: {
+      fontURL: "https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/output/chtml/fonts/woff-v2"
+    }
+  };
+</script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
@@ -50,8 +61,7 @@
 
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
-
-      <h1>Using optweight to Estimate Stable Balancing Weights</h1>
+      <img src="../logo.png" class="logo" alt=""><h1>Using optweight to Estimate Stable Balancing Weights</h1>
                         <h4 data-toc-skip class="author">Noah
 Greifer</h4>
             
@@ -90,47 +100,34 @@ score model for the probability of receiving treatment, SBW estimates
 weights directly that balance the covariates. The distinction between
 these two approaches is described in detail by <span class="citation">Chattopadhyay, Hase, and Zubizarreta (<a href="#ref-chattopadhyayBalancingVsModeling2020">2020</a>)</span>.</p>
 <p>SBW involves solving the following optimization problem:</p>
-<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right" style="text-align: right"><munder><mo>min</mo><mi>𝐰</mi></munder><mspace width="1.0em"></mspace></mtd><mtd columnalign="left" style="text-align: left"><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝐰</mi><mo>,</mo><mi>𝐛</mi><mo>,</mo><mi>𝐬</mi><mo stretchy="true" form="postfix">)</mo></mrow></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"><mtext mathvariant="normal">s.t.</mtext><mspace width="1.0em"></mspace></mtd><mtd columnalign="left" style="text-align: left"><munder><mo>∑</mo><mrow><mi>i</mi><mo>:</mo><msub><mi>A</mi><mi>i</mi></msub><mo>=</mo><mi>a</mi></mrow></munder><mrow><msub><mi>s</mi><mi>i</mi></msub><msub><mi>w</mi><mi>i</mi></msub></mrow><mo>=</mo><munder><mo>∑</mo><mrow><mi>i</mi><mo>:</mo><msub><mi>A</mi><mi>i</mi></msub><mo>=</mo><mi>a</mi></mrow></munder><mrow><msub><mi>s</mi><mi>i</mi></msub><msub><mi>b</mi><mi>i</mi></msub></mrow><mspace width="1.0em"></mspace><mo>∀</mo><mi>a</mi><mo>∈</mo><mi>𝒜</mi></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"></mtd><mtd columnalign="left" style="text-align: left"><mrow><mo stretchy="true" form="prefix">|</mo><mfrac><mrow><munder><mo>∑</mo><mrow><mi>i</mi><mo>:</mo><msub><mi>A</mi><mi>i</mi></msub><mo>=</mo><mi>a</mi></mrow></munder><mrow><msub><mi>s</mi><mi>i</mi></msub><msub><mi>w</mi><mi>i</mi></msub><msub><mi>x</mi><mrow><mi>k</mi><mo>,</mo><mi>i</mi></mrow></msub></mrow></mrow><mrow><munder><mo>∑</mo><mrow><mi>i</mi><mo>:</mo><msub><mi>A</mi><mi>i</mi></msub><mo>=</mo><mi>a</mi></mrow></munder><mrow><msub><mi>s</mi><mi>i</mi></msub><msub><mi>w</mi><mi>i</mi></msub></mrow></mrow></mfrac><mo>−</mo><msubsup><mover><mi>x</mi><mo accent="true">‾</mo></mover><mi>k</mi><mo>*</mo></msubsup><mo stretchy="true" form="postfix">|</mo></mrow><mo>≤</mo><msub><mi>δ</mi><mi>k</mi></msub><mspace width="1.0em"></mspace><mo>∀</mo><mi>a</mi><mo>∈</mo><mi>𝒜</mi><mo>,</mo><mo>∀</mo><mi>k</mi><mo>∈</mo><mo stretchy="false" form="prefix">{</mo><mn>1</mn><mo>,</mo><mi>…</mi><mo>,</mo><mi>K</mi><mo stretchy="false" form="postfix">}</mo></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"></mtd><mtd columnalign="left" style="text-align: left"><msub><mi>w</mi><mi>i</mi></msub><mo>&gt;</mo><mi>ε</mi><mspace width="1.0em"></mspace><mo>∀</mo><mi>i</mi></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{align}
+<span class="math display">\[\begin{align}
 \min_{\mathbf{w}} \quad &amp; f(\mathbf{w}, \mathbf{b},\mathbf{s}) \\
-\text{s.t.} \quad &amp; \sum_{i:A_i=a} {s_i w_i} = \sum_{i:A_i=a} {s_i b_i} \quad \forall a \in \mathcal{A} \\
-&amp; \left| \frac{\sum_{i:A_i=a} {s_i w_i x_{k,i}}}{\sum_{i:A_i=a} {s_i w_i}} - \bar{x}_k^* \right| \le \delta_k \quad \forall a \in \mathcal{A}, \forall k \in \{1, \dots, K\} \\
+\text{s.t.} \quad &amp; \sum_{i:A_i=a} {s_i w_i} = \sum_{i:A_i=a} {s_i
+b_i} \quad \forall a \in \mathcal{A} \\
+&amp; \left| \frac{\sum_{i:A_i=a} {s_i w_i x_{k,i}}}{\sum_{i:A_i=a} {s_i
+w_i}} - \bar{x}_k^* \right| \le \delta_k \quad \forall a \in
+\mathcal{A}, \forall k \in \{1, \dots, K\} \\
 &amp; w_i &gt; \varepsilon \quad \forall i
-\end{align}</annotation></semantics></math><p>where
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝐰</mi><mo>=</mo><mo stretchy="false" form="prefix">{</mo><msub><mi>w</mi><mn>1</mn></msub><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>w</mi><mi>N</mi></msub><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">\mathbf{w}=\{w_1, \dots, w_N\}</annotation></semantics></math>
-are the estimated weights,
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝐬</mi><mo>=</mo><mo stretchy="false" form="prefix">{</mo><msub><mi>s</mi><mn>1</mn></msub><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>s</mi><mi>N</mi></msub><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">\mathbf{s}=\{s_1, \dots, s_N\}</annotation></semantics></math>
-are sampling weights,
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝐛</mi><mo>=</mo><mo stretchy="false" form="prefix">{</mo><msub><mi>b</mi><mn>1</mn></msub><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>b</mi><mi>N</mi></msub><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">\mathbf{b}=\{b_1, \dots, b_N\}</annotation></semantics></math>
-are “base” weights,
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>A</mi><mi>i</mi></msub><annotation encoding="application/x-tex">A_i</annotation></semantics></math>
-is a categorical treatment taking on values
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>a</mi><mo>∈</mo><mi>𝒜</mi></mrow><annotation encoding="application/x-tex">a \in \mathcal{A}</annotation></semantics></math>,
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>x</mi><mrow><mi>k</mi><mo>,</mo><mi>i</mi></mrow></msub><annotation encoding="application/x-tex">x_{k,i}</annotation></semantics></math>
-and is the value of covariate
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>𝐱</mi><mi>k</mi></msub><annotation encoding="application/x-tex">\mathbf{x}_k</annotation></semantics></math>
-for unit
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math>.
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝐰</mi><mo>,</mo><mi>𝐛</mi><mo>,</mo><mi>𝐬</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">f(\mathbf{w}, \mathbf{b},\mathbf{s})</annotation></semantics></math>
-is the objective function to minimize, a function of the estimated
-weights, base weights, and sampling weights.
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>δ</mi><mi>k</mi></msub><annotation encoding="application/x-tex">\delta_k</annotation></semantics></math>
-is the balance tolerance for covariate
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>,
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mover><mi>x</mi><mo accent="true">‾</mo></mover><mi>k</mi><mo>*</mo></msubsup><annotation encoding="application/x-tex">\bar{x}_k^*</annotation></semantics></math>
-is the target value for covariate
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>,
-and
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ε</mi><annotation encoding="application/x-tex">\varepsilon</annotation></semantics></math>
-is the minimum weight allowed.</p>
-<p>Generally,
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>f</mi><annotation encoding="application/x-tex">f</annotation></semantics></math>
-represents a measure of dispersion from the base weights, weighted by
-the sampling weights. The original formula of SBW used
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝐰</mi><mo>,</mo><mi>𝐛</mi><mo>,</mo><mi>𝐬</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mfrac><mn>1</mn><mi>N</mi></mfrac><msub><mo>∑</mo><mi>i</mi></msub><mrow><msub><mi>s</mi><mi>i</mi></msub><msup><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>w</mi><mi>i</mi></msub><mo>−</mo><msub><mi>b</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mn>2</mn></msup></mrow></mrow><annotation encoding="application/x-tex">f(\mathbf{w}, \mathbf{b},\mathbf{s}) = \frac{1}{N}\sum_i{s_i(w_i-b_i)^2}</annotation></semantics></math>,
-the weighted L2 norm. Entropy balancing uses
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝐰</mi><mo>,</mo><mi>𝐛</mi><mo>,</mo><mi>𝐬</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><msub><mo>∑</mo><mi>i</mi></msub><mrow><msub><mi>s</mi><mi>i</mi></msub><msub><mi>w</mi><mi>i</mi></msub><mo>log</mo><mrow><mo stretchy="true" form="prefix">(</mo><mfrac><msub><mi>w</mi><mi>i</mi></msub><msub><mi>b</mi><mi>i</mi></msub></mfrac><mo stretchy="true" form="postfix">)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">f(\mathbf{w}, \mathbf{b},\mathbf{s}) = \sum_i{s_i w_i \log\left(\frac{w_i}{b_i}\right)}</annotation></semantics></math>,
-the weighted relative entropy between the estimated and base
-weights.</p>
+\end{align}\]</span>
+<p>where <span class="math inline">\(\mathbf{w}=\{w_1, \dots,
+w_N\}\)</span> are the estimated weights, <span class="math inline">\(\mathbf{s}=\{s_1, \dots, s_N\}\)</span> are
+sampling weights, <span class="math inline">\(\mathbf{b}=\{b_1, \dots,
+b_N\}\)</span> are “base” weights, <span class="math inline">\(A_i\)</span> is a categorical treatment taking on
+values <span class="math inline">\(a \in \mathcal{A}\)</span>, <span class="math inline">\(x_{k,i}\)</span> and is the value of covariate
+<span class="math inline">\(\mathbf{x}_k\)</span> for unit <span class="math inline">\(i\)</span>. <span class="math inline">\(f(\mathbf{w}, \mathbf{b},\mathbf{s})\)</span> is
+the objective function to minimize, a function of the estimated weights,
+base weights, and sampling weights. <span class="math inline">\(\delta_k\)</span> is the balance tolerance for
+covariate <span class="math inline">\(k\)</span>, <span class="math inline">\(\bar{x}_k^*\)</span> is the target value for
+covariate <span class="math inline">\(k\)</span>, and <span class="math inline">\(\varepsilon\)</span> is the minimum weight
+allowed.</p>
+<p>Generally, <span class="math inline">\(f\)</span> represents a
+measure of dispersion from the base weights, weighted by the sampling
+weights. The original formula of SBW used <span class="math inline">\(f(\mathbf{w}, \mathbf{b},\mathbf{s}) =
+\frac{1}{N}\sum_i{s_i(w_i-b_i)^2}\)</span>, the weighted L2 norm.
+Entropy balancing uses <span class="math inline">\(f(\mathbf{w},
+\mathbf{b},\mathbf{s}) = \sum_i{s_i w_i
+\log\left(\frac{w_i}{b_i}\right)}\)</span>, the weighted relative
+entropy between the estimated and base weights.</p>
 <p>The interpretation of these constraints is as follows:</p>
 <ul>
 <li><p>The first constraint is a scaling constraint that establishes a
@@ -144,40 +141,31 @@ are within some tolerance of each other. It is possible to forgo a
 specific target and just require the weighted means to be equal to each
 other.</p></li>
 <li><p>The final constraint is optional and restricts the minimum value
-of the weights. For some
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>f</mi><annotation encoding="application/x-tex">f</annotation></semantics></math>,
-the weights can be unbounded, and it is up to the user to require the
+of the weights. For some <span class="math inline">\(f\)</span>, the
+weights can be unbounded, and it is up to the user to require the
 weights to fall within some range. The original formulation of SBW used
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ε</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\varepsilon = 0</annotation></semantics></math>,
-but omitting this constraint altogether, which allows the weights to be
-negative, is also possible.</p></li>
+<span class="math inline">\(\varepsilon = 0\)</span>, but omitting this
+constraint altogether, which allows the weights to be negative, is also
+possible.</p></li>
 </ul>
 <p>Asymptotic properties of SBW are described in <span class="citation">Wang and Zubizarreta (<a href="#ref-wangMinimalDispersionApproximately2020">2020</a>)</span>. In
 general, the weights are precise and perform well, and adding
-approximate balance constraints (i.e., using
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>δ</mi><mi>k</mi></msub><mo>&gt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\delta_k&gt;0</annotation></semantics></math>)
-tends to improve precision without greatly affecting bias. There is also
-a weak double-robustness property to the weights: the estimate is
-consistent if either the outcome model corresponds to the balance
-constraints or the implicit propensity score model corresponds to the
-true propensity score model. Different forms of
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>f</mi><annotation encoding="application/x-tex">f</annotation></semantics></math>
-imply different assumptions about the propensity score model. Allowing
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ε</mi><annotation encoding="application/x-tex">\varepsilon</annotation></semantics></math>
-to be negative allows for the possibility of negative weights, which can
-improve precision but induce extrapolation. It turns out that using a
-linear regression model for the outcome is equivalent to using SBW with
-the L2 norm,
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>δ</mi><mi>k</mi></msub><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\delta_k=0</annotation></semantics></math>,
-and
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ε</mi><mo>=</mo><mo>−</mo><mi>∞</mi></mrow><annotation encoding="application/x-tex">\varepsilon=-\infty</annotation></semantics></math><span class="citation">(<a href="#ref-chattopadhyayImpliedWeightsLinear2023">Chattopadhyay and
+approximate balance constraints (i.e., using <span class="math inline">\(\delta_k&gt;0\)</span>) tends to improve precision
+without greatly affecting bias. There is also a weak double-robustness
+property to the weights: the estimate is consistent if either the
+outcome model corresponds to the balance constraints or the implicit
+propensity score model corresponds to the true propensity score model.
+Different forms of <span class="math inline">\(f\)</span> imply
+different assumptions about the propensity score model. Allowing <span class="math inline">\(\varepsilon\)</span> to be negative allows for the
+possibility of negative weights, which can improve precision but induce
+extrapolation. It turns out that using a linear regression model for the
+outcome is equivalent to using SBW with the L2 norm, <span class="math inline">\(\delta_k=0\)</span>, and <span class="math inline">\(\varepsilon=-\infty\)</span> <span class="citation">(<a href="#ref-chattopadhyayImpliedWeightsLinear2023">Chattopadhyay and
 Zubizarreta 2023</a>)</span>.</p>
-<p>Often
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mover><mi>x</mi><mo accent="true">‾</mo></mover><mi>k</mi><mo>*</mo></msubsup><annotation encoding="application/x-tex">\bar{x}_k^*</annotation></semantics></math>
-are chosen to represent a known target group, like the full sample when
-targeting the ATE or the treated group when targeting the ATT. They can
-also be chosen to generalize the effect estimate to an arbitrary target
-population <span class="citation">(<a href="#ref-chattopadhyayOneStepWeightingGeneralize2024">Chattopadhyay,
+<p>Often <span class="math inline">\(\bar{x}_k^*\)</span> are chosen to
+represent a known target group, like the full sample when targeting the
+ATE or the treated group when targeting the ATT. They can also be chosen
+to generalize the effect estimate to an arbitrary target population
+<span class="citation">(<a href="#ref-chattopadhyayOneStepWeightingGeneralize2024">Chattopadhyay,
 Cohn, and Zubizarreta 2024</a>)</span>.</p>
 <p>SBWs can be generalized to continuous treatments, in which case
 instead of balancing the covariate means, the treatment-covariate
@@ -229,7 +217,7 @@ dataset to the <code>data</code> argument, and the estimand to the
 <code>estimand</code> argument (here, the ATT). By default,
 <code><a href="../reference/optweight.html">optweight()</a></code> minimizes the L2 norm, requires exact mean
 balance on the covariates, and requires all weights to be greater than
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mn>10</mn><mrow><mo>−</mo><mn>8</mn></mrow></msup><annotation encoding="application/x-tex">10^{-8}</annotation></semantics></math>.</p>
+<span class="math inline">\(10^{-8}\)</span>.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ow</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/optweight.html">optweight</a></span><span class="op">(</span><span class="va">treat</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">educ</span> <span class="op">+</span> <span class="va">race</span> <span class="op">+</span> <span class="va">married</span> <span class="op">+</span> <span class="va">nodegree</span> <span class="op">+</span></span>
 <span>                  <span class="va">re74</span> <span class="op">+</span> <span class="va">re75</span>, data <span class="op">=</span> <span class="va">lalonde</span>,</span>
@@ -423,11 +411,11 @@ to the relaxed constraints.</p>
 <p>The <code>norm</code> argument controls which objective function is
 used. The allowable arguments are <code>"l2"</code> for the L2 norm (the
 default), <code>"l1"</code> for the L1 norm, <code>"linf"</code> for the
-L<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>∞</mi><annotation encoding="application/x-tex">\infty</annotation></semantics></math>
-norm, <code>"entropy"</code> for the relative entropy, and
-<code>"log"</code> for the sum of the negative logs. The most thorough
-theoretical work has been done on the L2 norm and relative entropy, and
-these tend to be the easiest to optimize.</p>
+L<span class="math inline">\(\infty\)</span> norm,
+<code>"entropy"</code> for the relative entropy, and <code>"log"</code>
+for the sum of the negative logs. The most thorough theoretical work has
+been done on the L2 norm and relative entropy, and these tend to be the
+easiest to optimize.</p>
 <p>Weighting by minimizing the relative entropy is also known as
 “entropy balancing” <span class="citation">(<a href="#ref-hainmuellerEntropyBalancingCausal2012">Hainmueller 2012</a>;
 <a href="#ref-kallbergLargeSampleProperties2023">Källberg and Waernbaum
@@ -444,10 +432,8 @@ possible in those packages, such as specifying balance tolerances,
 targets, and different estimands.</p>
 <p>Different solvers are available for each norm; see
 <code>?optweight.fit()</code> for details.</p>
-<p>Below, we’ll minimize the L2 norm, L1 norm,
-L<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>∞</mi><annotation encoding="application/x-tex">\infty</annotation></semantics></math>
-norm, and relative entropy and see how those choices affect the
-properties of the weights.</p>
+<p>Below, we’ll minimize the L2 norm, L1 norm, L<span class="math inline">\(\infty\)</span> norm, and relative entropy and see
+how those choices affect the properties of the weights.</p>
 <div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># L2 norm</span></span>
 <span><span class="va">ow_l2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/optweight.html">optweight</a></span><span class="op">(</span><span class="va">treat</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">educ</span> <span class="op">+</span> <span class="va">race</span> <span class="op">+</span> <span class="va">married</span> <span class="op">+</span> <span class="va">nodegree</span> <span class="op">+</span></span>
@@ -524,14 +510,13 @@ properties of the weights.</p>
 <span><span class="co">## Weighted     98.46     185</span></span></code></pre>
 <p>We can see that minimizing the L2 norm yields weights that have the
 lowest RMS deviation, minimizing the L1 norm yields weights that have
-the lowest mean absolute deviation, minimizing the
-L<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>∞</mi><annotation encoding="application/x-tex">\infty</annotation></semantics></math>
-norm yields weights that have the lowest maximum absolute deviation, and
-minimizing the relative entropy yields weights that have the lowest
-relative entropy. The L2 norm has the closest correspondence to the ESS
-(they have a 1:1 relationship), but there are some theoretical reasons
-to prefer other norms, especially when they correspond to certain
-assumptions about the true propensity score model. See <span class="citation">Källberg and Waernbaum (<a href="#ref-kallbergLargeSampleProperties2023">2023</a>)</span> for more
+the lowest mean absolute deviation, minimizing the L<span class="math inline">\(\infty\)</span> norm yields weights that have the
+lowest maximum absolute deviation, and minimizing the relative entropy
+yields weights that have the lowest relative entropy. The L2 norm has
+the closest correspondence to the ESS (they have a 1:1 relationship),
+but there are some theoretical reasons to prefer other norms, especially
+when they correspond to certain assumptions about the true propensity
+score model. See <span class="citation">Källberg and Waernbaum (<a href="#ref-kallbergLargeSampleProperties2023">2023</a>)</span> for more
 information on these assumptions.</p>
 </div>
 <div class="section level3">
@@ -652,14 +637,13 @@ are equal to 1.</p>
 <p>Base weights are a set of initial weights that have some properties
 that the user wants to retain while enforcing balance constraints. The
 estimated weights are chosen to minimize their distance from the base
-weights, where that distance corresponds to
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>f</mi><annotation encoding="application/x-tex">f</annotation></semantics></math>.
-These weights can be supplied to the <code>b.weights</code> argument of
-<code><a href="../reference/optweight.html">optweight()</a></code>. By default, when not specified, base weights
-are equal to 1. An example use of base weights would be to enforce
-balance on a set of IPW weights estimated using a flexible model that is
-unable to exactly balance the covariates. This strategy was used by one
-of the winning methods in the 2016 ACIC data competition <span class="citation">(<a href="#ref-dorieAutomatedDoityourselfMethods2019">Dorie et al.
+weights, where that distance corresponds to <span class="math inline">\(f\)</span>. These weights can be supplied to the
+<code>b.weights</code> argument of <code><a href="../reference/optweight.html">optweight()</a></code>. By default,
+when not specified, base weights are equal to 1. An example use of base
+weights would be to enforce balance on a set of IPW weights estimated
+using a flexible model that is unable to exactly balance the covariates.
+This strategy was used by one of the winning methods in the 2016 ACIC
+data competition <span class="citation">(<a href="#ref-dorieAutomatedDoityourselfMethods2019">Dorie et al.
 2019</a>)</span>. We’ll demonstrate the use of base weights below.</p>
 <p>First, we’ll estimate propensity score weights using generalized
 boosted modeling through <em>WeightIt</em>. This is a flexible machine
