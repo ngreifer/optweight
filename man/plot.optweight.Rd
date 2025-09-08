@@ -2,23 +2,23 @@
 % Please edit documentation in R/plot.optweight.R
 \name{plot.optweight}
 \alias{plot.optweight}
-\alias{plot.optweightMSM}
+\alias{plot.optweightMV}
 \alias{plot.optweight.svy}
 \title{Plot Dual Variables for Assessing Balance Constraints}
 \usage{
 \method{plot}{optweight}(x, ...)
 
-\method{plot}{optweightMSM}(x, which.time = 1, ...)
+\method{plot}{optweightMV}(x, which.treat = 1, ...)
 
 \method{plot}{optweight.svy}(x, ...)
 }
 \arguments{
-\item{x}{An \code{optweight} or \code{optweight.svy} object; the output of a
-call to \code{\link[=optweight]{optweight()}} or \code{\link[=optweight.svy]{optweight.svy()}}.}
+\item{x}{an \code{optweight}, \code{optweightMV}, or \code{optweight.svy} object; the output of a
+call to \code{\link[=optweight]{optweight()}}, \code{\link[=optweightMV]{optweightMV()}}, or \code{\link[=optweight.svy]{optweight.svy()}}.}
 
 \item{\dots}{Ignored.}
 
-\item{which.time}{For longitudinal treatments, which time period to display.
+\item{which.treat}{For \code{optweightMV} objects, which treatment to display.
 Only one may be displayed at a time.}
 }
 \value{
@@ -39,42 +39,49 @@ with small values of the dual variable.
 library("cobalt")
 data("lalonde", package = "cobalt")
 
+tols <- process_tols(treat ~ age + educ + married +
+                       nodegree + re74, data = lalonde,
+                     tols = .1)
+
 #Balancing covariates between treatment groups (binary)
 ow1 <- optweight(treat ~ age + educ + married +
-                nodegree + re74, data = lalonde,
-                tols = c(.1, .1, .1, .1, .1),
-                estimand = "ATT")
+                   nodegree + re74, data = lalonde,
+                 tols = tols,
+                 estimand = "ATT")
 
-summary(ow1) # Note the coefficient of variation
-             # and effective sample size (ESS)
+summary(ow1) # Note the RMSE Dev and effective
+#              sample size (ESS)
 
 plot(ow1) # age has a low value, married is high
 
+tols["age"] <- 0
 ow2 <- optweight(treat ~ age + educ + married +
-                nodegree + re74, data = lalonde,
-                tols = c(0, .1, .1, .1, .1),
-                estimand = "ATT")
+                   nodegree + re74, data = lalonde,
+                 tols = tols,
+                 estimand = "ATT")
 
 summary(ow2) # Notice that tightening the constraint
-             # on age had a negligible effect on the
-             # variability of the weights and ESS
+#              on age had a negligible effect on the
+#              variability of the weights and ESS
 
+tols["age"] <- .1
+tols["married"] <- 0
 ow3 <- optweight(treat ~ age + educ + married +
-                nodegree + re74, data = lalonde,
-                tols = c(.1, .1, 0, .1, .1),
-                estimand = "ATT")
+                   nodegree + re74, data = lalonde,
+                 tols = tols,
+                 estimand = "ATT")
 
 summary(ow3) # In contrast, tightening the constraint
-             # on married had a large effect on the
-             # variability of the weights, shrinking
-             # the ESS
+#              on married had a large effect on the
+#              variability of the weights, shrinking
+#              the ESS
 \dontshow{\}) # examplesIf}
 }
 \references{
 Zubizarreta, J. R. (2015). Stable Weights that Balance Covariates for Estimation With Incomplete Outcome Data. \emph{Journal of the American Statistical Association}, 110(511), 910–922. \doi{10.1080/01621459.2015.1023805}
 }
 \seealso{
-\code{\link[=optweight]{optweight()}} or \code{\link[=optweight.svy]{optweight.svy()}} to estimate
+\code{\link[=optweight]{optweight()}}, \code{\link[=optweightMV]{optweightMV()}}, or \code{\link[=optweight.svy]{optweight.svy()}} to estimate
 the weights and the dual variables
 
 \code{\link[=plot.summary.optweight]{plot.summary.optweight()}} for plots of the distribution of

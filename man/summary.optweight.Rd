@@ -2,21 +2,21 @@
 % Please edit documentation in R/summary.R
 \name{summary.optweight}
 \alias{summary.optweight}
-\alias{summary.optweightMSM}
+\alias{summary.optweightMV}
 \alias{summary.optweight.svy}
 \alias{plot.summary.optweight}
 \title{Summarize, print, and plot information about estimated weights}
 \usage{
-\method{summary}{optweight}(object, top = 5, ignore.s.weights = FALSE, ...)
+\method{summary}{optweight}(object, top = 5, ignore.s.weights = FALSE, weight.range = TRUE, ...)
 
-\method{summary}{optweightMSM}(object, top = 5, ignore.s.weights = FALSE, ...)
+\method{summary}{optweightMV}(object, top = 5, ignore.s.weights = FALSE, weight.range = TRUE, ...)
 
-\method{summary}{optweight.svy}(object, top = 5, ignore.s.weights = FALSE, ...)
+\method{summary}{optweight.svy}(object, top = 5, ignore.s.weights = FALSE, weight.range = TRUE, ...)
 
 \method{plot}{summary.optweight}(x, ...)
 }
 \arguments{
-\item{object}{An \code{optweight}, \code{optweightMSM}, or \code{optweight.svy} object; the output of a call to \code{\link[=optweight]{optweight()}} or \code{\link[=optweight.svy]{optweight.svy()}}.}
+\item{object}{An \code{optweight}, \code{optweightMV}, or \code{optweight.svy} object; the output of a call to \code{\link[=optweight]{optweight()}} or \code{\link[=optweight.svy]{optweight.svy()}}.}
 
 \item{top}{How many of the largest and smallest weights to display. Default
 is 5.}
@@ -26,12 +26,14 @@ computing the weight summary. If \code{FALSE}, the default, the estimated
 weights will be multiplied by the sampling weights (if any) before values
 are computed.}
 
+\item{weight.range}{\code{logical}; whether display statistics about the range of weights and the highest and lowest weights for each group. Default is \code{TRUE}.}
+
 \item{...}{Additional arguments. For \code{plot()}, additional arguments
 passed to \code{\link[graphics:hist]{graphics::hist()}} to determine the number of bins,
 though \code{\link[ggplot2:geom_histogram]{ggplot2::geom_histogram()}} from \pkg{ggplot2} is actually
 used to create the plot.}
 
-\item{x}{A \code{summary.optweight}, \code{summary.optweightMSM}, or \code{summary.optweight.svy} object; the output of a call to \code{summary.optweight()}, \code{summary.optweightMSM()}, or ()\code{summary.optweight.svy}.}
+\item{x}{A \code{summary.optweight}, \code{summary.optweightMV}, or \code{summary.optweight.svy} object; the output of a call to \code{summary.optweight()}, \code{summary.optweightMV()}, or ()\code{summary.optweight.svy}.}
 }
 \value{
 For point treatments (i.e., \code{optweight} objects),
@@ -44,10 +46,11 @@ in each treatment group; how many are included is determined by \code{top}.}
 \item{rms.dev}{The root-mean-squared deviation of the estimated weights from the base weights (L2 norm), weighted by the sampling weights (if any).}
 \item{mean.abs.dev}{The mean absolute deviation of the estimated weights from the base weights (L1 norm), weighted by the sampling weights (if any).}
 \item{max.abs.dev}{The maximum absolute deviation of the estimated weights from the base weights (L\eqn{\infinity} norm).}
+\item{rel.ent}{The relative entropy between the estimated weights and the base weights (entropy norm), weighted by the sampling weights (if any). Only computed if all weights are positive.}
 \item{num.zeros}{The number of units with a weight equal to 0.}
 \item{effective.sample.size}{The effective sample size for each treatment group before and after weighting.}
 
-For longitudinal treatments (i.e., \code{optweightMSM} objects), a list of
+For multivariate treatments (i.e., \code{optweightMV} objects), a list of
 the above elements for each treatment period.
 
 For \code{optweight.svy} objects, a list of the above elements but with no
@@ -72,9 +75,9 @@ data("lalonde", package = "cobalt")
 
 #Balancing covariates between treatment groups (binary)
 (ow1 <- optweight(treat ~ age + educ + married +
-                nodegree + re74, data = lalonde,
-                tols = .001,
-                estimand = "ATT"))
+                    nodegree + re74, data = lalonde,
+                  tols = .001,
+                  estimand = "ATT"))
 
 (s <- summary(ow1))
 

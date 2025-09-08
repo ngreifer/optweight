@@ -2,12 +2,13 @@
 % Please edit documentation in R/optweight.fit.R
 \name{optweight.fit}
 \alias{optweight.fit}
+\alias{optweightMV.fit}
 \title{Fitting Function for Stable Balancing Weights}
 \usage{
 optweight.fit(
-  treat.list,
-  covs.list,
-  tols,
+  covs,
+  treat,
+  tols = 0,
   estimand = "ATE",
   targets = NULL,
   s.weights = NULL,
@@ -18,80 +19,155 @@ optweight.fit(
   std.cont = TRUE,
   min.w = 1e-08,
   verbose = FALSE,
-  force = FALSE,
+  solver = NULL,
+  ...
+)
+
+optweightMV.fit(
+  covs.list,
+  treat.list,
+  tols.list = list(0),
+  estimand = "ATE",
+  targets = NULL,
+  s.weights = NULL,
+  b.weights = NULL,
+  norm = "l2",
+  std.binary = FALSE,
+  std.cont = TRUE,
+  min.w = 1e-08,
+  verbose = FALSE,
+  solver = NULL,
   ...
 )
 }
 \arguments{
-\item{treat.list}{A list containing one vector of treatment statuses for each time point. Non-numeric (i.e., factor or character) vectors are allowed.}
+\item{covs}{a numeric matrix of covariates to be balanced.}
 
-\item{covs.list}{A list containing one matrix of covariates to be balanced for each time point. All matrices must be numeric but do not have to be full rank.}
+\item{treat}{a vector of treatment statuses. Non-numeric (i.e., factor or character) vectors are allowed.}
 
-\item{tols}{A list containing one vector of balance tolerance values for each time point.}
+\item{tols}{a vector of balance tolerance values for each covariate. Default is 0.}
 
-\item{estimand}{The desired estimand, which determines the target population. For binary treatments, can be "ATE", "ATT", "ATC", or \code{NULL}. For multi-category treatments, can be "ATE", "ATT", or \code{NULL}. For continuous treatments, can be "ATE" or \code{NULL}. The default for both is "ATE". For longitudinal treatments, only "ATE" is supported. \code{estimand} is ignored when \code{targets} is non-\code{NULL}. If both \code{estimand} and \code{targets} are \code{NULL}, no targeting will take place. See Details.}
+\item{estimand}{the desired estimand, which determines the target population. For binary treatments, can be "ATE", "ATT", "ATC", or \code{NULL}. For multi-category treatments, can be "ATE", "ATT", or \code{NULL}. For continuous treatments, can be "ATE" or \code{NULL}. The default for both is "ATE". For \code{optweightMV.fit()}, only "ATE" or \code{NULL} are supported. \code{estimand} is ignored when \code{targets} is non-\code{NULL}. If both \code{estimand} and \code{targets} are \code{NULL}, no targeting will take place.}
 
-\item{targets}{A vector of target population mean values for each baseline covariate. The resulting weights will yield sample means within \code{tols}/2 units of the target values for each covariate. If \code{NULL} or all \code{NA}, \code{estimand} will be used to determine targets. Otherwise, \code{estimand} is ignored. If any target values are \code{NA}, the corresponding variable will not be targeted and its weighted mean will be wherever the weights yield the smallest variance.}
+\item{targets}{an optional vector of target population mean values for each baseline covariate. The resulting weights will yield sample means within \code{tols}/2 units of the target values for each covariate. If \code{NULL} or all \code{NA}, \code{estimand} will be used to determine targets. Otherwise, \code{estimand} is ignored. If any target values are \code{NA}, the corresponding variable will not be targeted and its weighted mean will be wherever the weights yield the smallest variance.}
 
-\item{s.weights}{A vector of sampling weights. Optimization occurs on the product of the sampling weights and the estimated weights.}
+\item{s.weights}{an optional vector of sampling weights. Default is a vector of 1s.}
 
-\item{b.weights}{A vector of base weights. Default is a vector of 1s. The desired norm of the distance between the estimated weights and the base weights is minimized.}
+\item{b.weights}{an optional vector of base weights. Default is a vector of 1s.}
 
-\item{focal}{When multi-categorical treatments are used and the "ATT" is requested, which group to consider the "treated" or focal group. This group will not be weighted, and the other groups will be weighted to resemble the focal group.}
+\item{focal}{when multi-categorical treatments are used and the \code{estimand = "ATT"}, which group to consider the "treated" or focal group. This group will not be weighted, and the other groups will be weighted to resemble the focal group.}
 
-\item{norm}{A string containing the name of the norm corresponding to the objective function to minimize. The options are \code{"l1"} for the L1 norm, \code{"l2"} for the L2 norm (the default), and \code{"linf"} for the L\eqn{\infty} norm. The L1 norm minimizes the average absolute distance between each weight and the base weights; the L2 norm minimizes the average squared distance between each weight and the base weights; the L\eqn{\infty} norm minimizes the largest absolute distance between each weight and the base weights. The L2 norm has a direct correspondence with the effective sample size, making it ideal if this is your criterion of interest.}
+\item{norm}{\code{character}; a string containing the name of the norm corresponding to the objective function to minimize. Allowable options include \code{"l1"} for the L1 norm, \code{"l2"} for the L2 norm (the default), \code{"linf"} for the L\eqn{\infty} norm, \code{"entropy"} for the negative entropy, and \code{"log"} for the sum of the negative logs. See Details.}
 
 \item{std.binary, std.cont}{\code{logical}; whether the tolerances are in standardized mean units (\code{TRUE}) or raw units (\code{FALSE}) for binary variables and continuous variables, respectively. The default is \code{FALSE} for \code{std.binary} because raw proportion differences make more sense than standardized mean difference for binary variables. These arguments are analogous to the \code{binary} and \code{continuous} arguments in \code{bal.tab()} in \pkg{cobalt}.}
 
-\item{min.w}{A single \code{numeric} value less than 1 for the smallest allowable weight. Some analyses require nonzero weights for all units, so a small, nonzero minimum may be desirable. Doing so will likely (slightly) increase the variance of the resulting weights depending on the magnitude of the minimum. The default is 1e-8, which does not materially change the properties of the weights from a minimum of 0 but prevents warnings in some packages that use weights to estimate treatment effects.}
+\item{min.w}{\code{numeric}; a single value less than 1 for the smallest allowable weight. Some analyses require nonzero weights for all units, so a small, nonzero minimum may be desirable. The default is \code{1e-8} (\eqn{10^{-8}}), which does not materially change the properties of the weights from a minimum of 0 but prevents warnings in some packages that use weights to estimate treatment effects. When \code{norm} is \code{"entropy"} or \code{"log"} and \code{min.w <= 0}, \code{min.w} will be set to the smallest nonzero value.}
 
-\item{verbose}{Whether information on the optimization problem solution should be printed. This information contains how many iterations it took to estimate the weights and whether the solution is optimal.}
+\item{verbose}{\code{logical}; whether information on the optimization problem solution should be printed. Default is \code{FALSE}.}
 
-\item{force}{Stable balancing weights are currently not valid for use with longitudinal treatments, and will produce an error message if attempted. Set to \code{TRUE} to bypass this error message.}
+\item{solver}{string; the name of the optimization solver to use. Allowable options depend on \code{norm}. Default is to use whichever eligible solver is installed, if any, or the default solver for the corresponding \code{norm}. See Details for information.}
 
-\item{\dots}{Options that are passed to \code{\link[osqp:osqpSettings]{osqp::osqpSettings()}} for use in the \code{par} arguments of \code{\link[osqp:solve_osqp]{osqp::solve_osqp()}}. See Details for defaults.}
+\item{\dots}{Options that are passed to the settings function corresponding to \code{solver}.}
+
+\item{covs.list}{a list containing one numeric matrix of covariates to be balanced for each treatment.}
+
+\item{treat.list}{a list containing one vector of treatment statuses for each treatment.}
+
+\item{tols.list}{a list of balance tolerance vectors, one for each treatment, each with a value for each covariate.}
 }
 \value{
-An \code{optweight.fit} object with the following elements:
+An \code{optweight.fit} or \code{optweightMV.fit} object with the following elements:
 \item{w}{The estimated weights, one for each unit.}
-\item{duals}{A data.frame containing the dual variables for each covariate, or a list thereof. See Zubizarreta (2015) for interpretation of these values.}
-\item{info}{The \code{info} component of the output of \code{\link[osqp:solve_osqp]{osqp::solve_osqp()}}, which contains information on the performance of the optimization at termination.}
+\item{duals}{A data.frame containing the dual variables for each covariate (for \code{optweight.fit()}), or a list thereof (for \code{optweightMV.fit()}). See \code{vignette("optweight")} for interpretation of these values.}
+\item{info}{A list containing information about the performance of the optimization at termination.}
 }
 \description{
-\code{optweight.fit()} performs the optimization (via \CRANpkg{osqp}) for \code{\link[=optweight]{optweight()}} and should, in most cases, not be used directly. Little processing of inputs is performed, so they must be given exactly as described below.
+\code{optweight.fit()} and \code{optweightMV.fit()} perform the optimization for \code{\link[=optweight]{optweight()}} and \code{\link[=optweightMV]{optweightMV()}} and should, in most cases, not be used directly. Little processing of inputs is performed, so they must be given exactly as described below.
 }
 \details{
-\code{optweight.fit()} transforms the inputs into the required inputs for \code{\link[osqp:solve_osqp]{osqp::solve_osqp()}}, which are (sparse) matrices and vectors, and then supplies the outputs (the weights, dual variables, and convergence information) back to \code{\link[=optweight]{optweight()}}. Little processing of inputs is performed, as this is normally handled by \code{optweight()}.
+\code{optweight.fit()} and \code{optweightMV.fit()} transform the inputs into the required inputs for the optimization functions, which are (sparse) matrices and vectors, and then supplies the outputs (the weights, dual variables, and convergence information) back to \code{\link[=optweight]{optweight()}} or \code{\link[=optweightMV]{optweightMV()}}. Little processing of inputs is performed, as this is normally handled by \code{optweight()} or \code{optweightMV()}.
 
-The default values for some of the parameters sent to \code{\link[osqp:solve_osqp]{osqp::solve_osqp()}} are not the same as those in \code{\link[osqp:osqpSettings]{osqp::osqpSettings()}}. The following are the differences: \code{max_iter} is set to 20000, \code{eps_abs} and \code{eps_rel} are set to 1e-8 (i.e., \eqn{10^{-8}}), and \code{adaptive_rho_interval} is set to 10. All other values are the same.
+Target and balance constraints are applied to the product of the estimated weights and the sampling weights. In addition,the  sum of the product of the estimated weights and the sampling weights is constrained to be equal to the sum of the product of the base weights and sampling weights. For binary and multi-category treatments, these constraints apply within each treatment group.
+\subsection{\code{norm}}{
 
-Note that stable balancing weights with longitudinal treatments are not valid and should not be used until further research is done.
+The objective function for the optimization problem is \eqn{f\left(w_i, b_i, s_i\right)}, where \eqn{w_i} is the estimated weight for unit \eqn{i}, \eqn{s_i} is the sampling weight for unit \eqn{i} (supplied by \code{s.weights}) and \eqn{b_i} is the base weight for unit \eqn{i} (supplied by \code{b.weights}). The \code{norm} argument determines \eqn{f(.,.,.)}, as detailed below:
+\itemize{
+\item when \code{norm = "l1"}, \eqn{f\left(w_i, b_i, s_i\right) = \frac{1}{n} \sum_i {s_i|w_i - b_i|}}
+\item when \code{norm = "l2"}, \eqn{f\left(w_i, b_i, s_i\right) = \frac{1}{n} \sum_i {s_i(w_i - b_i)^2}}
+\item when \code{norm = "linf"}, \eqn{f\left(w_i, b_i, s_i\right) = \max_i {|w_i - b_i|}}
+\item when \code{norm = "entropy"}, \eqn{f\left(w_i, b_i, s_i\right) = \frac{1}{n} \sum_i {s_i w_i \log\frac{w_i}{b_i}}}
+\item when \code{norm = "log"}, \eqn{f\left(w_i, b_i, s_i\right) = \frac{1}{n} \sum_i {-s_i \log\frac{w_i}{b_i}}}
+}
+
+By default, \code{s.weights} and \code{b.weights} are set to 1 for all units unless supplied. \code{b.weights} must be positive when \code{norm} is \code{"entropy"} or \code{"log"}, and \code{norm = "linf"} cannot be used when \code{s.weights} are supplied.
+
+When \code{norm = "l2"} and both \code{s.weights} and \code{b.weights} are \code{NULL}, weights are estimated to maximize the effective sample size. When \code{norm = "entropy"}, the estimated weights are equivalent to entropy balancing weights (Källberg & Waernbaum, 2023). When \code{norm = "log"}, \code{b.weights} are ignored in the optimization, as they do not affect the estimated weights.
+}
+
+\subsection{\code{solver}}{
+
+The \code{solver} argument controls which optimization solver is used. Different solvers are compatible with each \code{norm}. See the table below for allowable options, which package they require, which function does the solving, and which function controls the settings.\tabular{lllll}{
+   \code{solver} \tab \code{norm} \tab Package \tab Solver function \tab Settings function \cr
+   \code{"osqp"} \tab \code{"l2"}, \code{"l1"}, \code{"linf"} \tab \CRANpkg{osqp} \tab \code{\link[osqp:solve_osqp]{osqp::solve_osqp()}} \tab \code{\link[osqp:osqpSettings]{osqp::osqpSettings()}} \cr
+   \code{"highs"} \tab \code{"l2"}, \code{"l1"}, \code{"linf"} \tab \CRANpkg{highs} \tab \pkgfun{highs}{highs_solve} \tab \pkgfun{highs}{highs_control} / \pkgfun{highs}{highs_available_solver_options} \cr
+   \code{"lpsolve"} \tab \code{"l1"}, \code{"linf"} \tab \CRANpkg{lpSolve} \tab \pkgfun{lpSolve}{lp} \tab . \cr
+   \code{"scs"} \tab \code{"entropy"}, \code{"log"} \tab \CRANpkg{scs} \tab \pkgfun{scs}{scs} \tab \pkgfun{scs}{scs_control} \cr
+   \code{"clarabel"} \tab \code{"entropy"}, \code{"log"} \tab \CRANpkg{clarabel} \tab \pkgfun{clarabel}{clarabel} \tab \pkgfun{clarabel}{clarabel_control} \cr
+}
+
+
+Note that \code{"lpsolve"} can only be used when \code{min.w} is nonnegative.
+
+The default \code{solver} for each \code{norm} is as follows:\tabular{ll}{
+   \code{norm} \tab Default \code{solver} \cr
+   \code{"l2"} \tab \code{"osqp"} \cr
+   \code{"l1"} \tab \code{"highs"} \cr
+   \code{"linf"} \tab \code{"highs"} \cr
+   \code{"entropy"} \tab \code{"scs"} \cr
+   \code{"log"} \tab \code{"scs"} \cr
+}
+
+
+If the package corresponding to a default \code{solver} is not installed but the package for a different eligible solver is, that will be used. Otherwise, you will be asked to install the required package. \pkg{osqp} is required for \pkg{optweight}, and so will be the default for the \code{"l1"} and \code{"linf"} norms if \pkg{highs} is not installed. The default package is the one has shown good performance for the given norm; generally, all eligible solvers perform about equally well in terms of accuracy but differ in time taken.
+}
+
+\subsection{Solving Convergence Failure}{
+
+Sometimes the optimization will fail to converge at a solution. There are a variety of reasons why this might happen, which include that the constraints are nearly impossible to satisfy or that the optimization surface is relatively flat. It can be hard to know the exact cause or how to solve it, but this section offers some solutions one might try. Typically, solutions can be found most easily when using the \code{"l2"} norm; other norms, especially \code{"linf"} and \code{"l1"}, are more likely to see problems.
+
+Rarely is the problem too few iterations, though this is possible. Most problems can be solved in the default 200,000 iterations, but sometimes it can help to increase this number with the \code{max_iter} argument. Usually, though, this just ends up taking more time without a solution found.
+
+If the problem is that the constraints are too tight, it can be helpful to loosen the constraints. Sometimes examining the dual variables of a solution that has failed to converge can reveal which constraints are causing the problem.
+
+Sometimes a suboptimal solution is possible; such a solution does not satisfy the constraints exactly but will come pretty close. To allow these solutions, the argument \code{eps} can be increased to larger values.
+
+Sometimes using a different solver can improve performance. Using the default \code{solver} for each \code{norm}, as described above, can reduce the probability of convergence failures.
+}
 }
 \examples{
 \dontshow{if (requireNamespace("cobalt", quietly = TRUE)) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 library("cobalt")
 data("lalonde", package = "cobalt")
 
-treat.list <- list(lalonde$treat)
-covs.list <- list(splitfactor(lalonde[2:8], drop.first = "if2"))
-tols.list <- list(rep(.01, ncol(covs.list[[1]])))
+treat <- lalonde$treat
+covs <- splitfactor(lalonde[2:8], drop.first = "if2")
 
-ow.fit <- optweight.fit(treat.list,
-                        covs.list,
-                        tols = tols.list,
+ow.fit <- optweight.fit(covs,
+                        treat,
+                        tols = .02,
                         estimand = "ATE",
                         norm = "l2")
 \dontshow{\}) # examplesIf}
 }
 \references{
-Wang, Y., & Zubizarreta, J. R. (2020). Minimal dispersion approximately balancing weights: Asymptotic properties and practical considerations. \emph{Biometrika}, 107(1), 93–105. \doi{10.1093/biomet/asz050}
+Chattopadhyay, A., Cohn, E. R., & Zubizarreta, J. R. (2024). One-Step Weighting to Generalize and Transport Treatment Effect Estimates to a Target Population. \emph{The American Statistician}, 78(3), 280–289. \doi{10.1080/00031305.2023.2267598}
 
-Yiu, S., & Su, L. (2018). Covariate association eliminating weights: a unified weighting framework for causal effect estimation. \emph{Biometrika}. \doi{10.1093/biomet/asy015}
+Källberg, D., & Waernbaum, I. (2023). Large Sample Properties of Entropy Balancing Estimators of Average Causal Effects. \emph{Econometrics and Statistics}. \doi{10.1016/j.ecosta.2023.11.004}
+
+Wang, Y., & Zubizarreta, J. R. (2020). Minimal dispersion approximately balancing weights: Asymptotic properties and practical considerations. \emph{Biometrika}, 107(1), 93–105. \doi{10.1093/biomet/asz050}
 
 Zubizarreta, J. R. (2015). Stable Weights that Balance Covariates for Estimation With Incomplete Outcome Data. \emph{Journal of the American Statistical Association}, 110(511), 910–922. \doi{10.1080/01621459.2015.1023805}
 }
 \seealso{
-\code{\link[=optweight]{optweight()}} which you should use for estimating the balancing weights, unless you know better.
-
-The OSQP \href{https://osqp.org/docs/index.html}{docs} for more information on \pkg{osqp}, the underlying solver, and the options for \code{\link[osqp:solve_osqp]{osqp::solve_osqp()}}. \code{\link[osqp:osqpSettings]{osqp::osqpSettings()}} for details on options for \code{solve_osqp()}.
+\code{\link[=optweight]{optweight()}} and \code{\link[=optweightMV]{optweightMV()}} which you should use for estimating the balancing weights, unless you know better.
 }

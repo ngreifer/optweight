@@ -6,8 +6,8 @@
 \usage{
 optweight.svy.fit(
   covs,
-  tols = 0,
   targets,
+  tols = 0,
   s.weights = NULL,
   b.weights = NULL,
   norm = "l2",
@@ -15,16 +15,14 @@ optweight.svy.fit(
   std.cont = TRUE,
   min.w = 1e-08,
   verbose = FALSE,
+  solver = NULL,
   ...
 )
 }
 \arguments{
-\item{covs}{A matrix of covariates to be targeted. Should must be numeric
-but does not have to be full rank.}
+\item{covs}{a numeric matrix of covariates to be targeted.}
 
-\item{tols}{A vector of target balance tolerance values.}
-
-\item{targets}{A vector of target population mean values for each covariate.
+\item{targets}{a vector of target population mean values for each covariate.
 The resulting weights will yield sample means within \code{tols} units of
 the target values for each covariate. If any target values are \code{NA},
 the corresponding variable will not be targeted and its weighted mean will
@@ -33,42 +31,40 @@ mean for a covariate is equal to its unweighted mean (i.e., so that its
 original mean is its target mean), its original mean must be supplied as a
 target.}
 
-\item{s.weights}{A vector of sampling weights. Optimization occurs on the product of the sampling weights and the estimated weights.}
+\item{tols}{a vector of target balance tolerance values. Default is 0.}
 
-\item{b.weights}{A vector of base weights. Default is a vector of 1s. The desired norm of the distance between the estimated weights and the base weights is minimized.}
+\item{s.weights}{an optional vector of sampling weights. Default is a vector of 1s.}
 
-\item{norm}{A string containing the name of the norm corresponding to the objective function to minimize. The options are \code{"l1"} for the L1 norm, \code{"l2"} for the L2 norm (the default), and \code{"linf"} for the L\eqn{\infty} norm. The L1 norm minimizes the average absolute distance between each weight and the base weights; the L2 norm minimizes the average squared distance between each weight and the base weights; the L\eqn{\infty} norm minimizes the largest absolute distance between each weight and the base weights. The L2 norm has a direct correspondence with the effective sample size, making it ideal if this is your criterion of interest.}
+\item{b.weights}{an optional vector of base weights. Default is a vector of 1s.}
+
+\item{norm}{\code{character}; a string containing the name of the norm corresponding to the objective function to minimize. Allowable options include \code{"l1"} for the L1 norm, \code{"l2"} for the L2 norm (the default), \code{"linf"} for the L\eqn{\infty} norm, \code{"entropy"} for the negative entropy, and \code{"log"} for the sum of the negative logs. See Details at \code{\link[=optweight.fit]{optweight.fit()}} for more information.}
 
 \item{std.binary, std.cont}{\code{logical}; whether the tolerances are in standardized mean units (\code{TRUE}) or raw units (\code{FALSE}) for binary variables and continuous variables, respectively. The default is \code{FALSE} for \code{std.binary} because raw proportion differences make more sense than standardized mean difference for binary variables. These arguments are analogous to the \code{binary} and \code{continuous} arguments in \code{bal.tab()} in \pkg{cobalt}.}
 
-\item{min.w}{A single \code{numeric} value less than 1 for the smallest allowable weight. Some analyses require nonzero weights for all units, so a small, nonzero minimum may be desirable. Doing so will likely (slightly) increase the variance of the resulting weights depending on the magnitude of the minimum. The default is 1e-8, which does not materially change the properties of the weights from a minimum of 0 but prevents warnings in some packages that use weights to estimate treatment effects.}
+\item{min.w}{\code{numeric}; a single value less than 1 for the smallest allowable weight. Some analyses require nonzero weights for all units, so a small, nonzero minimum may be desirable. The default is \code{1e-8} (\eqn{10^{-8}}), which does not materially change the properties of the weights from a minimum of 0 but prevents warnings in some packages that use weights to estimate treatment effects. When \code{norm} is \code{"entropy"} or \code{"log"} and \code{min.w <= 0}, \code{min.w} will be set to the smallest nonzero value.}
 
-\item{verbose}{Whether information on the optimization problem solution should be printed. This information contains how many iterations it took to estimate the weights and whether the solution is optimal.}
+\item{verbose}{\code{logical}; whether information on the optimization problem solution should be printed. Default is \code{FALSE}.}
 
-\item{...}{Options that are passed to \code{\link[osqp:osqpSettings]{osqp::osqpSettings()}} for use in the \code{par} arguments of \code{\link[osqp:solve_osqp]{osqp::solve_osqp()}}. See Details for defaults.}
+\item{solver}{string; the name of the optimization solver to use. Allowable options depend on \code{norm}. Default is to use whichever eligible solver is installed, if any, or the default solver for the corresponding \code{norm}. See Details at \code{\link[=optweight.fit]{optweight.fit()}} for information.}
+
+\item{...}{Options that are passed to the settings function corresponding to \code{solver}.}
 }
 \value{
 An \code{optweight.svy.fit} object with the following elements:
 \item{w}{The estimated weights, one for each unit.}
 \item{duals}{A data.frame containing the dual variables for each covariate. See Zubizarreta
 (2015) for interpretation of these values.}
-\item{info}{The \code{info}
-component of the output of \code{\link[osqp:solve_osqp]{osqp::solve_osqp()}}, which contains
-information on the performance of the optimization at termination.}
+\item{info}{A list containing information about the performance of the optimization at termination.}
 }
 \description{
-\code{optweight.svy.fit()} performs the optimization (via \CRANpkg{osqp}) for \code{\link[=optweight.svy]{optweight.svy()}} and should, in most cases, not be
+\code{optweight.svy.fit()} performs the optimization for \code{\link[=optweight.svy]{optweight.svy()}} and should, in most cases, not be
 used directly. Little processing of inputs is performed, so they must be given
 exactly as described below.
 }
 \details{
-\code{optweight.svy.fit()} transforms the inputs into the required inputs for
-\code{\link[osqp:solve_osqp]{osqp::solve_osqp()}}, which are (sparse) matrices and vectors, and
-then supplies the outputs (the weights, duals variables, and convergence
-information) back to \code{\link[=optweight.svy]{optweight.svy()}}. Little processing of inputs is
-performed, as this is normally handled by \code{optweight.svy()}.
+\code{optweight.svy.fit()} transforms the inputs into the required inputs for the optimization functions, which are (sparse) matrices and vectors, and then supplies the outputs (the weights, dual variables, and convergence information) back to \code{\link[=optweight.svy]{optweight.svy()}}. Little processing of inputs is performed, as this is normally handled by \code{optweight.svy()}.
 
-The default values for some of the parameters sent to \code{\link[osqp:solve_osqp]{osqp::solve_osqp()}} are not the same as those in \code{\link[osqp:osqpSettings]{osqp::osqpSettings()}}. The following are the differences: \code{max_iter} is set to 20000, \code{eps_abs} and \code{eps_rel} are set to 1e-8 (i.e., \eqn{10^{-8}}), and \code{adaptive_rho_interval} is set to 10. All other values are the same.
+Target constraints are applied to the product of the estimated weights and the sampling weights. In addition, sum of the product of the estimated weights and the sampling weights is constrained to be equal to the sum of the product of the base weights and sampling weights.
 }
 \examples{
 \dontshow{if (requireNamespace("cobalt", quietly = TRUE)) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
@@ -76,15 +72,12 @@ library("cobalt")
 data("lalonde", package = "cobalt")
 
 covs <- splitfactor(lalonde[c("age", "educ", "race",
-                  "married", "nodegree")],
-                  drop.first = FALSE)
+                              "married", "nodegree")],
+                    drop.first = FALSE)
 
 targets <- c(23, 9, .3, .3, .4, .2, .5)
 
-tols <- rep(0, 7)
-
 ows.fit <- optweight.svy.fit(covs,
-                             tols = tols,
                              targets = targets,
                              norm = "l2")
 
@@ -96,15 +89,11 @@ col_w_mean(covs, w = ows.fit$w)
 \dontshow{\}) # examplesIf}
 }
 \references{
-Wang, Y., & Zubizarreta, J. R. (2020). Minimal dispersion approximately balancing weights: Asymptotic properties and practical considerations. \emph{Biometrika}, 107(1), 93–105. \doi{10.1093/biomet/asz050}
-
-Yiu, S., & Su, L. (2018). Covariate association eliminating weights: a unified weighting framework for causal effect estimation. \emph{Biometrika}. \doi{10.1093/biomet/asy015}
-
 Zubizarreta, J. R. (2015). Stable Weights that Balance Covariates for Estimation With Incomplete Outcome Data. \emph{Journal of the American Statistical Association}, 110(511), 910–922. \doi{10.1080/01621459.2015.1023805}
 }
 \seealso{
 \code{\link[=optweight.svy]{optweight.svy()}} which you should use for estimating the
 balancing weights, unless you know better.
 
-The OSQP \href{https://osqp.org/docs/index.html}{docs} for more information on \pkg{osqp}, the underlying solver, and the options for \code{\link[osqp:solve_osqp]{osqp::solve_osqp()}}. \code{\link[osqp:osqpSettings]{osqp::osqpSettings()}} for details on options for \code{solve_osqp()}.
+\code{\link[=optweight.fit]{optweight.fit()}} for more details about the allowed norms and optimization.
 }

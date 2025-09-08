@@ -5,7 +5,7 @@
 \alias{optweight-package}
 \title{optweight: Targeted Stable Balancing Weights Using Optimization}
 \description{
-Use optimization to estimate weights that balance covariates for binary, multinomial, and continuous treatments in the spirit of Zubizarreta (2015) \doi{10.1080/01621459.2015.1023805}. The degree of balance can be specified for each covariate. In addition, sampling weights can be estimated that allow a sample to generalize to a population specified with given target moments of covariates.
+Use optimization to estimate weights that balance covariates for binary, multi-category, continuous, and multivariate treatments in the spirit of Zubizarreta (2015) \doi{10.1080/01621459.2015.1023805}. The degree of balance can be specified for each covariate. In addition, sampling weights can be estimated that allow a sample to generalize to a population specified with given target moments of covariates.
 }
 \seealso{
 Useful links:
