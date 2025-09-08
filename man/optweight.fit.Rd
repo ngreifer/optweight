@@ -92,11 +92,11 @@ Target and balance constraints are applied to the product of the estimated weigh
 
 The objective function for the optimization problem is \eqn{f\left(w_i, b_i, s_i\right)}, where \eqn{w_i} is the estimated weight for unit \eqn{i}, \eqn{s_i} is the sampling weight for unit \eqn{i} (supplied by \code{s.weights}) and \eqn{b_i} is the base weight for unit \eqn{i} (supplied by \code{b.weights}). The \code{norm} argument determines \eqn{f(.,.,.)}, as detailed below:
 \itemize{
-\item when \code{norm = "l1"}, \eqn{f\left(w_i, b_i, s_i\right) = \frac{1}{n} \sum_i {s_i|w_i - b_i|}}
 \item when \code{norm = "l2"}, \eqn{f\left(w_i, b_i, s_i\right) = \frac{1}{n} \sum_i {s_i(w_i - b_i)^2}}
-\item when \code{norm = "linf"}, \eqn{f\left(w_i, b_i, s_i\right) = \max_i {|w_i - b_i|}}
-\item when \code{norm = "entropy"}, \eqn{f\left(w_i, b_i, s_i\right) = \frac{1}{n} \sum_i {s_i w_i \log\frac{w_i}{b_i}}}
-\item when \code{norm = "log"}, \eqn{f\left(w_i, b_i, s_i\right) = \frac{1}{n} \sum_i {-s_i \log\frac{w_i}{b_i}}}
+\item when \code{norm = "l1"}, \eqn{f\left(w_i, b_i, s_i\right) = \frac{1}{n} \sum_i {s_i \vert w_i - b_i \vert}}
+\item when \code{norm = "linf"}, \eqn{f\left(w_i, b_i, s_i\right) = \max_i {\vert w_i - b_i \vert}}
+\item when \code{norm = "entropy"}, \eqn{f\left(w_i, b_i, s_i\right) = \frac{1}{n} \sum_i {s_i w_i \log \frac{w_i}{b_i}}}
+\item when \code{norm = "log"}, \eqn{f\left(w_i, b_i, s_i\right) = \frac{1}{n} \sum_i {-s_i \log \frac{w_i}{b_i}}}
 }
 
 By default, \code{s.weights} and \code{b.weights} are set to 1 for all units unless supplied. \code{b.weights} must be positive when \code{norm} is \code{"entropy"} or \code{"log"}, and \code{norm = "linf"} cannot be used when \code{s.weights} are supplied.

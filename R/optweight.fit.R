@@ -35,11 +35,11 @@
 #'
 #' The objective function for the optimization problem is \eqn{f\left(w_i, b_i, s_i\right)}, where \eqn{w_i} is the estimated weight for unit \eqn{i}, \eqn{s_i} is the sampling weight for unit \eqn{i} (supplied by `s.weights`) and \eqn{b_i} is the base weight for unit \eqn{i} (supplied by `b.weights`). The `norm` argument determines \eqn{f(.,.,.)}, as detailed below:
 #'
-#' * when `norm = "l1"`, \eqn{f\left(w_i, b_i, s_i\right) = \frac{1}{n} \sum_i {s_i|w_i - b_i|}}
 #' * when `norm = "l2"`, \eqn{f\left(w_i, b_i, s_i\right) = \frac{1}{n} \sum_i {s_i(w_i - b_i)^2}}
-#' * when `norm = "linf"`, \eqn{f\left(w_i, b_i, s_i\right) = \max_i {|w_i - b_i|}}
-#' * when `norm = "entropy"`, \eqn{f\left(w_i, b_i, s_i\right) = \frac{1}{n} \sum_i {s_i w_i \log\frac{w_i}{b_i}}}
-#' * when `norm = "log"`, \eqn{f\left(w_i, b_i, s_i\right) = \frac{1}{n} \sum_i {-s_i \log\frac{w_i}{b_i}}}
+#' * when `norm = "l1"`, \eqn{f\left(w_i, b_i, s_i\right) = \frac{1}{n} \sum_i {s_i \vert w_i - b_i \vert}}
+#' * when `norm = "linf"`, \eqn{f\left(w_i, b_i, s_i\right) = \max_i {\vert w_i - b_i \vert}}
+#' * when `norm = "entropy"`, \eqn{f\left(w_i, b_i, s_i\right) = \frac{1}{n} \sum_i {s_i w_i \log \frac{w_i}{b_i}}}
+#' * when `norm = "log"`, \eqn{f\left(w_i, b_i, s_i\right) = \frac{1}{n} \sum_i {-s_i \log \frac{w_i}{b_i}}}
 #'
 #' By default, `s.weights` and `b.weights` are set to 1 for all units unless supplied. `b.weights` must be positive when `norm` is `"entropy"` or `"log"`, and `norm = "linf"` cannot be used when `s.weights` are supplied.
 #'

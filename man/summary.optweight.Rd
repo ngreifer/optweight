@@ -43,15 +43,15 @@ elements:
 each treatment group.}
 \item{weight.top}{The units with the greatest weights
 in each treatment group; how many are included is determined by \code{top}.}
-\item{rms.dev}{The root-mean-squared deviation of the estimated weights from the base weights (L2 norm), weighted by the sampling weights (if any).}
-\item{mean.abs.dev}{The mean absolute deviation of the estimated weights from the base weights (L1 norm), weighted by the sampling weights (if any).}
-\item{max.abs.dev}{The maximum absolute deviation of the estimated weights from the base weights (L\eqn{\infinity} norm).}
-\item{rel.ent}{The relative entropy between the estimated weights and the base weights (entropy norm), weighted by the sampling weights (if any). Only computed if all weights are positive.}
+\item{l2}{The square root of the L2 norm of the estimated weights from the base weights, weighted by the sampling weights (if any): \eqn{\sqrt{\frac{1}{n}\sum_i {s_i(w_i - b_i)^2}}}}
+\item{l1}{The L1 norm of the estimated weights from the base weights, weighted by the sampling weights (if any): \eqn{\frac{1}{n}\sum_i {s_i \vert w_i - b_i \vert}}}
+\item{linf}{The L\eqn{\infty} norm (maximum absolute deviation) of the estimated weights from the base weights: \eqn{\max_i {\vert w_i - b_i \vert}}}
+\item{rel.ent}{The relative entropy between the estimated weights and the base weights (entropy norm), weighted by the sampling weights (if any): \eqn{\frac{1}{n}\sum_i {s_i w_i \log\left(\frac{w_i}{b_i}\right)}}. Only computed if all weights are positive.}
 \item{num.zeros}{The number of units with a weight equal to 0.}
 \item{effective.sample.size}{The effective sample size for each treatment group before and after weighting.}
 
 For multivariate treatments (i.e., \code{optweightMV} objects), a list of
-the above elements for each treatment period.
+the above elements for each treatment.
 
 For \code{optweight.svy} objects, a list of the above elements but with no
 treatment group divisions.
@@ -60,7 +60,7 @@ treatment group divisions.
 distribution of the estimated weights. If the estimand is the ATT or ATC,
 only the weights for the non-focal group(s) will be displayed (since the
 weights for the focal group are all 1). A dotted line is displayed at the
-mean of the weights (usually 1).
+mean of the weights (the mean of the base weights, or 1 if not supplied).
 }
 \description{
 These functions summarize the weights resulting from a call to
