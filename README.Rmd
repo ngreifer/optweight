@@ -1,5 +1,7 @@
 ---
 output: github_document
+bibliography: vignettes/references.bib
+link-citations: true
 ---
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
@@ -9,10 +11,10 @@ knitr::opts_chunk$set(
   collapse = FALSE,
   warning = FALSE,
   message = FALSE,
-  tidy = TRUE,
-  fig.align='center',
-  comment = "",
-  fig.path = "inst/figures/README-"
+  tidy = FALSE,
+  fig.align = 'center',
+  comment = "#>",
+  fig.path = "man/figures/README-"
 )
 ```
 # optweight
@@ -22,37 +24,57 @@ knitr::opts_chunk$set(
 [![CRAN_Downloads_Badge](http://cranlogs.r-pkg.org/badges/optweight?color=0047ab
 )](https://cran.r-project.org/package=optweight)
 
-`optweight` contains functions to estimate weights that balance treatments to given balance thresholds. It solves a quadratic programming problem to minimize an objective function of the weights using `solve_osqp()` in the `osqp` package. This is the method described in Zubizarreta (2015). `optweight` extends the method to multinomial, continuous, and longitudinal treatments and provides a simple user interface and compatibility with the `cobalt` package.
+*optweight* contains functions to estimate stable balancing weights that balance covariates up to given thresholds. It solves a convex optimization problem to minimize a function of the weights that captures their variability (or divergence from a set of base weights). This is the method described in @zubizarretaStableWeightsThat2015, @kallbergLargeSampleProperties2023, and @wangMinimalDispersionApproximately2020. *optweight* extends the method to multi-category, continuous, and multivariate treatments and provides a simple user interface and compatibility with the *cobalt* package for balance assessment. See `vignette("optweight")` for a more thorough description of the package's capabilities.
 
-Below is an example of estimating weights with `optweight` and assessing balance on the covariates with `cobalt`.
+To install *optweight*, use the code below:
 
 ```{r, eval = FALSE}
-devtools::install_github("ngreifer/optweight") #development version
-library("optweight")
-library("cobalt")
+#CRAN version
+install.packages("optweight")
+
+#Development version
+pak::pkg_install("ngreifer/optweight")
 ```
-```{r, include = FALSE}
-library("optweight")
-library("cobalt")
-```
+
+Below is an example of estimating weights with *optweight* and assessing balance on the covariates with *cobalt*.
+
 ```{r}
+library("optweight")
+library("cobalt")
+
 data("lalonde")
 
-#Estimate weights
+# Estimate weights
 ow <- optweight(treat ~ age + educ + race + nodegree + married +
-                  re74 + re75 + I(re74 == 0) + I(re75 == 0),
-                data = lalonde, estimand = "ATT", tols = .01)
+                  re74 + re75,
+                data = lalonde,
+                estimand = "ATT",
+                tols = .01,
+                min.w = 0)
 ow
-summary(ow)
-bal.tab(ow)
 
-#Estimate a treatment effect
-library("jtools")
-summ(lm(re78 ~ treat, data = lalonde, weights = ow$weights),
-     confint = TRUE, robust = TRUE, model.fit = FALSE, 
-     model.info = FALSE)
+# Information about the weights
+summary(ow)
+
+# Covariate balance
+bal.tab(ow)
 ```
 
-The lower-level function `optweight.fit` operates on the covariates and treatment variables directly.
+We can see that all standardized mean differences are at or below .01 in absolute value, as requested using the `tols` argument. Because we set `min.w = 0`, some units received weights of 0, effectively dropping them from the sample (by default, the smallest weight allowed is $10^{-8}$).
 
-In addition to estimating balancing weights for estimating treatment effects, `optweight` can estimate sampling weights for generalizing an estimate to a new target population defined by covariate moments using the function `optweight.svy`.
+We can use `plot()` to examine the dual variables for each constraint, which represent how active that constraint is at the optimal point. Highly active constraints affect the objective function value the most when their tolerances are changed.
+
+```{r, fig.width = 6, fig.height=3}
+plot(ow)
+```
+
+We can see that `race` has the highest dual variable; relaxing the constraint on `race` would yield the biggest improvement in effective sample size, while tightening its constraint would yield the biggest decrease in effective sample size.
+
+The lower-level function `optweight.fit()` operates on the covariates and treatment variables directly. `optweightMV()` supports multivariate (i.e., multiple) treatments.
+
+In addition to estimating balancing weights for estimating treatment effects, *optweight* can estimate sampling weights for generalizing an estimate to a new target population defined by covariate moments using `optweight.svy()`.
+
+To cite *optweight*, please use `citation("optweight")` to generate the correct reference. Be sure to include the version of the package. Please submit bug reports, questions, comments, or other issues to https://github.com/ngreifer/optweight/issues.
+
+## References
+
