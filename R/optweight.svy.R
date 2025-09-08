@@ -6,29 +6,20 @@
 #' specified by `tols`. See Zubizarreta (2015) for details of the
 #' properties of the weights and the methods used to fit them.
 #'
-#' @inheritParams optweight.svy.fit
+#' @inheritParams optweight
+#' @inheritParams optweight.svy.fit targets
 #' @inheritDotParams optweight.svy.fit norm min.w std.binary std.cont
-#' @param formula A formula with nothing on the left hand side and the
+#' @param formula a formula with nothing on the left hand side and the
 #' covariates to be targeted on the right hand side. See [glm()] for
 #' more details. Interactions and functions of covariates are allowed.
-#' @param data An optional data set in the form of a data frame that contains
-#' the variables in `formula`.
-#' @param tols A vector of target balance tolerance values for each covariate.
+#' @param tols a vector of target balance tolerance values for each covariate.
 #' The resulting weighted covariate means will be no further away from the
 #' targets than the specified values. If only one value is supplied, it will be
-#' applied to all covariates. Can also be the output of a call to [check_tols()].
-#' @param s.weights A vector of sampling weights or the name of a variable in `data` that contains sampling weights. Optimization occurs on the product of the sampling weights and the estimated weights.
-#' @param b.weights A vector of base weights or the name of a variable in `data` that contains base weights. If supplied, the desired norm of the distance between the estimated weights and the base weights is minimized.
-#' @param verbose Whether information on the optimization problem solution
-#' should be printed. This information contains how many iterations it took to
-#' estimate the weights and whether the solution is optimal.
+#' applied to all covariates. Can also be the output of a call to [process_tols()].
 #'
 #' @details
 #' The optimization is performed by the lower-level function
-#' [optweight.svy.fit()] using [osqp::solve_osqp()] in the
-#' \pkg{osqp} package, which provides a straightforward interface to specifying
-#' the constraints and objective function for quadratic optimization problems
-#' and uses a fast and flexible solving algorithm.
+#' [optweight.svy.fit()].
 #'
 #' Weights are estimated so that the standardized differences between the
 #' weighted covariate means and the corresponding targets are within the given
@@ -46,50 +37,36 @@
 #' @returns
 #' An `optweight.svy` object with the following elements:
 #' \item{weights}{The estimated weights, one for each unit.}
-#' \item{covs}{The
-#' covariates used in the fitting. Only includes the raw covariates, which may
-#' have been altered in the fitting process.}
-#' \item{s.weights}{The provided
-#' sampling weights.}
+#' \item{covs}{The covariates used in the fitting. Only includes the raw covariates, which may have been altered in the fitting process.}
+#' \item{s.weights}{The provided sampling weights.}
 #' \item{call}{The function call.}
-#' \item{tols}{The tolerance
-#' values for each covariate.}
-#' \item{duals}{A data.frame containing the dual
-#' variables for each covariate. See Details for interpretation of these
-#' values.}
-#' \item{info}{The `info` component of the output of
-#' [osqp::solve_osqp()], which contains information on the
-#' performance of the optimization at termination.}
+#' \item{tols}{The tolerance values for each covariate.}
+#' \item{duals}{A data.frame containing the dual variables for each covariate. See [optweight()] for interpretation of these values.}
+#' \item{info}{Information about the performance of the optimization at termination.}
 #'
 #' @seealso
-#' The OSQP [docs](https://osqp.org/docs/index.html) for more information on \pkg{osqp}, the underlying solver, and the options for [osqp::solve_osqp()]. [osqp::osqpSettings()] for details on options for `solve_osqp()`.
-#'
 #' [optweight.svy.fit()], the lower-level function that performs the fitting.
+#'
+#' [optweight.fit()] for more details about the optimization options.
 #'
 #' [optweight()] for estimating weights that balance treatment groups.
 #'
 #' @references
-#' Stellato, B., Banjac, G., Goulart, P., Boyd, S., & Bansal, V. (2024). *osqp: Quadratic Programming Solver using the 'OSQP' Library* R package version 0.6.3.3. \doi{10.32614/CRAN.package.osqp}
-#'
 #' Zubizarreta, J. R. (2015). Stable Weights that Balance Covariates for Estimation With Incomplete Outcome Data. *Journal of the American Statistical Association*, 110(511), 910–922. \doi{10.1080/01621459.2015.1023805}
 #'
 #' @examplesIf requireNamespace("cobalt", quietly = TRUE)
 #' library("cobalt")
 #' data("lalonde", package = "cobalt")
 #'
-#' cov.formula <- ~ age + educ + race + married +
-#'                       nodegree
+#' cov.formula <- ~ age + educ + race + married + nodegree
 #'
-#' targets <- check_targets(cov.formula, data = lalonde,
-#'                         targets = c(23, 9, .3, .3, .4,
-#'                                     .2, .5))
-#'
-#' tols <- check_tols(cov.formula, data = lalonde,
-#'                    tols = 0)
+#' targets <- process_targets(cov.formula, data = lalonde,
+#'                            targets = c(23, 9, .3, .3, .4,
+#'                                        .2, .5))
 #'
 #' ows <- optweight.svy(cov.formula,
 #'                      data = lalonde,
-#'                      tols = tols,
+#'                      tols = 0,
 #'                      targets = targets)
 #' ows
 #'
@@ -102,57 +79,69 @@
 
 #' @export
 optweight.svy <- function(formula, data = NULL, tols = 0, targets = NULL, s.weights = NULL,
-                          b.weights = NULL, verbose = FALSE, ...) {
+                          b.weights = NULL, norm = "l2", verbose = FALSE, ...) {
 
-  call <- match.call()
+  mcall <- match.call()
 
-  #Process targets
-  targets <- check_targets(formula, data, targets, stop = TRUE)
+  formula.present <- FALSE
+
+  if (missing(formula) && is_not_null(data)) {
+    chk::chk_data(data)
+    formula <- reformulate(names(data))
+  }
+  else if (is.data.frame(formula) && is_null(data)) {
+    data <- formula
+    formula <- reformulate(names(data))
+  }
+  else if (rlang::is_formula(formula)) {
+    formula.present <- TRUE
+  }
+  else {
+    .err("the argument to `formula` must a single formula with the covariates on the right side")
+  }
 
   #Process treat and covs from formula and data
   t.c <- get_covs_and_treat_from_formula2(formula, data, sep = "_")
   reported.covs <- t.c[["reported.covs"]]
   covs <- t.c[["model.covs"]]
 
-  if (is_not_null(t.c[["treat"]])) {
-    .wrn("the variable on the left side of the formula will be ignored")
-  }
-
   if (is_null(covs)) {
     .err("no covariates were specified")
   }
 
-  check_missing_covs(reported.covs)
-  ct <- check_tols(formula, data, tols, stop = TRUE)
+  if (is_not_null(t.c[["treat"]])) {
+    .wrn("the variable on the left side of the formula will be ignored")
+  }
 
-  tols <- attr(ct, "internal.tols")
+  check_missing_covs(reported.covs)
+
+  chk::chk_string(norm)
+  norm <- tolower(norm)
+  norm <- match_arg(norm, allowable_norms())
 
   #Process s.weights
-  sw <- process.s.weights(s.weights, data)
+  sw <- process_s.weights(s.weights, data)
 
   #Process b.weights
-  bw <- process.b.weights(b.weights, data)
+  bw <- process_b.weights(b.weights, data)
+
+  #Process tols
+  tols <- .process_tols_internal(covs, tols, reported.covs,
+                                 if (formula.present) "formula" else "data")
+
+  #Process targets
+  targets <- .process_targets_internal(covs, targets, sw, reported.covs,
+                                       if (formula.present) "formula" else "data")
 
   ###Run optweight.fit
   fit_out <- optweight.svy.fit(covs = covs,
-                               tols = tols,
                                targets = targets,
+                               tols = tols,
                                s.weights = sw,
                                b.weights = bw,
+                               norm = norm,
                                verbose = verbose,
                                ...)
-
-  #Check for convergence
-  status_val <- fit_out$info$status_val
-  if (is_not_null(status_val) && chk::vld_number(status_val)) {
-    if (status_val == -2) {
-      .wrn(sprintf("the optimization failed to find a solution after %s iterations. The problem may be infeasible or more iterations may be required. Check the dual variables to see which constraints are likely causing this issue",
-                   fit_out$info$iter))
-    }
-    else if (status_val != 1) {
-      .wrn("the optimization failed to find a stable solution")
-    }
-  }
 
   test.w <- {
     if (is_null(sw)) fit_out$w
@@ -163,33 +152,20 @@ optweight.svy <- function(formula, data = NULL, tols = 0, targets = NULL, s.weig
     .err("some weights are NA, which means something went wrong")
   }
 
-  if (sd(test.w) / mean(test.w) > 4) {
-    .wrn("some extreme weights were generated. Examine them with `summary()` and maybe relax the constraints")
-  }
-
   #Process duals
-  original.vars <- attr(ct, "original.vars")
-  d <- fit_out$duals
-  d$cov <- vapply(d$cov, function(c) original.vars[names(original.vars) == c][1], character(1L))
-  d$dual <- with(d, ave(dual, constraint, cov, FUN = sum))
-  fit_out$duals <- unique(d)
-
-  original.vars <- attr(ct, "original.vars")
-  d <- fit_out$duals
-  d$cov <- vapply(d$cov, function(c) original.vars[names(original.vars) == c][1L], character(1L))
-  d$dual <- with(d, ave(dual, constraint, cov, FUN = sum)) #Total effect of constraint on obj. fun. is sum of abs(duals)
-  fit_out$duals <- unique(d)
+  duals <- process_duals(fit_out$duals, tols)
 
   out <- list(weights = fit_out$w,
               covs = reported.covs,
               s.weights = sw,
               b.weights = bw,
-              call = call,
+              norm = norm,
+              call = mcall,
               tols = tols,
-              duals = fit_out$duals,
+              duals = duals,
               info = fit_out$info)
 
-  class(out) <- c("optweight.svy")
+  class(out) <- "optweight.svy"
 
   out
 }
@@ -199,6 +175,8 @@ print.optweight.svy <- function(x, ...) {
   cat("An optweight.svy object\n")
   cat(sprintf(" - number of obs.: %s\n",
               length(x[["weights"]])))
+  cat(sprintf(" - norm minimized: %s\n",
+              x[["norm"]]))
   cat(sprintf(" - sampling weights: %s\n",
               if (all_the_same(x[["s.weights"]])) "none"
               else "present"))

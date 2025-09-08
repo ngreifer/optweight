@@ -5,14 +5,15 @@
 #' range and variability, and the effective sample size of the weighted sample
 #' (computing using the formula in McCaffrey, Rudgeway, & Morral, 2004). `plot()` creates a histogram of the weights.
 #'
-#' @param object An `optweight`, `optweightMSM`, or `optweight.svy` object; the output of a call to [optweight()] or [optweight.svy()].
+#' @param object An `optweight`, `optweightMV`, or `optweight.svy` object; the output of a call to [optweight()] or [optweight.svy()].
 #' @param top How many of the largest and smallest weights to display. Default
 #' is 5.
 #' @param ignore.s.weights Whether or not to ignore sampling weights when
 #' computing the weight summary. If `FALSE`, the default, the estimated
 #' weights will be multiplied by the sampling weights (if any) before values
 #' are computed.
-#' @param x A `summary.optweight`, `summary.optweightMSM`, or `summary.optweight.svy` object; the output of a call to `summary.optweight()`, `summary.optweightMSM()`, or ()`summary.optweight.svy`.
+#' @param weight.range `logical`; whether display statistics about the range of weights and the highest and lowest weights for each group. Default is `TRUE`.
+#' @param x A `summary.optweight`, `summary.optweightMV`, or `summary.optweight.svy` object; the output of a call to `summary.optweight()`, `summary.optweightMV()`, or ()`summary.optweight.svy`.
 #' @param ...  Additional arguments. For `plot()`, additional arguments
 #' passed to [graphics::hist()] to determine the number of bins,
 #' though [ggplot2::geom_histogram()] from \pkg{ggplot2} is actually
@@ -29,10 +30,11 @@
 #' \item{rms.dev}{The root-mean-squared deviation of the estimated weights from the base weights (L2 norm), weighted by the sampling weights (if any).}
 #' \item{mean.abs.dev}{The mean absolute deviation of the estimated weights from the base weights (L1 norm), weighted by the sampling weights (if any).}
 #' \item{max.abs.dev}{The maximum absolute deviation of the estimated weights from the base weights (L\eqn{\infinity} norm).}
+#' \item{rel.ent}{The relative entropy between the estimated weights and the base weights (entropy norm), weighted by the sampling weights (if any). Only computed if all weights are positive.}
 #' \item{num.zeros}{The number of units with a weight equal to 0.}
 #' \item{effective.sample.size}{The effective sample size for each treatment group before and after weighting.}
 #'
-#' For longitudinal treatments (i.e., `optweightMSM` objects), a list of
+#' For multivariate treatments (i.e., `optweightMV` objects), a list of
 #' the above elements for each treatment period.
 #'
 #' For `optweight.svy` objects, a list of the above elements but with no
@@ -58,17 +60,24 @@
 #'
 #' #Balancing covariates between treatment groups (binary)
 #' (ow1 <- optweight(treat ~ age + educ + married +
-#'                 nodegree + re74, data = lalonde,
-#'                 tols = .001,
-#'                 estimand = "ATT"))
+#'                     nodegree + re74, data = lalonde,
+#'                   tols = .001,
+#'                   estimand = "ATT"))
 #'
 #' (s <- summary(ow1))
 #'
 #' plot(s, breaks = 12)
-#'
 
 #' @exportS3Method summary optweight
-summary.optweight <- function(object, top = 5, ignore.s.weights = FALSE, ...) {
+summary.optweight <- function(object, top = 5, ignore.s.weights = FALSE, weight.range = TRUE, ...) {
+
+  chk::chk_flag(ignore.s.weights)
+  chk::chk_flag(weight.range)
+
+  if (weight.range) {
+    chk::chk_count(top)
+  }
+
   sw <- {
     if (ignore.s.weights || is_null(object$s.weights)) rep_with(1, object$weights)
     else object$s.weights
@@ -80,9 +89,10 @@ summary.optweight <- function(object, top = 5, ignore.s.weights = FALSE, ...) {
   }
 
   t <- object$treat
-  treat.type <- attr(t, "treat.type")
 
-  out <- .summary_internal(t, treat.type, object$weights, sw, bw, top)
+  out <- .summary_internal(t, attr(t, "treat.type"),
+                           object$weights, sw, bw,
+                           top, weight.range)
 
   w <- object$weights * sw
   if (is_not_null(object$focal)) {
@@ -106,9 +116,14 @@ print.summary.optweight <- function(x, ...) {
 }
 
 #' @rdname summary.optweight
-#' @exportS3Method summary optweightMSM
-summary.optweightMSM <- function(object, top = 5, ignore.s.weights = FALSE, ...) {
-  .wrn("optweights are currently not valid for longitudinal treatments. Use at your own risk")
+#' @exportS3Method summary optweightMV
+summary.optweightMV <- function(object, top = 5, ignore.s.weights = FALSE, weight.range = TRUE, ...) {
+  chk::chk_flag(ignore.s.weights)
+  chk::chk_flag(weight.range)
+
+  if (weight.range) {
+    chk::chk_count(top)
+  }
 
   sw <- {
     if (ignore.s.weights || is_null(object$s.weights)) rep_with(1, object$weights)
@@ -120,29 +135,27 @@ summary.optweightMSM <- function(object, top = 5, ignore.s.weights = FALSE, ...)
     else object$b.weights
   }
 
-  treat.types <- vapply(object[["treat.list"]], attr, character(1L), "treat.type")
-
-  out.list <- make_list(names(object$treat.list))
-  for (ti in seq_along(object$treat.list)) {
-    out.list[[ti]] <- .summary_internal(object$treat.list[[ti]],
-                                        treat.types[ti], object$weights, sw, bw, top)
-  }
+  out.list <- lapply(object$treat.list, function(t) {
+    .summary_internal(t, attr(t, "treat.type"),
+                      object$weights, sw, bw,
+                      top, weight.range)
+  })
 
   attr(out.list, "weights") <- object$weights * sw
 
-  class(out.list) <- c("summary.optweightMSM", "summary.optweight")
+  class(out.list) <- c("summary.optweightMV", "summary.optweight")
 
   out.list
 }
 
-#' @exportS3Method print summary.optweightMSM
-print.summary.optweightMSM <- function(x, ...) {
+#' @exportS3Method print summary.optweightMV
+print.summary.optweightMV <- function(x, ...) {
   only.one <- length(x) == 1L || all_apply(x, identical, x[[1L]])
 
   cat("Summary of weights:\n\n")
   for (ti in seq_along(x)) {
     if (!only.one) {
-      cat(sprintf(" - - - - - - - - - - Time %s - - - - - - - - - -\n", ti))
+      cat(sprintf(" - - - - - - - - - - Treatment %s - - - - - - - - - -\n", ti))
     }
 
     .print_summary_internal(x[[ti]], ...)
@@ -156,8 +169,15 @@ print.summary.optweightMSM <- function(x, ...) {
 }
 
 #' @rdname summary.optweight
-#' @exportS3Method summary optweight
-summary.optweight.svy <- function(object, top = 5, ignore.s.weights = FALSE, ...) {
+#' @exportS3Method summary optweight.svy
+summary.optweight.svy <- function(object, top = 5, ignore.s.weights = FALSE, weight.range = TRUE, ...) {
+  chk::chk_flag(ignore.s.weights)
+  chk::chk_flag(weight.range)
+
+  if (weight.range) {
+    chk::chk_count(top)
+  }
+
   sw <- {
     if (ignore.s.weights || is_null(object$s.weights)) rep_with(1, object$weights)
     else object$s.weights
@@ -168,7 +188,7 @@ summary.optweight.svy <- function(object, top = 5, ignore.s.weights = FALSE, ...
     else object$b.weights
   }
 
-  out <- .summary_internal(NULL, "svy", object$weights, sw, bw, top)
+  out <- .summary_internal(NULL, "svy", object$weights, sw, bw, top, weight.range)
 
   attr(out, "weights") <- object$weights * sw
 
@@ -205,76 +225,67 @@ plot.summary.optweight <- function(x, ...) {
     theme_bw()
 }
 
-.summary_internal <- function(t, treat.type, w, sw, bw, top) {
+.summary_internal <- function(t, treat.type, w, sw, bw, top, weight.range) {
   outnames <- c("weight.range", "weight.top", "weight.ratio",
-                "rms.dev", "mean.abs.dev", "max.abs.dev", "num.zeros",
+                "rms.dev", "mean.abs.dev", "max.abs.dev", "rel.ent", "num.zeros",
                 "effective.sample.size")
 
   out <- make_list(outnames)
 
+  treat.type[treat.type == "multinomial"] <- "multi-category"
+
   ww <- w * sw
 
-  if (treat.type %in% c("continuous", "svy")) {
-    out$weight.range <- list(all = c(min(ww[ww != 0]),
-                                     max(ww[ww != 0])))
-    top.weights <- sort(ww, decreasing = TRUE)[seq_len(top)]
-    out$weight.top <- list(all = sort(setNames(top.weights, which(ww %in% top.weights)[seq_len(top)])))
-    out$rms.dev <- c(all = rms_dev(w, bw = bw, sw = sw))
-    out$mean.abs.dev <- c(all = mean_abs_dev(w, bw = bw, sw = sw))
-    out$max.abs.dev <- c(all = max_abs_dev(w, bw = bw, sw = sw))
-    out$num.zeros <- c(all = sum(ww == 0))
-
-    nn <- make_df("Total", c("Unweighted", "Weighted"))
-    nn[["Total"]] <- c(ESS(sw), ESS(ww))
-  }
-  else if (treat.type == "binary") {
-    out$weight.range <- list(treated = c(min(ww[ww != 0 & t == 1]),
-                                         max(ww[ww != 0 & t == 1])),
-                             control = c(min(ww[ww != 0 & t == 0]),
-                                         max(ww[ww != 0 & t == 0])))
-    top.weights <- list(treated = sort(ww[t == 1], decreasing = TRUE)[seq_len(top)],
-                        control = sort(ww[t == 0], decreasing = TRUE)[seq_len(top)])
-
-    out$weight.top <- setNames(lapply(names(top.weights), function(x) sort(setNames(top.weights[[x]], which(ww[t == switch(x, control = 0, 1)] %in% top.weights[[x]])[seq_len(top)]))),
-                               names(top.weights))
-
-    out$rms.dev <- c(treated = rms_dev(w[t==1], bw = bw[t==1], sw = sw[t==1]),
-                     control = rms_dev(w[t==0], bw = bw[t==0], sw = sw[t==0]))
-    out$mean.abs.dev <- c(treated = mean_abs_dev(w[t==1], bw = bw[t==1], sw = sw[t==1]),
-                          control = mean_abs_dev(w[t==0], bw = bw[t==0], sw = sw[t==0]))
-    out$max.abs.dev <- c(treated = max_abs_dev(w[t==1], bw = bw[t==1], sw = sw[t==1]),
-                         control = max_abs_dev(w[t==0], bw = bw[t==0], sw = sw[t==0]))
-    out$num.zeros <- c(treated = sum(ww[t==1] == 0),
-                       control = sum(ww[t==0] == 0))
-
-    #dc <- weightit$discarded
-
-    nn <- make_df(c("Control", "Treated"), c("Unweighted", "Weighted"))
-
-    nn[["Control"]] <- c(ESS(sw[t == 0]), ESS(ww[t == 0]))
-    nn[["Treated"]] <- c(ESS(sw[t == 1]), ESS(ww[t == 1]))
+  if (treat.type == "binary") {
+    tx <- list(treated = which(t == 1),
+               control = which(t == 0))
   }
   else if (treat.type == "multi-category") {
-    out$weight.range <- setNames(lapply(levels(t), function(x) c(min(ww[ww != 0 & t == x]),
-                                                                 max(ww[ww != 0 & t == x]))),
-                                 levels(t))
+    tx <- lapply(levels(t), function(i) which(t == i)) |>
+      setNames(levels(t))
+  }
+  else {
+    tx <- list(all = seq_along(w))
+  }
 
-    top.weights <- setNames(lapply(levels(t), function(x) sort(ww[t == x], decreasing = TRUE)[seq_len(top)]),
-                            levels(t))
+  if (weight.range) {
+    out$weight.range <- lapply(tx, function(ti) c(min(ww[ti]), max(w[ti]))) |>
+      setNames(names(tx))
 
-    out$weight.top <- setNames(lapply(names(top.weights), function(x) sort(setNames(top.weights[[x]], which(ww[t == x] %in% top.weights[[x]])[seq_len(top)]))),
-                               names(top.weights))
+    top.weights <- lapply(tx, function(ti) sort(ww[ti], decreasing = TRUE)[seq_len(top)]) |>
+      setNames(names(tx))
 
-    out$rms.dev <- vapply(levels(t), function(x) rms_dev(w[t==x], bw = bw[t==x], sw = sw[t==x]), numeric(1L))
-    out$mean.abs.dev <- vapply(levels(t), function(x) mean_abs_dev(w[t==x], bw = bw[t==x], sw = sw[t==x]), numeric(1L))
-    out$max.abs.dev <- vapply(levels(t), function(x) max_abs_dev(w[t==x], bw = bw[t==x], sw = sw[t==x]), numeric(1L))
-    out$num.zeros <- vapply(levels(t), function(x) sum(ww[t==x] == 0), numeric(1L))
+    out$weight.top <- lapply(names(tx), function(i) {
+      sort(setNames(top.weights[[i]], which(ww[tx[[i]]] %in% top.weights[[i]])[seq_len(top)]))
+    }) |>
+      setNames(names(tx))
+  }
 
-    nn <- make_df(levels(t), c("Unweighted", "Weighted"))
+  out$rms.dev <- vapply(tx, function(ti) rms_dev(w[ti], bw = bw[ti], sw = sw[ti]), numeric(1L))
+  out$mean.abs.dev <- vapply(tx, function(ti) mean_abs_dev(w[ti], bw = bw[ti], sw = sw[ti]), numeric(1L))
+  out$max.abs.dev <- vapply(tx, function(ti) max_abs_dev(w[ti], bw = bw[ti], sw = sw[ti]), numeric(1L))
+  out$rel.ent <- if (all(w > 0)) vapply(tx, function(ti) rel_ent(w[ti], bw = bw[ti], sw = sw[ti]), numeric(1L))
+  out$num.zeros <- vapply(tx, function(ti) sum(ww[ti] == 0), numeric(1L))
+
+  if (treat.type == "binary") {
+    nn <- make_df(c("Control", "Treated"),
+                  c("Unweighted", "Weighted"))
+
+    nn[["Control"]] <- c(ESS(sw[tx$control]), ESS(ww[tx$control]))
+    nn[["Treated"]] <- c(ESS(sw[tx$treated]), ESS(ww[tx$treated]))
+  }
+  else if (treat.type == "multi-category") {
+    nn <- make_df(levels(t),
+                  c("Unweighted", "Weighted"))
 
     for (i in levels(t)) {
-      nn[[i]] <- c(ESS(sw[t == i]), ESS(ww[t == i]))
+      nn[[i]] <- c(ESS(sw[tx[[i]]]), ESS(ww[tx[[i]]]))
     }
+  }
+  else {
+    nn <- make_df("Total",
+                  c("Unweighted", "Weighted"))
+    nn[["Total"]] <- c(ESS(sw), ESS(ww))
   }
 
   out$effective.sample.size <- nn
@@ -283,32 +294,36 @@ plot.summary.optweight <- function(x, ...) {
 }
 
 .print_summary_internal <- function(x, ...) {
-  cat("- Weight ranges:\n")
+  if (is_not_null(x$weight.range)) {
+    cat("- Weight ranges:\n")
 
-  x$weight.range |>
-    text_box_plot(width = 28L) |>
-    round_df_char(digits = 4) |>
-    print.data.frame(...)
+    x$weight.range |>
+      text_box_plot(width = 28L) |>
+      round_df_char(digits = 4) |>
+      print.data.frame(...)
 
-  cat(sprintf("\n- Units with %s greatest weights by group:\n",
-              length(x$weight.top[[1L]])))
+    cat(sprintf("\n- Units with %s greatest weights by group:\n",
+                length(x$weight.top[[1L]])))
 
-  top <- max(lengths(x$weight.top))
-  data.frame(unlist(lapply(names(x$weight.top), function(y) c(" ", y))),
-             matrix(unlist(lapply(x$weight.top, function(y) c(names(y), character(top - length(y)),
-                                                              round(y, 4), character(top - length(y))))),
-                    byrow = TRUE, nrow = 2 * length(x$weight.top))) |>
-    setNames(character(1 + top)) |>
-    print.data.frame(row.names = FALSE)
+    top <- max(lengths(x$weight.top))
+    data.frame(unlist(lapply(names(x$weight.top), function(y) c(" ", y))),
+               matrix(unlist(lapply(x$weight.top, function(y) c(names(y), character(top - length(y)),
+                                                                round(y, 4), character(top - length(y))))),
+                      byrow = TRUE, nrow = 2 * length(x$weight.top))) |>
+      setNames(character(1L + top)) |>
+      print.data.frame(row.names = FALSE)
 
-  cat("\n")
+    cat("\n")
+  }
 
   matrix(c(x$rms.dev, x$mean.abs.dev,
-           x$max.abs.dev, x$num.zeros),
+           x$max.abs.dev, x$rel.ent, x$num.zeros),
          nrow = length(x$rms.dev),
          byrow = FALSE,
          dimnames = list(names(x$rms.dev),
-                         c("RMSE Dev", "Mean Abs Dev", "Max Abs Dev", "# Zeros"))) |>
+                         c("RMSE Dev", "Mean Abs Dev", "Max Abs Dev",
+                           "Rel Ent"[is_not_null(x$rel.ent)],
+                           "# Zeros"))) |>
     as.data.frame() |>
     round_df_char(digits = 4) |>
     print.data.frame(...)

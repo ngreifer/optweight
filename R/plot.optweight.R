@@ -9,16 +9,16 @@
 #' weights, both to a greater extent than would doing the same for covariate
 #' with small values of the dual variable.
 #'
-#' @param x An `optweight` or `optweight.svy` object; the output of a
-#' call to [optweight()] or [optweight.svy()].
-#' @param which.time For longitudinal treatments, which time period to display.
+#' @param x an `optweight`, `optweightMV`, or `optweight.svy` object; the output of a
+#' call to [optweight()], [optweightMV()], or [optweight.svy()].
+#' @param which.treat For `optweightMV` objects, which treatment to display.
 #' Only one may be displayed at a time.
 #' @param \dots Ignored.
 #'
 #' @returns
 #' A `ggplot` object that can be used with other \pkg{ggplot2} functions.
 #'
-#' @seealso [optweight()] or [optweight.svy()] to estimate
+#' @seealso [optweight()], [optweightMV()], or [optweight.svy()] to estimate
 #' the weights and the dual variables
 #'
 #' [plot.summary.optweight()] for plots of the distribution of
@@ -31,36 +31,43 @@
 #' library("cobalt")
 #' data("lalonde", package = "cobalt")
 #'
+#' tols <- process_tols(treat ~ age + educ + married +
+#'                        nodegree + re74, data = lalonde,
+#'                      tols = .1)
+#'
 #' #Balancing covariates between treatment groups (binary)
 #' ow1 <- optweight(treat ~ age + educ + married +
-#'                 nodegree + re74, data = lalonde,
-#'                 tols = c(.1, .1, .1, .1, .1),
-#'                 estimand = "ATT")
+#'                    nodegree + re74, data = lalonde,
+#'                  tols = tols,
+#'                  estimand = "ATT")
 #'
-#' summary(ow1) # Note the coefficient of variation
-#'              # and effective sample size (ESS)
+#' summary(ow1) # Note the RMSE Dev and effective
+#' #              sample size (ESS)
 #'
 #' plot(ow1) # age has a low value, married is high
 #'
+#' tols["age"] <- 0
 #' ow2 <- optweight(treat ~ age + educ + married +
-#'                 nodegree + re74, data = lalonde,
-#'                 tols = c(0, .1, .1, .1, .1),
-#'                 estimand = "ATT")
+#'                    nodegree + re74, data = lalonde,
+#'                  tols = tols,
+#'                  estimand = "ATT")
 #'
 #' summary(ow2) # Notice that tightening the constraint
-#'              # on age had a negligible effect on the
-#'              # variability of the weights and ESS
+#' #              on age had a negligible effect on the
+#' #              variability of the weights and ESS
 #'
+#' tols["age"] <- .1
+#' tols["married"] <- 0
 #' ow3 <- optweight(treat ~ age + educ + married +
-#'                 nodegree + re74, data = lalonde,
-#'                 tols = c(.1, .1, 0, .1, .1),
-#'                 estimand = "ATT")
+#'                    nodegree + re74, data = lalonde,
+#'                  tols = tols,
+#'                  estimand = "ATT")
 #'
 #' summary(ow3) # In contrast, tightening the constraint
-#'              # on married had a large effect on the
-#'              # variability of the weights, shrinking
-#'              # the ESS
-#'
+#' #              on married had a large effect on the
+#' #              variability of the weights, shrinking
+#' #              the ESS
+
 
 #' @exportS3Method plot optweight
 plot.optweight <- function(x, ...) {
@@ -85,16 +92,16 @@ plot.optweight <- function(x, ...) {
 }
 
 #' @rdname plot.optweight
-#' @exportS3Method plot optweight
-plot.optweightMSM <- function(x, which.time = 1, ...) {
-  chk::chk_number(which.time)
+#' @exportS3Method plot optweightMV
+plot.optweightMV <- function(x, which.treat = 1, ...) {
+  chk::chk_count(which.treat)
 
-  if (which.time %nin% seq_along(x$duals)) {
-    .err("`which.time` must correspond to an available time point")
+  if (which.treat %nin% seq_along(x$duals)) {
+    .err("`which.treat` must correspond to an available treatment")
   }
 
-  d <- x$duals[[which.time]]
-  title <- sprintf("Dual Variables for Constraints at Time %s", which.time)
+  d <- x$duals[[which.treat]]
+  title <- sprintf("Dual Variables for Constraints for Treatment %s", which.treat)
 
   d$cov <- factor(d$cov, levels = rev(unique(d$cov)))
   d$constraint <- factor(d$constraint, levels = unique(d$constraint, nmax = 2L),
@@ -116,7 +123,6 @@ plot.optweightMSM <- function(x, which.time = 1, ...) {
 #' @rdname plot.optweight
 #' @exportS3Method plot optweight.svy
 plot.optweight.svy <- function(x, ...) {
-
   d <- x$duals
   title <- "Dual Variables for Target Constraints"
 
