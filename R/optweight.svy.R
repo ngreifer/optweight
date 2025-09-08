@@ -172,17 +172,5 @@ optweight.svy <- function(formula, data = NULL, tols = 0, targets = NULL, s.weig
 
 #' @exportS3Method print optweight.svy
 print.optweight.svy <- function(x, ...) {
-  cat("An optweight.svy object\n")
-  cat(sprintf(" - number of obs.: %s\n",
-              length(x[["weights"]])))
-  cat(sprintf(" - norm minimized: %s\n",
-              x[["norm"]]))
-  cat(sprintf(" - sampling weights: %s\n",
-              if (all_the_same(x[["s.weights"]])) "none"
-              else "present"))
-  cat(sprintf(" - covariates: %s\n",
-              if (length(names(x[["covs"]])) > 60L) "too many to name"
-              else toString(names(x[["covs"]]))))
-
-  invisible(x)
+  print.optweight(x, ...)
 }

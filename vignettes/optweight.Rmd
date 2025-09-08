@@ -226,7 +226,7 @@ ow_re <- optweight(treat ~ age + educ + race + married + nodegree +
 summary(ow_re, weight.range = FALSE)
 ```
 
-We can see that minimizing the L2 norm yields weights that have the lowest RMSE deviation, minimizing the L1 norm yields weights that have the lowest mean absolute deviation, minimizing the L$\infty$ norm yields weights that have the lowest maximum absolute deviation, and minimizing the relative entropy yields weights that have the lowest relative entropy. The L2 norm has the closest correspondence to the ESS (they have a 1:1 relationship), but there are some theoretical reasons to prefer other norms, especially when they correspond to certain assumptions about the true propensity score model. See @kallbergLargeSampleProperties2023 for more information on these assumptions.
+We can see that minimizing the L2 norm yields weights that have the lowest RMS deviation, minimizing the L1 norm yields weights that have the lowest mean absolute deviation, minimizing the L$\infty$ norm yields weights that have the lowest maximum absolute deviation, and minimizing the relative entropy yields weights that have the lowest relative entropy. The L2 norm has the closest correspondence to the ESS (they have a 1:1 relationship), but there are some theoretical reasons to prefer other norms, especially when they correspond to certain assumptions about the true propensity score model. See @kallbergLargeSampleProperties2023 for more information on these assumptions.
 
 ### `estimand` and `targets`
 

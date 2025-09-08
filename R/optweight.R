@@ -422,22 +422,33 @@ optweightMV <- function(formula.list, data = NULL, tols.list = list(0), estimand
 print.optweight <- function(x, ...) {
   treat.type <- attr(x[["treat"]], "treat.type")
 
-  treat.type[treat.type == "multinomial"] <- "multi-category"
+  if (is_not_null(treat.type)) {
+    treat.type[treat.type == "multinomial"] <- "multi-category"
+  }
 
-  cat("An optweight object\n")
+  cat(sprintf("An %s object\n", class(x)[1L]))
+
   cat(sprintf(" - number of obs.: %s\n",
               length(x[["weights"]])))
+
   cat(sprintf(" - norm minimized: %s\n",
-              x[["norm"]]))
+              add_quotes(x[["norm"]])))
+
   cat(sprintf(" - sampling weights: %s\n",
-              if (all_the_same(x[["s.weights"]])) "none" else "present"))
-  cat(sprintf(" - treatment: %s\n",
-              switch(treat.type,
-                     continuous = "continuous",
-                     binary = "2-category",
-                     sprintf("%s-category (%s)",
-                             nunique(x[["treat"]]),
-                             toString(levels(x[["treat"]]))))))
+              if (is_not_null(x[["s.weights"]]) && all_the_same(x[["s.weights"]])) "none" else "present"))
+
+  cat(sprintf(" - base weights: %s\n",
+              if (is_not_null(x[["b.weights"]]) && all_the_same(x[["b.weights"]])) "none" else "present"))
+
+  if (is_not_null(x[["treat"]])) {
+    cat(sprintf(" - treatment: %s\n",
+                switch(treat.type,
+                       continuous = "continuous",
+                       binary = "2-category",
+                       sprintf("%s-category (%s)",
+                               nunique(x[["treat"]]),
+                               toString(levels(x[["treat"]]))))))
+  }
 
   if (is_not_null(x[["estimand"]])) {
     cat(sprintf(" - estimand: %s%s\n",
@@ -459,13 +470,20 @@ print.optweightMV <- function(x, ...) {
 
   treat.names <- vapply(x[["treat.list"]], attr, character(1L), "treat.name")
 
-  cat("An optweightMV object\n")
+  cat(sprintf("An %s object\n", class(x)[1L]))
+
   cat(sprintf(" - number of obs.: %s\n",
               length(x[["weights"]])))
+
   cat(sprintf(" - norm minimized: %s\n",
-              x[["norm"]]))
+              add_quotes(x[["norm"]])))
+
   cat(sprintf(" - sampling weights: %s\n",
-              if (all_the_same(x[["s.weights"]])) "none" else "present"))
+              if (is_not_null(x[["s.weights"]]) && all_the_same(x[["s.weights"]])) "none" else "present"))
+
+  cat(sprintf(" - base weights: %s\n",
+              if (is_not_null(x[["b.weights"]]) && all_the_same(x[["b.weights"]])) "none" else "present"))
+
   cat(sprintf(" - number of treatments: %s\n%s",
               length(x[["treat.list"]]),
               do.call("paste0", lapply(seq_along(x$covs.list), function(i) {
