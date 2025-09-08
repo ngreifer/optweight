@@ -21,7 +21,7 @@ with small values of the dual variable."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">optweight</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.5.9002</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.5.9003</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -29,7 +29,8 @@ with small values of the dual variable."></head><body>
     </button>
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
-      <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+      <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/optweight.html">Get started</a></li>
+<li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
@@ -63,8 +64,8 @@ with small values of the dual variable.</p>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="co"># S3 method for class 'optweight'</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># S3 method for class 'optweightMSM'</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">x</span>, which.time <span class="op">=</span> <span class="fl">1</span>, <span class="va">...</span><span class="op">)</span></span>
+<span><span class="co"># S3 method for class 'optweightMV'</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">x</span>, which.treat <span class="op">=</span> <span class="fl">1</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S3 method for class 'optweight.svy'</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
@@ -75,16 +76,16 @@ with small values of the dual variable.</p>
 
 
 <dl><dt id="arg-x">x<a class="anchor" aria-label="anchor" href="#arg-x"></a></dt>
-<dd><p>An <code>optweight</code> or <code>optweight.svy</code> object; the output of a
-call to <code><a href="optweight.html">optweight()</a></code> or <code><a href="optweight.svy.html">optweight.svy()</a></code>.</p></dd>
+<dd><p>an <code>optweight</code>, <code>optweightMV</code>, or <code>optweight.svy</code> object; the output of a
+call to <code><a href="optweight.html">optweight()</a></code>, <code><a href="optweight.html">optweightMV()</a></code>, or <code><a href="optweight.svy.html">optweight.svy()</a></code>.</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
 <dd><p>Ignored.</p></dd>
 
 
-<dt id="arg-which-time">which.time<a class="anchor" aria-label="anchor" href="#arg-which-time"></a></dt>
-<dd><p>For longitudinal treatments, which time period to display.
+<dt id="arg-which-treat">which.treat<a class="anchor" aria-label="anchor" href="#arg-which-treat"></a></dt>
+<dd><p>For <code>optweightMV</code> objects, which treatment to display.
 Only one may be displayed at a time.</p></dd>
 
 </dl></div>
@@ -98,7 +99,7 @@ Only one may be displayed at a time.</p></dd>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
-    <div class="dont-index"><p><code><a href="optweight.html">optweight()</a></code> or <code><a href="optweight.svy.html">optweight.svy()</a></code> to estimate
+    <div class="dont-index"><p><code><a href="optweight.html">optweight()</a></code>, <code><a href="optweight.html">optweightMV()</a></code>, or <code><a href="optweight.svy.html">optweight.svy()</a></code> to estimate
 the weights and the dual variables</p>
 <p><code><a href="summary.optweight.html">plot.summary.optweight()</a></code> for plots of the distribution of
 weights</p></div>
@@ -109,18 +110,22 @@ weights</p></div>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="st"><a href="https://ngreifer.github.io/cobalt/" class="external-link">"cobalt"</a></span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="st">"lalonde"</span>, package <span class="op">=</span> <span class="st">"cobalt"</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="va">tols</span> <span class="op">&lt;-</span> <span class="fu"><a href="process_tols.html">process_tols</a></span><span class="op">(</span><span class="va">treat</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">educ</span> <span class="op">+</span> <span class="va">married</span> <span class="op">+</span></span></span>
+<span class="r-in"><span>                       <span class="va">nodegree</span> <span class="op">+</span> <span class="va">re74</span>, data <span class="op">=</span> <span class="va">lalonde</span>,</span></span>
+<span class="r-in"><span>                     tols <span class="op">=</span> <span class="fl">.1</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co">#Balancing covariates between treatment groups (binary)</span></span></span>
 <span class="r-in"><span><span class="va">ow1</span> <span class="op">&lt;-</span> <span class="fu"><a href="optweight.html">optweight</a></span><span class="op">(</span><span class="va">treat</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">educ</span> <span class="op">+</span> <span class="va">married</span> <span class="op">+</span></span></span>
-<span class="r-in"><span>                <span class="va">nodegree</span> <span class="op">+</span> <span class="va">re74</span>, data <span class="op">=</span> <span class="va">lalonde</span>,</span></span>
-<span class="r-in"><span>                tols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">.1</span>, <span class="fl">.1</span>, <span class="fl">.1</span>, <span class="fl">.1</span>, <span class="fl">.1</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>                estimand <span class="op">=</span> <span class="st">"ATT"</span><span class="op">)</span></span></span>
+<span class="r-in"><span>                   <span class="va">nodegree</span> <span class="op">+</span> <span class="va">re74</span>, data <span class="op">=</span> <span class="va">lalonde</span>,</span></span>
+<span class="r-in"><span>                 tols <span class="op">=</span> <span class="va">tols</span>,</span></span>
+<span class="r-in"><span>                 estimand <span class="op">=</span> <span class="st">"ATT"</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">ow1</span><span class="op">)</span> <span class="co"># Note the coefficient of variation</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">ow1</span><span class="op">)</span> <span class="co"># Note the RMSE Dev and effective</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Summary of weights:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> - Weight ranges:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         Min                                  Max</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> treated   1                   ||          1.0000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> treated   1                   ||          1.    </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> control   0 |---------------------------| 1.5946</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> - Units with 5 greatest weights by group:</span>
@@ -130,31 +135,32 @@ weights</p></div>
 <span class="r-out co"><span class="r-pr">#&gt;</span>              79    118    127    156    164</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  control 1.5946 1.5946 1.5946 1.5946 1.5946</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         RMSE Dev Mean Abs Dev Max Abs Dev # Zeros</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> treated   0.0000       0.0000           0       0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> control   0.5319       0.4619           1       0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>            L2    L1 L∞ Rel Ent # Zeros</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> treated 0.    0.     0   0.          0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> control 0.532 0.462  1   0.181       0</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> - Effective Sample Sizes:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>            Control Treated</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Unweighted 429.000     185</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Weighted   334.408     185</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Unweighted  429.       185</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Weighted    334.41     185</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-in"><span>             <span class="co"># and effective sample size (ESS)</span></span></span>
+<span class="r-in"><span><span class="co">#              sample size (ESS)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">ow1</span><span class="op">)</span> <span class="co"># age has a low value, married is high</span></span></span>
 <span class="r-plt img"><img src="plot.optweight-1.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="va">tols</span><span class="op">[</span><span class="st">"age"</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fl">0</span></span></span>
 <span class="r-in"><span><span class="va">ow2</span> <span class="op">&lt;-</span> <span class="fu"><a href="optweight.html">optweight</a></span><span class="op">(</span><span class="va">treat</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">educ</span> <span class="op">+</span> <span class="va">married</span> <span class="op">+</span></span></span>
-<span class="r-in"><span>                <span class="va">nodegree</span> <span class="op">+</span> <span class="va">re74</span>, data <span class="op">=</span> <span class="va">lalonde</span>,</span></span>
-<span class="r-in"><span>                tols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">.1</span>, <span class="fl">.1</span>, <span class="fl">.1</span>, <span class="fl">.1</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>                estimand <span class="op">=</span> <span class="st">"ATT"</span><span class="op">)</span></span></span>
+<span class="r-in"><span>                   <span class="va">nodegree</span> <span class="op">+</span> <span class="va">re74</span>, data <span class="op">=</span> <span class="va">lalonde</span>,</span></span>
+<span class="r-in"><span>                 tols <span class="op">=</span> <span class="va">tols</span>,</span></span>
+<span class="r-in"><span>                 estimand <span class="op">=</span> <span class="st">"ATT"</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">ow2</span><span class="op">)</span> <span class="co"># Notice that tightening the constraint</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Summary of weights:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> - Weight ranges:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         Min                                  Max</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> treated   1                  ||           1.0000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> treated   1                  ||           1.    </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> control   0 |---------------------------| 1.7539</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> - Units with 5 greatest weights by group:</span>
@@ -164,29 +170,31 @@ weights</p></div>
 <span class="r-out co"><span class="r-pr">#&gt;</span>             419    404    412    387    395</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  control 1.7343 1.7441 1.7441 1.7539 1.7539</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         RMSE Dev Mean Abs Dev Max Abs Dev # Zeros</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> treated   0.0000       0.0000           0       0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> control   0.5338       0.4649           1       0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>            L2    L1 L∞ Rel Ent # Zeros</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> treated 0.    0.     0   0.          0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> control 0.534 0.465  1   0.183       0</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> - Effective Sample Sizes:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>            Control Treated</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Unweighted 429.000     185</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Weighted   333.863     185</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Unweighted  429.       185</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Weighted    333.86     185</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-in"><span>             <span class="co"># on age had a negligible effect on the</span></span></span>
-<span class="r-in"><span>             <span class="co"># variability of the weights and ESS</span></span></span>
+<span class="r-in"><span><span class="co">#              on age had a negligible effect on the</span></span></span>
+<span class="r-in"><span><span class="co">#              variability of the weights and ESS</span></span></span>
 <span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="va">tols</span><span class="op">[</span><span class="st">"age"</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fl">.1</span></span></span>
+<span class="r-in"><span><span class="va">tols</span><span class="op">[</span><span class="st">"married"</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fl">0</span></span></span>
 <span class="r-in"><span><span class="va">ow3</span> <span class="op">&lt;-</span> <span class="fu"><a href="optweight.html">optweight</a></span><span class="op">(</span><span class="va">treat</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">educ</span> <span class="op">+</span> <span class="va">married</span> <span class="op">+</span></span></span>
-<span class="r-in"><span>                <span class="va">nodegree</span> <span class="op">+</span> <span class="va">re74</span>, data <span class="op">=</span> <span class="va">lalonde</span>,</span></span>
-<span class="r-in"><span>                tols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">.1</span>, <span class="fl">.1</span>, <span class="fl">0</span>, <span class="fl">.1</span>, <span class="fl">.1</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>                estimand <span class="op">=</span> <span class="st">"ATT"</span><span class="op">)</span></span></span>
+<span class="r-in"><span>                   <span class="va">nodegree</span> <span class="op">+</span> <span class="va">re74</span>, data <span class="op">=</span> <span class="va">lalonde</span>,</span></span>
+<span class="r-in"><span>                 tols <span class="op">=</span> <span class="va">tols</span>,</span></span>
+<span class="r-in"><span>                 estimand <span class="op">=</span> <span class="st">"ATT"</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">ow3</span><span class="op">)</span> <span class="co"># In contrast, tightening the constraint</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Summary of weights:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> - Weight ranges:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         Min                                  Max</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> treated   1                ||             1.0000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> treated   1                ||             1.    </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> control   0 |---------------------------| 1.8712</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> - Units with 5 greatest weights by group:</span>
@@ -196,18 +204,18 @@ weights</p></div>
 <span class="r-out co"><span class="r-pr">#&gt;</span>            419    404    412    387    395</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  control 1.857 1.8641 1.8641 1.8712 1.8712</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         RMSE Dev Mean Abs Dev Max Abs Dev # Zeros</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> treated   0.0000       0.0000           0       0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> control   0.6763       0.6473           1       0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>            L2    L1 L∞ Rel Ent # Zeros</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> treated 0.    0.     0   0.          0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> control 0.676 0.647  1   0.277       0</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> - Effective Sample Sizes:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>            Control Treated</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Unweighted 429.000     185</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Weighted   294.354     185</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Unweighted  429.       185</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Weighted    294.35     185</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-in"><span>             <span class="co"># on married had a large effect on the</span></span></span>
-<span class="r-in"><span>             <span class="co"># variability of the weights, shrinking</span></span></span>
-<span class="r-in"><span>             <span class="co"># the ESS</span></span></span>
+<span class="r-in"><span><span class="co">#              on married had a large effect on the</span></span></span>
+<span class="r-in"><span><span class="co">#              variability of the weights, shrinking</span></span></span>
+<span class="r-in"><span><span class="co">#              the ESS</span></span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
