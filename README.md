@@ -16,9 +16,9 @@ the method described in Zubizarreta
 Zubizarreta ([2020](#ref-wangMinimalDispersionApproximately2020)).
 *optweight* extends the method to multi-category, continuous, and
 multivariate treatments and provides a simple user interface and
-compatibility with the *cobalt* package for balance assessment. See
-`vignette("optweight")` for a more thorough description of the package’s
-capabilities.
+compatibility with the [*cobalt*](https://ngreifer.github.io/cobalt/)
+package for balance assessment. See `vignette("optweight")` for a more
+thorough description of the package’s capabilities.
 
 To install *optweight*, use the code below:
 

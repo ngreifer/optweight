@@ -24,7 +24,7 @@ knitr::opts_chunk$set(
 [![CRAN_Downloads_Badge](http://cranlogs.r-pkg.org/badges/optweight?color=737373
 )](https://cran.r-project.org/package=optweight)
 
-*optweight* contains functions to estimate stable balancing weights that balance covariates up to given thresholds. It solves a convex optimization problem to minimize a function of the weights that captures their variability (or divergence from a set of base weights). This is the method described in @zubizarretaStableWeightsThat2015, @kallbergLargeSampleProperties2023, and @wangMinimalDispersionApproximately2020. *optweight* extends the method to multi-category, continuous, and multivariate treatments and provides a simple user interface and compatibility with the *cobalt* package for balance assessment. See `vignette("optweight")` for a more thorough description of the package's capabilities.
+*optweight* contains functions to estimate stable balancing weights that balance covariates up to given thresholds. It solves a convex optimization problem to minimize a function of the weights that captures their variability (or divergence from a set of base weights). This is the method described in @zubizarretaStableWeightsThat2015, @kallbergLargeSampleProperties2023, and @wangMinimalDispersionApproximately2020. *optweight* extends the method to multi-category, continuous, and multivariate treatments and provides a simple user interface and compatibility with the [*cobalt*](https://ngreifer.github.io/cobalt/) package for balance assessment. See `vignette("optweight")` for a more thorough description of the package's capabilities.
 
 To install *optweight*, use the code below:
 

@@ -10,7 +10,7 @@ reference:
   - optweight.svy
 - title: Process Inputs
 - contents: starts_with("process_")
-- title: Assessing Weights
+- title: Assess Weights
 - contents:
   - plot.optweight
   - summary.optweight
