@@ -1,21 +1,23 @@
-#' Estimate Stable Balancing Weights
+#' Stable Balancing Weights
 #'
-#' Estimate stable balancing weights for treatments and covariates specified in `formula`. The degree of balance for each covariate is specified by `tols` and the target population can be specified with `targets` or `estimand`. See Zubizarreta (2015) and Wang & Zubizarreta (2019) for details of the properties of the weights and the methods used to fit them.
+#' Estimates stable balancing weights for the supplied treatments and covariates. The degree of balance for each covariate is specified by `tols` and the target population can be specified with `targets` or `estimand`. See Zubizarreta (2015) and Wang & Zubizarreta (2020) for details of the properties of the weights and the methods used to fit them.
 #'
-#' @inheritParams optweight.fit
-#' @inheritDotParams optweight.fit min.w std.binary std.cont
-#' @inheritDotParams optweightMV.fit
-#' @param formula A formula with a treatment variable on the left hand side and the covariates to be balanced on the right hand side, or a list thereof. See [glm()] for more details. Interactions and functions of covariates are allowed.
-#' @param formula.list A list of formulas, each with a treatment variable on the left hand side and the covariates to be balanced on the right hand side.
-#' @param data An optional data set in the form of a data frame that contains the variables in `formula`.
-#' @param tols A vector of balance tolerance values for each covariate, or a list thereof. The resulting weighted balance statistics will be at least as small as these values. If only one value is supplied, it will be applied to all covariates. Can also be the output of a call to [process_tols()]. See Details.
-#' @param tols.list A list of vectors of balance tolerance values for each covariate for each treatment. The resulting weighted balance statistics will be at least as small as these values. If only one value is supplied, it will be applied to all covariates. See Details.
-#' @param estimand The desired estimand, which determines the target population. For binary treatments, can be "ATE", "ATT", "ATC", or `NULL`. For multi-category treatments, can be "ATE", "ATT", or `NULL`. For continuous treatments, can be "ATE" or `NULL`. The default for both is "ATE". For `optweightMV()`, only "ATE" or `NULL` are supported. `estimand` is ignored when `targets` is non-`NULL`. If both `estimand` and `targets` are `NULL`, no targeting will take place. See Details.
-#' @param targets A vector of target population mean values for each baseline covariate. The resulting weights will yield sample means within `tols`/2 units of the target values for each covariate. If `NULL` or all `NA`, `estimand` will be used to determine targets. Otherwise, `estimand` is ignored. If any target values are `NA`, the corresponding variable will not be targeted and its weighted mean will be wherever the weights yield the smallest variance. Can also be the output of a call to [process_targets()]. See Details.
-#' @param s.weights A vector of sampling weights or the name of a variable in `data` that contains sampling weights.
-#' @param b.weights A vector of base weights or the name of a variable in `data` that contains base weights. If supplied, the desired norm of the distance between the estimated weights and the base weights is minimized.
-#' @param norm `character`; a string containing the name of the norm corresponding to the objective function to minimize. Allowable options include `"l1"` for the L1 norm, `"l2"` for the L2 norm (the default), `"linf"` for the L\eqn{\infty} norm, `"entropy"` for the negative entropy, and `"log"` for the sum of the logs. See [optweight.fit()] for details.
-#' @param focal When multi-category treatments are used and `estimand = "ATT"`, which group to consider the "treated" or focal group. This group will not be weighted, and the other groups will be weighted to be more like the focal group. If specified, `estimand` will automatically be set to `"ATT"`.
+#' @param formula a formula with a treatment variable on the left hand side and the covariates to be balanced on the right hand side, or a list thereof. Interactions and functions of covariates are allowed.
+#' @param data an optional data set in the form of a data frame that contains the variables in `formula`.
+#' @param tols a vector of balance tolerance values for each covariate. The resulting weighted balance statistics will be at least as small as these values. If only one value is supplied, it will be applied to all covariates. Can also be the output of a call to [process_tols()]. See Details. Default is 0 for all covariates.
+#' @param estimand a string containing the desired estimand, which determines the target population. For binary treatments, can be "ATE", "ATT", "ATC", or `NULL`. For multi-category treatments, can be "ATE", "ATT", or `NULL`. For continuous treatments, can be "ATE" or `NULL`. The default for both is "ATE". `estimand` is ignored when `targets` is non-`NULL`. If both `estimand` and `targets` are `NULL`, no targeting will take place. See Details.
+#' @param targets an optional vector of target population mean values for each covariate. The resulting weights will yield sample means within `tols`/2 units of the target values for each covariate. If `NULL` or all `NA`, `estimand` will be used to determine targets. Otherwise, `estimand` is ignored. If any target values are `NA`, the corresponding variable will not be targeted and its weighted mean will be wherever the weights yield the smallest variance; this is only allowed for binary and multi-category treatments. Can also be the output of a call to [process_targets()]. See Details.
+#' @param s.weights a vector of sampling weights. For `optweight()`, can also be the name of a variable in `data` that contains sampling weights.
+#' @param b.weights a vector of base weights. If supplied, the desired norm of the distance between the estimated weights and the base weights is minimized. For `optweight()`, can also the name of a variable in `data` that contains base weights.
+#' @param norm `character`; a string containing the name of the norm corresponding to the objective function to minimize. Allowable options include `"l1"` for the L1 norm, `"l2"` for the L2 norm (the default), `"linf"` for the L\eqn{\infty} norm, `"entropy"` for the negative entropy, and `"log"` for the sum of the logs. See Details.
+#' @param focal when multi-category treatments are used and `estimand = "ATT"`, which group to consider the "treated" or focal group. This group will not be weighted, and the other groups will be weighted to be more like the focal group. If specified, `estimand` will automatically be set to `"ATT"`.
+#' @param covs a numeric matrix of covariates to be balanced.
+#' @param treat a vector of treatment statuses. Non-numeric (i.e., factor or character) vectors are allowed.
+#' @param std.binary,std.cont `logical`; whether the tolerances are in standardized mean units (`TRUE`) or raw units (`FALSE`) for binary variables and continuous variables, respectively. The default is `FALSE` for `std.binary` because raw proportion differences make more sense than standardized mean difference for binary variables. These arguments are analogous to the `binary` and `continuous` arguments in `bal.tab()` in \pkg{cobalt}.
+#' @param min.w `numeric`; a single value less than 1 for the smallest allowable weight. Some analyses require nonzero weights for all units, so a small, nonzero minimum may be desirable. The default is `1e-8` (\eqn{10^{-8}}), which does not materially change the properties of the weights from a minimum of 0 but prevents warnings in some packages that use weights in model fitting. When `norm` is `"entropy"` or `"log"` and `min.w <= 0`, `min.w` will be set to the smallest nonzero value.
+#' @param verbose `logical`; whether information on the optimization problem solution should be printed. Default is `FALSE`.
+#' @param solver string; the name of the optimization solver to use. Allowable options depend on `norm`. Default is to use whichever eligible solver is installed, if any, or the default solver for the corresponding `norm`. See Details for information.
+#' @param \dots for `optweight()`, additional arguments passed to `optweight.fit()`, including options that are passed to the settings function corresponding to `solver`.
 #'
 #' @returns
 #' For `optweight()`, an `optweight` object with the following elements:
@@ -29,36 +31,87 @@
 #' \item{call}{The function call.}
 #' \item{tols}{The tolerance values for each covariate.}
 #' \item{duals}{A data.frame containing the dual variables for each covariate. See Details for interpretation of these values.}
-#' \item{info}{Information about the performance of the optimization at termination.}
+#' \item{info}{A list containing information about the performance of the optimization at termination.}
+#' \item{norm}{The `norm` used.}
+#' \item{solver}{The `solver` used.}
 #'
-#' For `optweightMV()`, an `optweightMV` object with the following elements:
-#' \item{weights}{The estimated weights, one for each unit.}
-#' \item{treat.list}{A list of the values of the treatment variables.}
-#' \item{covs.list}{A list of the covariates for each treatment used in the fitting. Only includes the raw covariates, which may have been altered in the fitting process.}
-#' \item{s.weights}{The provided sampling weights.}
-#' \item{b.weights}{The provided base weights.}
-#' \item{call}{The function call.}
-#' \item{tols}{A list of tolerance values for each covariate for each treatment.}
-#' \item{duals}{A list of data.frames containing the dual variables for each covariate for each treatment. See Details for interpretation of these values.}
-#' \item{info}{Information about the performance of the optimization at termination.}
+#' For `optweight.fit()`, an `optweight.fit` object with the following elements:
+#' \item{w}{The estimated weights, one for each unit.}
+#' \item{duals}{A data.frame containing the dual variables for each covariate.}
+#' \item{info}{A list containing information about the performance of the optimization at termination.}
+#' \item{norm}{The `norm` used.}
+#' \item{solver}{The `solver` used.}
 #'
 #' @details
-#' The optimization is performed by the lower-level function [optweight.fit()] (for `optweight()`) or [optweightMV.fit()] (for `optweightMV()`).
+#' `optweight()` is the primary user-facing function for estimating stable balancing weights. The optimization is performed by the lower-level function `optweight.fit()`, which transforms the inputs into the required inputs for the optimization functions and then supplies the outputs (the weights, dual variables, and convergence information) back to `optweight()`. Little processing of inputs is performed by `optweight.fit()`, as this is normally handled by `optweight()`.
 #'
 #' For binary and multi-category treatments, weights are estimated so that the weighted mean differences of the covariates are within the given tolerance thresholds (unless `std.binary` or `std.cont` are `TRUE`, in which case standardized mean differences are considered for binary and continuous variables, respectively). For a covariate \eqn{x} with specified tolerance \eqn{\delta}, the weighted means of each each group will be within \eqn{\delta} of each other. Additionally, when the ATE is specified as the estimand or a target population is specified, the weighted means of each group will each be within \eqn{\delta/2} of the target means; this ensures generalizability to the same population from which the original sample was drawn.
 #'
 #' If standardized tolerance values are requested, the standardization factor corresponds to the estimand requested: when the ATE is requested or a target population specified, the standardization factor is the square root of the average variance for that covariate across treatment groups, and when the ATT or ATC are requested, the standardization factor is the standard deviation of the covariate in the focal group. The standardization factor is computed accounting for `s.weights`.
 #'
-#' For continuous treatments, weights are estimated so that the weighted correlation between the treatment and each covariate is within the specified tolerance threshold. If the ATE is requested or a target population is specified, the means of the weighted covariates and treatment are restricted to be equal to those of the target population to ensure generalizability to the desired target population. The weighted correlation is computed as the weighted covariance divided by the product of the *unweighted* standard deviations. The means used to center the variables in computing the covariance are those specified in the target population.
+#' For continuous treatments, weights are estimated so that the weighted correlation between the treatment and each covariate is within the specified tolerance threshold. The means of the weighted covariates and treatment are restricted to be exactly equal to those of the target population to ensure generalizability to the desired target population, regardless of `tols`. The weighted correlation is computed as the weighted covariance divided by the product of the *unweighted* standard deviations. The means used to center the variables in computing the covariance are those specified in the target population.
+#'
+#' Target and balance constraints are applied to the product of the estimated weights and the sampling weights. In addition,the sum of the product of the estimated weights and the sampling weights is constrained to be equal to the sum of the product of the base weights and sampling weights. For binary and multi-category treatments, these constraints apply within each treatment group.
+#'
+#' ## `norm`
+#'
+#' The objective function for the optimization problem is \eqn{f\left(w_i, b_i, s_i\right)}, where \eqn{w_i} is the estimated weight for unit \eqn{i}, \eqn{s_i} is the sampling weight for unit \eqn{i} (supplied by `s.weights`) and \eqn{b_i} is the base weight for unit \eqn{i} (supplied by `b.weights`). The `norm` argument determines \eqn{f(.,.,.)}, as detailed below:
+#'
+#' * when `norm = "l2"`, \eqn{f\left(w_i, b_i, s_i\right) = \frac{1}{n} \sum_i {s_i(w_i - b_i)^2}}
+#' * when `norm = "l1"`, \eqn{f\left(w_i, b_i, s_i\right) = \frac{1}{n} \sum_i {s_i \vert w_i - b_i \vert}}
+#' * when `norm = "linf"`, \eqn{f\left(w_i, b_i, s_i\right) = \max_i {\vert w_i - b_i \vert}}
+#' * when `norm = "entropy"`, \eqn{f\left(w_i, b_i, s_i\right) = \frac{1}{n} \sum_i {s_i w_i \log \frac{w_i}{b_i}}}
+#' * when `norm = "log"`, \eqn{f\left(w_i, b_i, s_i\right) = \frac{1}{n} \sum_i {-s_i \log \frac{w_i}{b_i}}}
+#'
+#' By default, `s.weights` and `b.weights` are set to 1 for all units unless supplied. `b.weights` must be positive when `norm` is `"entropy"` or `"log"`, and `norm = "linf"` cannot be used when `s.weights` are supplied.
+#'
+#' When `norm = "l2"` and both `s.weights` and `b.weights` are `NULL`, weights are estimated to maximize the effective sample size. When `norm = "entropy"`, the estimated weights are equivalent to entropy balancing weights (Källberg & Waernbaum, 2023). When `norm = "log"`, `b.weights` are ignored in the optimization, as they do not affect the estimated weights.
 #'
 #' ## Dual Variables
 #'
 #' Two types of constraints may be associated with each covariate: target constraints and balance constraints. Target constraints require the mean of the covariate to be at (or near) a specific target value in each treatment group (or for the whole group when treatment is continuous). Balance constraints require the means of the covariate in pairs of treatments to be near each other. For binary and multi-category treatments, balance constraints are redundant if target constraints are provided for a variable. For continuous variables, balance constraints refer to the correlation between treatment and the covariate and are not redundant with target constraints. In the `duals` component of the output, each covariate has a dual variable for each nonredundant constraint placed on it.
 #'
-#'   The dual variable for each constraint is the instantaneous rate of change of the objective function at the optimum corresponding to a change in the constraint. Because this relationship is not linear, large changes in the constraint will not exactly map onto corresponding changes in the objective function at the optimum, but will be close for small changes in the constraint. For example, for a covariate with a balance constraint of .01 and a corresponding dual variable of 40, increasing (i.e., relaxing) the constraint to .025 will decrease the value of the objective function at the optimum by approximately \eqn{(.025 - .01) * 40 = .6}.
+#' The dual variable for each constraint is the instantaneous rate of change of the objective function at the optimum corresponding to a change in the constraint. Because this relationship is not linear, large changes in the constraint will not exactly map onto corresponding changes in the objective function at the optimum, but will be close for small changes in the constraint. For example, for a covariate with a balance constraint of .01 and a corresponding dual variable of 40, increasing (i.e., relaxing) the constraint to .025 will decrease the value of the objective function at the optimum by approximately \eqn{(.025 - .01) * 40 = .6}.
 #'
-#'   For factor variables, `optweight()` takes the sum of the absolute dual variables for the constraints for all levels and reports it as the the single dual variable for the variable itself. This summed dual variable works the same way as dual variables for continuous variables do.
+#' For factor variables, `optweight()` takes the sum of the absolute dual variables for the constraints for all levels and reports it as the the single dual variable for the variable itself. This summed dual variable works the same way as dual variables for continuous variables do.
 #'
+#' ## `solver`
+#'
+#' The `solver` argument controls which optimization solver is used. Different solvers are compatible with each `norm`. See the table below for allowable options, which package they require, which function does the solving, and which function controls the settings.
+#'
+#' | `solver`     | `norm`                   | Package            | Solver function | Settings function |
+#' |--------------|--------------------------|--------------------|-----------------|-------------------|
+#' | `"osqp"`     | `"l2"`, `"l1"`, `"linf"` | \CRANpkg{osqp}     | [osqp::solve_osqp()] | [osqp::osqpSettings()] |
+#' | `"highs"`    | `"l2"`, `"l1"`, `"linf"` | \CRANpkg{highs}    | \pkgfun{highs}{highs_solve} | \pkgfun{highs}{highs_control} / \pkgfun{highs}{highs_available_solver_options} |
+#' | `"lpsolve"`  | `"l1"`, `"linf"`         | \CRANpkg{lpSolve}  | \pkgfun{lpSolve}{lp} | . |
+#' | `"scs"`      | `"entropy"`, `"log"`     | \CRANpkg{scs}      | \pkgfun{scs}{scs} | \pkgfun{scs}{scs_control} |
+#' | `"clarabel"` | `"entropy"`, `"log"`     | \CRANpkg{clarabel} | \pkgfun{clarabel}{clarabel} | \pkgfun{clarabel}{clarabel_control} |
+#'
+#' Note that `"lpsolve"` can only be used when `min.w` is nonnegative.
+#'
+#' The default `solver` for each `norm` is as follows:
+#'
+#' | `norm`      | Default `solver` |
+#' |-------------|------------------|
+#' | `"l2"`      | `"osqp"`         |
+#' | `"l1"`      | `"highs"`        |
+#' | `"linf"`    | `"highs"`        |
+#' | `"entropy"` | `"scs"`          |
+#' | `"log"`     | `"scs"`          |
+#'
+#' If the package corresponding to a default `solver` is not installed but the package for a different eligible solver is, that will be used. Otherwise, you will be asked to install the required package. \pkg{osqp} is required for \pkg{optweight}, and so will be the default for the `"l1"` and `"linf"` norms if \pkg{highs} is not installed. The default package is the one has shown good performance for the given norm; generally, all eligible solvers perform about equally well in terms of accuracy but differ in time taken.
+#'
+#' ## Solving Convergence Failure
+#'
+#' Sometimes the optimization will fail to converge at a solution. There are a variety of reasons why this might happen, which include that the constraints are nearly impossible to satisfy or that the optimization surface is relatively flat. It can be hard to know the exact cause or how to solve it, but this section offers some solutions one might try. Typically, solutions can be found most easily when using the `"l2"` norm; other norms, especially `"linf"` and `"l1"`, are more likely to see problems.
+#'
+#' Rarely is the problem too few iterations, though this is possible. Most problems can be solved in the default 200,000 iterations, but sometimes it can help to increase this number with the `max_iter` argument. Usually, though, this just ends up taking more time without a solution found.
+#'
+#' If the problem is that the constraints are too tight, it can be helpful to loosen the constraints. Sometimes examining the dual variables of a solution that has failed to converge can reveal which constraints are causing the problem.
+#'
+#' Sometimes a suboptimal solution is possible; such a solution does not satisfy the constraints exactly but will come pretty close. To allow these solutions, the argument `eps` can be increased to larger values. This is more likely to occur when `s.weights` are supplied.
+#'
+#' Sometimes using a different solver can improve performance. Using the default `solver` for each `norm`, as described above, can reduce the probability of convergence failures.
 #'
 #' @references
 #' Chattopadhyay, A., Cohn, E. R., & Zubizarreta, J. R. (2024). One-Step Weighting to Generalize and Transport Treatment Effect Estimates to a Target Population. *The American Statistician*, 78(3), 280–289. \doi{10.1080/00031305.2023.2267598}
@@ -70,7 +123,7 @@
 #' Zubizarreta, J. R. (2015). Stable Weights that Balance Covariates for Estimation With Incomplete Outcome Data. *Journal of the American Statistical Association*, 110(511), 910–922. \doi{10.1080/01621459.2015.1023805}
 #'
 #' @seealso
-#' [optweight.fit()], the lower-level function that performs the fitting. Links on that page can help with diagnosing and fixing more subtle issues with the optimization.
+#' [optweightMV()] for estimating stable balancing weights for multivariate (i.e., multiple) treatments simultaneously.
 #'
 #' \CRANpkg{sbw}, which was the inspiration for this package and provides some additional functionality for binary treatments.
 #'
@@ -118,15 +171,6 @@
 #'
 #' bal.tab(ow3b, disp.means = TRUE)
 #'
-#' # Balancing two treatments
-#' (ow4 <- optweightMV(list(treat ~ age + educ + race + re74,
-#'                          re75 ~ age + educ + race + re74),
-#'                     data = lalonde))
-#'
-#' summary(ow4)
-#'
-#' bal.tab(ow4)
-#'
 #' # Using a different norm
 #' (ow1b <- optweight(treat ~ age + educ + married +
 #'                     nodegree + re74, data = lalonde,
@@ -138,24 +182,30 @@
 #' summary(ow1, weight.range = FALSE)
 #'
 #' # Allowing for negative weights
-#' ow5 <- optweight(treat ~ age + educ + married + race +
+#' ow4 <- optweight(treat ~ age + educ + married + race +
 #'                    nodegree + re74 + re75,
 #'                  data = lalonde,
 #'                  estimand = "ATE",
 #'                  min.w = -Inf)
 #'
-#' summary(ow5)
+#' summary(ow4)
+#'
+#' # Using `optweight.fit()`
+#' treat <- lalonde$treat
+#' covs <- splitfactor(lalonde[2:8], drop.first = "if2")
+#'
+#' ow.fit <- optweight.fit(covs,
+#'                         treat = treat,
+#'                         tols = .02,
+#'                         estimand = "ATE",
+#'                         norm = "l2")
 
 #' @export
 optweight <- function(formula, data = NULL, tols = 0, estimand = "ATE",
                       targets = NULL, s.weights = NULL, b.weights = NULL, focal = NULL,
-                      norm = "l2", verbose = FALSE, ...) {
+                      norm = "l2", min.w = 1e-8, verbose = FALSE, ...) {
 
   mcall <- match.call()
-
-  chk::chk_string(norm)
-  norm <- tolower(norm)
-  norm <- match_arg(norm, allowable_norms())
 
   #Process treat and covs from formula and data
   t.c <- get_covs_and_treat_from_formula2(formula, data, sep = "_")
@@ -221,6 +271,7 @@ optweight <- function(formula, data = NULL, tols = 0, estimand = "ATE",
                            s.weights = sw,
                            b.weights = bw,
                            norm = norm,
+                           min.w = min.w,
                            verbose = verbose,
                            ...)
 
@@ -243,11 +294,12 @@ optweight <- function(formula, data = NULL, tols = 0, estimand = "ATE",
               b.weights = bw,
               estimand = switch(treat.type, continuous = NULL, reported.estimand),
               focal = focal,
-              norm = norm,
+              norm = fit_out$norm,
               call = mcall,
               tols = tols,
               duals = duals,
-              info = fit_out$info)
+              info = fit_out$info,
+              solver = fit_out$solver)
 
   class(out) <- "optweight"
 
@@ -256,109 +308,119 @@ optweight <- function(formula, data = NULL, tols = 0, estimand = "ATE",
 
 #' @export
 #' @rdname optweight
-optweightMV <- function(formula.list, data = NULL, tols.list = list(0), estimand = "ATE",
-                        targets = NULL, s.weights = NULL, b.weights = NULL, focal = NULL,
-                        norm = "l2", verbose = FALSE, ...) {
+optweight.fit <- function(covs, treat, tols = 0, estimand = "ATE",
+                          targets = NULL, s.weights = NULL, b.weights = NULL, focal = NULL,
+                          norm = "l2", std.binary = FALSE, std.cont = TRUE, min.w = 1e-8, verbose = FALSE,
+                          solver = NULL, ...) {
 
-  mcall <- match.call()
-
-  formula.list <- {
-    if (is.list(formula.list)) formula.list
-    else list(formula.list)
+  if ((!missing(covs) && is.list(covs) && !is.data.frame(covs)) || is_not_null(...get("covs.list")) ||
+      (!missing(treat) && is.list(treat)) || is_not_null(...get("treat.list"))) {
+    .err("`optweight.fit()` was called with list arguments; perhaps you meant to call `optweightMV.fit()")
   }
 
-  focal <- NULL
+  chk::chk_not_missing(covs, "`covs`")
+  chk::chk_not_missing(treat, "`treat`")
 
-  if (is_not_null(estimand)) {
-    estimand <- toupper(estimand)
-
-    if (estimand != "ATE") {
-      .err("the only estimand allowed with multivariate treatments is the ATE")
-    }
+  if (!is.numeric(covs) && (!is.data.frame(covs) || !all(apply(covs, 2L, is.numeric)))) {
+    .err("all covariates must be numeric")
   }
 
-  times <- seq_along(formula.list)
+  covs <- as.matrix(covs)
 
-  chk::chk_string(norm)
-  norm <- tolower(norm)
-  norm <- match_arg(norm, allowable_norms())
+  treat.name <- if_null_then(attr(treat, "treat.name"), "treat")
 
-  reported.covs.list <- simple.covs.list <- covs.list <- treat.list <- make_list(length(formula.list))
-  treat.names <- rep_with(NA_character_, times)
-  n <- rep_with(NA_integer_, times)
-
-  for (i in times) {
-    #Process treat and covs from formula and data
-    t.c <- get_covs_and_treat_from_formula2(formula.list[[i]], data, sep = "_")
-    simple.covs.list[[i]] <- t.c[["simple.covs"]]
-    reported.covs.list[[i]] <- t.c[["reported.covs"]]
-
-    covs.list[[i]] <- t.c[["model.covs"]]
-    treat.list[[i]] <- t.c[["treat"]]
-
-    #Get treat type
-    treat.list[[i]] <- assign_treat_type(treat.list[[i]])
-
-    if (is_null(covs.list[[i]])) {
-      .err(sprintf("no covariates were specified in the %s formula", ordinal(i)))
-    }
-
-    if (is_null(treat.list[[i]])) {
-      .err(sprintf("no treatment variable was specified in the %s formula", ordinal(i)))
-    }
-
-    treat.names[i] <- if_null_then(attr(treat.list[[i]], "treat.name"),
-                                   sprintf("treatment %s", i))
-
-    if (anyNA(treat.list[[i]]) || !all(is.finite(treat.list[[i]]))) {
-      .err(sprintf("no missing or non-finite values are allowed in the treatment variable. Missing or non-finite values were found in %s",
-                   treat.names[i]))
-    }
-
-    check_missing_covs(reported.covs.list[[i]])
-
-    n[i] <- length(treat.list[[i]])
+  treat.type <- {
+    if (chk::vld_character_or_factor(treat) || is_binary(treat)) "cat"
+    else "cont"
   }
 
-  if (!all_the_same(n)) {
-    .err("the same number of units must be present for each treatment")
+  N <- length(treat)
+
+  if (is_null(s.weights)) {
+    sw <- rep.int(1, N)
+  }
+  else {
+    chk::chk_numeric(s.weights)
+    chk::chk_length(s.weights, N)
+
+    sw <- s.weights
   }
 
-  #Process s.weights
-  sw <- process_s.weights(s.weights, data)
+  if (is_null(b.weights)) {
+    bw <- rep.int(1, N)
+  }
+  else {
+    chk::chk_numeric(b.weights)
+    chk::chk_length(b.weights, N)
 
-  #Process b.weights
-  bw <- process_b.weights(b.weights, data)
+    bw <- b.weights
+  }
 
   #Process tols
-  tols.list <- {
-    if (is.list(tols.list)) tols.list
-    else list(tols.list)
+  if (!inherits(tols, "optweight.tols") || is_null(attr(tols, "internal.tols"))) {
+    tols <- .process_tols_internal(covs, tols = tols, tols_found_in = "covs")
   }
 
-  if (length(tols.list) == 1L) {
-    tols.list <- tols.list[rep_with(1L, times)]
-  }
+  tols <- tols |>
+    attr("internal.tols") |>
+    abs()
 
-  for (i in times) {
-    tryCatch({
-      tols.list[[i]] <- .process_tols_internal(covs.list[[i]], tols.list[[i]],
-                                               reported.covs.list[[i]],
-                                               tols_found_in = "formula.list")
-    },
-    error = function(e) {
-      .err(sprintf("For %s, %s",
-                   treat.names[i], conditionMessage(e)),
-           tidy = FALSE)
-    })
-  }
+  #Process estimand and targets
+  if (treat.type == "cat") {
+    treat <- as.character(treat)
 
-  #Process targets
-  if (is_null(estimand) || is_not_null(targets)) {
-    if (is_null(estimand) && is_null(targets)) {
-      targets <- NA_real_
+    if (is_null(estimand)) {
+      if (is_null(targets)) {
+        targets <- NA_real_
+      }
     }
-    else if (is_not_null(estimand) && is_not_null(targets)) {
+    else if (is_not_null(targets)) {
+      .wrn("`targets` are not `NULL`; ignoring `estimand`")
+      estimand <- focal <- NULL
+    }
+    else {
+      chk::chk_string(estimand)
+      estimand <- toupper(estimand)
+
+      chk::chk_subset(estimand, c("ATE", "ATT", "ATC"))
+
+      if (estimand %in% c("ATT", "ATC")) {
+        if (is_null(focal)) {
+          .err(sprintf("`focal` must be supplied when `estimand = %s`",
+                       add_quotes(estimand)))
+        }
+
+        focal <- as.character(focal)
+
+        in_focal <- which(treat == focal)
+
+        if (is_null(in_focal)) {
+          .err("`focal` must be the name of a level of treatment")
+        }
+
+        targets <- col.w.m(covs[in_focal, , drop = FALSE],
+                           w = sw[in_focal])
+      }
+      else {
+        targets <- NULL # calculated automatically for ATE
+        focal <- in_focal <- NULL
+      }
+    }
+
+    if (!inherits(targets, "optweight.targets")) {
+      targets <- .process_targets_internal(covs, targets = targets, sw = sw,
+                                           targets_found_in = "covs")
+    }
+  }
+  else {
+    treat <- as.numeric(treat)
+
+    if (is_null(estimand)) {
+      if (is_null(targets)) {
+        targets <- NA_real_
+      }
+    }
+    else if (is_not_null(targets)) {
       .wrn("`targets` are not `NULL`; ignoring `estimand`")
       estimand <- NULL
     }
@@ -367,53 +429,147 @@ optweightMV <- function(formula.list, data = NULL, tols.list = list(0), estimand
       estimand <- toupper(estimand)
 
       if (estimand != "ATE") {
-        .err(sprintf("`estimand` cannot be %s with multivariate treatments",
+        .err(sprintf("`estimand` cannot be %s with continuous treatments",
                      add_quotes(estimand)))
       }
+
+      targets <- NULL # calculated automatically for ATE
     }
 
-    targets <- .process_targets_internal(cbind_distinct(covs.list), targets = targets, sw = sw,
-                                         cbind_distinct(reported.covs.list),
-                                         targets_found_in = "formula.list")
+    if (!inherits(targets, "optweight.targets")) {
+      targets <- .process_targets_internal(covs, targets = targets, sw = sw,
+                                           targets_found_in = "covs")
+    }
+
+    if (anyNA(targets)) {
+      .err("all covariates must have a target when continuous treatments are used")
+    }
+
+    focal <- NULL
   }
 
-  ###Run optweight.fit
-  fit_out <- optweightMV.fit(treat.list = treat.list,
-                             covs.list = covs.list,
-                             tols.list = tols.list,
-                             estimand = estimand,
-                             focal = focal,
-                             targets = targets,
-                             s.weights = sw,
-                             b.weights = bw,
-                             norm = norm,
-                             verbose = verbose,
-                             ...)
+  #Process norm
+  norm <- process_norm(norm, sw, bw)
 
-  test.w <- {
-    if (is_null(sw)) fit_out$w
-    else fit_out$w * sw
+  #Process min.w
+  min.w <- process_min.w(min.w, norm, bw)
+
+  #Process solver
+  solver <- process_solver(solver, norm, min.w)
+
+  #Process args
+  args <- make_process_opt_args(solver)(..., verbose = verbose)
+
+  constraint_df <- expand.grid(time = 1L,
+                               type = c("range_w", "mean_w", "balance", "target"),
+                               constraint = list(NULL),
+                               stringsAsFactors = FALSE,
+                               KEEP.OUT.ATTRS = FALSE)
+
+  bin.covs <- is_binary_col(covs)
+
+  range_cons <- constraint_range_w(sw, min.w, focal, treat)
+
+  if (treat.type == "cat") {
+    unique.treats <- sort(unique(treat))
+
+    n <- vapply(unique.treats,
+                function(t) sum(sw[treat == t] * bw[treat == t]),
+                numeric(1L))
+
+    sds <- {
+      if (is_not_null(focal))
+        sqrt(col.w.v(covs[in_focal, , drop = FALSE],
+                     w = sw[in_focal],
+                     bin.vars = bin.covs))
+      else
+        sqrt(colMeans(do.call("rbind", lapply(unique.treats, function(t) {
+          in_treat <- which(treat == t)
+
+          col.w.v(covs[in_treat, , drop = FALSE],
+                  w = sw[in_treat], bin.vars = bin.covs)
+        }))))
+    }
+
+    targeted <- !is.na(targets)
+
+    balanced <- !targeted
+
+    treat.sd <- NA_real_
+    treat.mean <- NA_real_
+
+    vars.to.standardize <- rep_with(FALSE, tols)
+    if (std.binary) vars.to.standardize[bin.covs] <- TRUE
+    if (std.cont) vars.to.standardize[!bin.covs] <- TRUE
+
+    to_std <- which(vars.to.standardize & !check_if_zero(sds))
+
+    if (is_not_null(to_std)) {
+      covs[, to_std] <- mat_div(covs[, to_std, drop = FALSE], sds[to_std])
+      targets[to_std] <- targets[to_std] / sds[to_std]
+    }
+
+    constraint_df[["constraint"]] <- list(
+      range_w = range_cons,
+      mean_w = constraint_mean_w_cat(treat, unique.treats, sw, n),
+      balance = constraint_balance_cat(covs, treat, sw, tols,
+                                       balanced, unique.treats, n),
+      target = constraint_target_cat(covs, treat, sw, targets,
+                                     tols, targeted, unique.treats, n, focal)
+    )
+  }
+  else {
+    n <- sum(sw * bw)
+
+    sds <- sqrt(col.w.v(covs, w = sw, bin.vars = bin.covs))
+
+    targeted <- !is.na(targets)
+
+    balanced <- rep_with(TRUE, targeted)
+
+    covs <- center(covs, at = targets) #center covs at targets (which will be eventual means)
+
+    treat.sd <- sqrt(col.w.v(treat, w = sw))
+    treat.mean <- w.m(treat, w = sw)
+
+    treat <- (treat - treat.mean) / treat.sd
+
+    to_std <- !check_if_zero(sds)
+
+    if (is_not_null(to_std)) {
+      covs[, to_std] <- mat_div(covs[, to_std, drop = FALSE], sds[to_std])
+      targets[to_std] <- targets[to_std] / sds[to_std]
+    }
+
+    constraint_df[["constraint"]] <- list(
+      range_w = range_cons,
+      mean_w = constraint_mean_w_cont(sw, n),
+      balance = constraint_balance_cont(covs, treat, sw, tols, balanced, n),
+      target = constraint_target_cont(covs, treat, sw, n, treat.name)
+    )
   }
 
-  if (anyNA(test.w)) {
-    .err("some weights are NA, which means something went wrong")
-  }
+  constraint_df <- constraint_df |>
+    prep_constraint_df(norm, bw, sw) |>
+    prep_constraint_df_for_solver(solver)
 
-  #Process duals
-  duals <- lapply(times, function(i) process_duals(fit_out$duals[[i]], tols.list[[i]]))
+  objective <- prep_objective(norm, bw, sw)
 
-  out <- list(weights = fit_out$w,
-              treat.list = treat.list,
-              covs.list = simple.covs.list,
-              s.weights = sw,
-              b.weights = bw,
+  opt_out <- opt_fit(constraint_df, objective, args, N,
+                     solver = solver)
+
+  w <- extract_weights(opt_out, N, min.w, range_cons)
+
+  duals <- extract_duals(constraint_df, opt_out$dual_out)
+
+  out <- list(w = w,
+              duals = duals[[1L]],
+              info = opt_out$info_out,
+              out = opt_out$out,
               norm = norm,
-              call = mcall,
-              tols = tols.list,
-              duals = duals,
-              info = fit_out$info)
+              solver = solver)
 
-  class(out) <- c("optweightMV", "optweight")
+  class(out) <- "optweight.fit"
 
   out
 }
@@ -426,7 +582,7 @@ print.optweight <- function(x, ...) {
     treat.type[treat.type == "multinomial"] <- "multi-category"
   }
 
-  cat(sprintf("An %s object\n", class(x)[1L]))
+  cat(sprintf("A %s object\n", .it(class(x)[1L])))
 
   cat(sprintf(" - number of obs.: %s\n",
               length(x[["weights"]])))
@@ -459,51 +615,6 @@ print.optweight <- function(x, ...) {
   cat(sprintf(" - covariates: %s\n",
               if (length(names(x[["covs"]])) > 60L) "too many to name"
               else toString(names(x[["covs"]]))))
-
-  invisible(x)
-}
-
-#' @exportS3Method print optweightMV
-print.optweightMV <- function(x, ...) {
-  treat.types <- vapply(x[["treat.list"]], attr, character(1L), "treat.type")
-  treat.types[treat.types == "multinomial"] <- "multi-category"
-
-  treat.names <- vapply(x[["treat.list"]], attr, character(1L), "treat.name")
-
-  cat(sprintf("An %s object\n", class(x)[1L]))
-
-  cat(sprintf(" - number of obs.: %s\n",
-              length(x[["weights"]])))
-
-  cat(sprintf(" - norm minimized: %s\n",
-              add_quotes(x[["norm"]])))
-
-  cat(sprintf(" - sampling weights: %s\n",
-              if (is_not_null(x[["s.weights"]]) && all_the_same(x[["s.weights"]])) "none" else "present"))
-
-  cat(sprintf(" - base weights: %s\n",
-              if (is_not_null(x[["b.weights"]]) && all_the_same(x[["b.weights"]])) "none" else "present"))
-
-  cat(sprintf(" - number of treatments: %s\n%s",
-              length(x[["treat.list"]]),
-              do.call("paste0", lapply(seq_along(x$covs.list), function(i) {
-                sprintf("    %s: %s\n",
-                        treat.names[i],
-                        switch(treat.types[i],
-                               continuous = "continuous",
-                               binary = "2-category",
-                               sprintf("%s-category (%s)",
-                                       nunique(x[["treat.list"]][[i]]),
-                                       toString(levels(x[["treat.list"]][[i]])))))
-              }))))
-
-  cat(sprintf(" - covariates: \n%s",
-              do.call("paste0", lapply(seq_along(x$covs.list), function(i) {
-                sprintf("    + for %s: %s\n",
-                        treat.names[i],
-                        if (length(names(x[["covs.list"]][[i]])) > 60L) "too many to name"
-                        else toString(names(x[["covs.list"]][[i]])))
-              }))))
 
   invisible(x)
 }
