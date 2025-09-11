@@ -1,5 +1,3 @@
-#This document is shared across cobalt, WeightIt, and optweight
-
 #Strings
 word_list <- function(word.list = NULL, and.or = "and", is.are = FALSE, quotes = FALSE) {
   #When given a vector of strings, creates a string of the form "a and b"
@@ -1447,3 +1445,8 @@ all_apply <- function(X, FUN, ...) {
 
   TRUE
 }
+
+#crayon utilities
+.it <- function(...) crayon::italic(...)
+.ul <- function(...) crayon::underline(...)
+.st <- function(...) crayon::strikethrough(...)

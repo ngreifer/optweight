@@ -1,6 +1,5 @@
 #chk utilities
 
-#Note: this version seems to do better when used inside tryCatch()
 pkg_caller_call <- function() {
   pn <- utils::packageName()
   package.funs <- c(getNamespaceExports(pn),
@@ -11,11 +10,7 @@ pkg_caller_call <- function() {
 
     n <- rlang::call_name(e)
 
-    if (is_null(n)) {
-      next
-    }
-
-    if (n %in% package.funs) {
+    if (is_not_null(n) && n %in% package.funs) {
       return(e)
     }
   }
@@ -43,13 +38,4 @@ pkg_caller_call <- function() {
 .msg <- function(..., n = NULL, tidy = TRUE) {
   m <- chk::message_chk(..., n = n, tidy = tidy)
   rlang::inform(paste(strwrap(m), collapse = "\n"), tidy = FALSE)
-}
-
-.chk_basic_vector <- function(x, x_name = NULL) {
-  if (is.atomic(x) && is.null(dim(x))) {
-    return(invisible(x))
-  }
-  if (is.null(x_name))
-    x_name <- chk::deparse_backtick_chk((substitute(x)))
-  chk::abort_chk(x_name, " must be an atomic, non-matrix vector", x = x)
 }

@@ -1,9 +1,9 @@
 #' Construct and Check Tolerance Input
 #'
-#' Checks whether proposed tolerance values for `tols` are suitable in number and order for submission to [optweight()]. Users should include one value per item in `formula`. The output can also be used as an input to `tols` in [optweight()].
+#' Checks whether proposed tolerance values for `tols` are suitable in number and order for submission to [optweight()] and [optweight.svy()], and returns an object that can supplied to the `tols` argument of these functions.
 #'
-#' @param formula a formula with the covariates to be balanced on the right-hand side. See [glm()] for more details. Interactions and functions of covariates are allowed. Lists of formulas are not allowed; multiple formulas must be checked one at a time.
-#' @param data an optional data set in the form of a data frame that contains the variables in `formula`.
+#' @inheritParams optweight
+#' @param formula a formula with the covariates to be balanced on the right-hand side. Interactions and functions of covariates are allowed. Lists of formulas are not allowed; multiple formulas must be checked one at a time.
 #' @param tols a vector of balance tolerance values in standardized mean difference units for each covariate. These should be in the order corresponding to the order of the corresponding variable in `formula`, except for interactions, which will appear after all lower-order terms. If only one value is supplied, it will be applied to all covariates.
 #' @param x an `optweight.tols` object; the output of a call to `process_tols()`.
 #' @param internal `logical`; whether to print the tolerance values that are to be used internally by [optweight()]. See Value section.
@@ -11,7 +11,7 @@
 #' @param ... ignored.
 #'
 #' @returns
-#' An `optweight.tols` object, which is a named vector of tolerance values, one for each variable specified in `formula`. This should be used as user inputs to [optweight()]. The `"internal.tols"` attribute contains the tolerance values to be used internally by [optweight()]. These will differ from the vector values when there are factor variables that are split up; the user only needs to submit one tolerance per factor variable, but separate tolerance values are produced for each new dummy created.
+#' An `optweight.tols` object, which is a named vector of tolerance values, one for each variable specified in `formula`. This should be used as an input to the `tols` argument of [optweight()]. The `"internal.tols"` attribute contains the tolerance values to be used internally by [optweight()]. These will differ from the vector values when there are factor variables that are split up; the user only needs to submit one tolerance per factor variable, but separate tolerance values are produced for each new dummy created.
 #'
 #' @details
 #' The purpose of `process_tols()` is to allow users to ensure that their proposed input to `tols` in [optweight()] is correct both in the number of entries and their order. This is especially important when factor variables and interactions are included in the formula because factor variables are split into several dummies and interactions are moved to the end of the variable list, both of which can cause some confusion and potential error when entering `tols` values.
@@ -19,8 +19,6 @@
 #' Factor variables are internally split into a dummy variable for each level, but the user only needs to specify one tolerance value per original variable; `process_tols()` automatically expands the `tols` input to match the newly created variables.
 #'
 #' Interactions (e.g., `a:b` or `a*b` in the `formula` input) are always sent to the end of the variable list even if they are specified elsewhere in the `formula`. It is important to run `process_tols()` to ensure the order of the proposed `tols` corresponds to the represented order of covariates used in [optweight()]. You can run `process_tols()` with no `tols` input to see the order of covariates that is required.
-#'
-#' `process_tols()` was designed to be used primarily for its message printing and `print()` method, but you can also assign its output to an object for use as an input to `tols` in [optweight()].
 #'
 #' Note that only one formula and vector of tolerance values can be assessed at a time; for multiple treatments, each formula and tolerance vector must be entered separately.
 #'
@@ -179,15 +177,15 @@ print.optweight.tols <- function(x, internal = FALSE, digits = 5, ...) {
   names(tols) <- names(x)
 
   if (all(is.na(tols))) {
-    cat(sprintf("- vars:\n\t%s",
-                paste(names(tols), collapse = space(3L))))
+    cat0(" - ", .it("variables"), ":\n\t",
+         paste(names(tols), collapse = space(3L)))
   }
   else {
-    cat("- tols:\n")
+    cat0(" - ", .it("tols"), ":\n")
     print(round(tols, digits))
 
     if (internal && is_not_null(internal.tols)) {
-      cat("\n- tols used internally by optweight:\n")
+      cat0("\n - ", .it("tols used internally by optweight"), ":\n")
       print(round(internal.tols, digits))
     }
   }

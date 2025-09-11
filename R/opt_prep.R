@@ -689,10 +689,10 @@ opt_fit <- function(constraint_df, objective, args, N, solver = "osqp") {
     if (is_not_null(status_val) && chk::vld_number(status_val)) {
       if (status_val == 8) {
         .wrn(sprintf("the optimization failed to find a solution after %s iterations. The problem may be infeasible or more iterations may be required. Check the dual variables to see which constraints are likely causing this issue",
-                     info_out$iterations))
+                     info_out$iterations), immediate = FALSE)
       }
       else if (status_val != 2) {
-        .wrn("the optimization failed to find a stable solution")
+        .wrn("the optimization failed to find a stable solution", immediate = FALSE)
       }
     }
   }
@@ -737,10 +737,10 @@ opt_fit <- function(constraint_df, objective, args, N, solver = "osqp") {
     if (is_not_null(status_val) && chk::vld_number(status_val)) {
       if (status_val == 2) {
         .wrn(sprintf("the optimization failed to find a solution after %s iterations. The problem may be infeasible or more iterations may be required. Check the dual variables to see which constraints are likely causing this issue",
-                     info_out$iter))
+                     info_out$iter), immediate = FALSE)
       }
       else if (status_val != 1) {
-        .wrn("the optimization failed to find a stable solution")
+        .wrn("the optimization failed to find a stable solution", immediate = FALSE)
       }
     }
   }
@@ -759,10 +759,10 @@ opt_fit <- function(constraint_df, objective, args, N, solver = "osqp") {
     if (is_not_null(status_val) && chk::vld_number(status_val)) {
       if (status_val == -2) {
         .wrn(sprintf("the optimization failed to find a solution after %s iterations. The problem may be infeasible or more iterations may be required. Check the dual variables to see which constraints are likely causing this issue",
-                     info_out$iter))
+                     info_out$iter), immediate = FALSE)
       }
       else if (status_val != 1) {
-        .wrn("the optimization failed to find a stable solution")
+        .wrn("the optimization failed to find a stable solution", immediate = FALSE)
       }
     }
   }
@@ -802,7 +802,7 @@ opt_fit <- function(constraint_df, objective, args, N, solver = "osqp") {
     status_val <- info_out$status
     if (is_not_null(status_val) && chk::vld_number(status_val)) {
       if (status_val != 7) {
-        .wrn("the optimization failed to find a stable solution")
+        .wrn("the optimization failed to find a stable solution", immediate = FALSE)
       }
     }
   }
@@ -834,7 +834,7 @@ opt_fit <- function(constraint_df, objective, args, N, solver = "osqp") {
     status_val <- info_out$status
     if (is_not_null(status_val) && chk::vld_number(status_val)) {
       if (status_val != 0) {
-        .wrn("the optimization failed to find a stable solution")
+        .wrn("the optimization failed to find a stable solution", immediate = FALSE)
       }
     }
   }

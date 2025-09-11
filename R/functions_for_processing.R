@@ -258,6 +258,34 @@ process_b.weights <- function(b.weights, data = NULL) {
 
   as.numeric(data[[b.weights]])
 }
+process_norm <- function(norm, s.weights, b.weights) {
+  chk::chk_string(norm)
+
+  norm <- tolower(norm)
+
+  norm <- match_arg(norm, allowable_norms())
+
+  if (norm == "linf" && !all_the_same(s.weights)) {
+    .err("the L-inf norm cannot be used with sampling weights")
+  }
+
+  if (norm %in% c("entropy", "log") && any(b.weights <= 0)) {
+    .err(sprintf("all base weights must be positive when `norm = %s`",
+                 add_quotes(norm)))
+  }
+
+  norm
+}
+process_min.w <- function(min.w, norm, b.weights) {
+  chk::chk_number(min.w)
+  chk::chk_lte(min.w, mean(b.weights))
+
+  if (norm %in% c("entropy", "log")) {
+    min.w <- max(min.w, .Machine$double.eps)
+  }
+
+  min.w
+}
 
 check_missing_covs <- function(covs) {
   k <- ncol(covs)
