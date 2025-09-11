@@ -2,8 +2,8 @@
 % Please edit documentation in R/optweight.R
 \name{optweight}
 \alias{optweight}
-\alias{optweightMV}
-\title{Estimate Stable Balancing Weights}
+\alias{optweight.fit}
+\title{Stable Balancing Weights}
 \usage{
 optweight(
   formula,
@@ -15,58 +15,61 @@ optweight(
   b.weights = NULL,
   focal = NULL,
   norm = "l2",
+  min.w = 1e-08,
   verbose = FALSE,
   ...
 )
 
-optweightMV(
-  formula.list,
-  data = NULL,
-  tols.list = list(0),
+optweight.fit(
+  covs,
+  treat,
+  tols = 0,
   estimand = "ATE",
   targets = NULL,
   s.weights = NULL,
   b.weights = NULL,
   focal = NULL,
   norm = "l2",
+  std.binary = FALSE,
+  std.cont = TRUE,
+  min.w = 1e-08,
   verbose = FALSE,
+  solver = NULL,
   ...
 )
 }
 \arguments{
-\item{formula}{A formula with a treatment variable on the left hand side and the covariates to be balanced on the right hand side, or a list thereof. See \code{\link[=glm]{glm()}} for more details. Interactions and functions of covariates are allowed.}
+\item{formula}{a formula with a treatment variable on the left hand side and the covariates to be balanced on the right hand side, or a list thereof. Interactions and functions of covariates are allowed.}
 
-\item{data}{An optional data set in the form of a data frame that contains the variables in \code{formula}.}
+\item{data}{an optional data set in the form of a data frame that contains the variables in \code{formula}.}
 
-\item{tols}{A vector of balance tolerance values for each covariate, or a list thereof. The resulting weighted balance statistics will be at least as small as these values. If only one value is supplied, it will be applied to all covariates. Can also be the output of a call to \code{\link[=process_tols]{process_tols()}}. See Details.}
+\item{tols}{a vector of balance tolerance values for each covariate. The resulting weighted balance statistics will be at least as small as these values. If only one value is supplied, it will be applied to all covariates. Can also be the output of a call to \code{\link[=process_tols]{process_tols()}}. See Details. Default is 0 for all covariates.}
 
-\item{estimand}{The desired estimand, which determines the target population. For binary treatments, can be "ATE", "ATT", "ATC", or \code{NULL}. For multi-category treatments, can be "ATE", "ATT", or \code{NULL}. For continuous treatments, can be "ATE" or \code{NULL}. The default for both is "ATE". For \code{optweightMV()}, only "ATE" or \code{NULL} are supported. \code{estimand} is ignored when \code{targets} is non-\code{NULL}. If both \code{estimand} and \code{targets} are \code{NULL}, no targeting will take place. See Details.}
+\item{estimand}{a string containing the desired estimand, which determines the target population. For binary treatments, can be "ATE", "ATT", "ATC", or \code{NULL}. For multi-category treatments, can be "ATE", "ATT", or \code{NULL}. For continuous treatments, can be "ATE" or \code{NULL}. The default for both is "ATE". \code{estimand} is ignored when \code{targets} is non-\code{NULL}. If both \code{estimand} and \code{targets} are \code{NULL}, no targeting will take place. See Details.}
 
-\item{targets}{A vector of target population mean values for each baseline covariate. The resulting weights will yield sample means within \code{tols}/2 units of the target values for each covariate. If \code{NULL} or all \code{NA}, \code{estimand} will be used to determine targets. Otherwise, \code{estimand} is ignored. If any target values are \code{NA}, the corresponding variable will not be targeted and its weighted mean will be wherever the weights yield the smallest variance. Can also be the output of a call to \code{\link[=process_targets]{process_targets()}}. See Details.}
+\item{targets}{an optional vector of target population mean values for each covariate. The resulting weights will yield sample means within \code{tols}/2 units of the target values for each covariate. If \code{NULL} or all \code{NA}, \code{estimand} will be used to determine targets. Otherwise, \code{estimand} is ignored. If any target values are \code{NA}, the corresponding variable will not be targeted and its weighted mean will be wherever the weights yield the smallest variance; this is only allowed for binary and multi-category treatments. Can also be the output of a call to \code{\link[=process_targets]{process_targets()}}. See Details.}
 
-\item{s.weights}{A vector of sampling weights or the name of a variable in \code{data} that contains sampling weights.}
+\item{s.weights}{a vector of sampling weights. For \code{optweight()}, can also be the name of a variable in \code{data} that contains sampling weights.}
 
-\item{b.weights}{A vector of base weights or the name of a variable in \code{data} that contains base weights. If supplied, the desired norm of the distance between the estimated weights and the base weights is minimized.}
+\item{b.weights}{a vector of base weights. If supplied, the desired norm of the distance between the estimated weights and the base weights is minimized. For \code{optweight()}, can also the name of a variable in \code{data} that contains base weights.}
 
-\item{focal}{When multi-category treatments are used and \code{estimand = "ATT"}, which group to consider the "treated" or focal group. This group will not be weighted, and the other groups will be weighted to be more like the focal group. If specified, \code{estimand} will automatically be set to \code{"ATT"}.}
+\item{focal}{when multi-category treatments are used and \code{estimand = "ATT"}, which group to consider the "treated" or focal group. This group will not be weighted, and the other groups will be weighted to be more like the focal group. If specified, \code{estimand} will automatically be set to \code{"ATT"}.}
 
-\item{norm}{\code{character}; a string containing the name of the norm corresponding to the objective function to minimize. Allowable options include \code{"l1"} for the L1 norm, \code{"l2"} for the L2 norm (the default), \code{"linf"} for the L\eqn{\infty} norm, \code{"entropy"} for the negative entropy, and \code{"log"} for the sum of the logs. See \code{\link[=optweight.fit]{optweight.fit()}} for details.}
+\item{norm}{\code{character}; a string containing the name of the norm corresponding to the objective function to minimize. Allowable options include \code{"l1"} for the L1 norm, \code{"l2"} for the L2 norm (the default), \code{"linf"} for the L\eqn{\infty} norm, \code{"entropy"} for the negative entropy, and \code{"log"} for the sum of the logs. See Details.}
+
+\item{min.w}{\code{numeric}; a single value less than 1 for the smallest allowable weight. Some analyses require nonzero weights for all units, so a small, nonzero minimum may be desirable. The default is \code{1e-8} (\eqn{10^{-8}}), which does not materially change the properties of the weights from a minimum of 0 but prevents warnings in some packages that use weights in model fitting. When \code{norm} is \code{"entropy"} or \code{"log"} and \code{min.w <= 0}, \code{min.w} will be set to the smallest nonzero value.}
 
 \item{verbose}{\code{logical}; whether information on the optimization problem solution should be printed. Default is \code{FALSE}.}
 
-\item{...}{
-  Arguments passed on to \code{\link[=optweight.fit]{optweight.fit}}, \code{\link[=optweightMV.fit]{optweightMV.fit}}
-  \describe{
-    \item{\code{std.binary,std.cont}}{\code{logical}; whether the tolerances are in standardized mean units (\code{TRUE}) or raw units (\code{FALSE}) for binary variables and continuous variables, respectively. The default is \code{FALSE} for \code{std.binary} because raw proportion differences make more sense than standardized mean difference for binary variables. These arguments are analogous to the \code{binary} and \code{continuous} arguments in \code{bal.tab()} in \pkg{cobalt}.}
-    \item{\code{min.w}}{\code{numeric}; a single value less than 1 for the smallest allowable weight. Some analyses require nonzero weights for all units, so a small, nonzero minimum may be desirable. The default is \code{1e-8} (\eqn{10^{-8}}), which does not materially change the properties of the weights from a minimum of 0 but prevents warnings in some packages that use weights to estimate treatment effects. When \code{norm} is \code{"entropy"} or \code{"log"} and \code{min.w <= 0}, \code{min.w} will be set to the smallest nonzero value.}
-    \item{\code{covs.list}}{a list containing one numeric matrix of covariates to be balanced for each treatment.}
-    \item{\code{treat.list}}{a list containing one vector of treatment statuses for each treatment.}
-    \item{\code{solver}}{string; the name of the optimization solver to use. Allowable options depend on \code{norm}. Default is to use whichever eligible solver is installed, if any, or the default solver for the corresponding \code{norm}. See Details for information.}
-  }}
+\item{\dots}{for \code{optweight()}, additional arguments passed to \code{optweight.fit()}, including options that are passed to the settings function corresponding to \code{solver}.}
 
-\item{formula.list}{A list of formulas, each with a treatment variable on the left hand side and the covariates to be balanced on the right hand side.}
+\item{covs}{a numeric matrix of covariates to be balanced.}
 
-\item{tols.list}{A list of vectors of balance tolerance values for each covariate for each treatment. The resulting weighted balance statistics will be at least as small as these values. If only one value is supplied, it will be applied to all covariates. See Details.}
+\item{treat}{a vector of treatment statuses. Non-numeric (i.e., factor or character) vectors are allowed.}
+
+\item{std.binary, std.cont}{\code{logical}; whether the tolerances are in standardized mean units (\code{TRUE}) or raw units (\code{FALSE}) for binary variables and continuous variables, respectively. The default is \code{FALSE} for \code{std.binary} because raw proportion differences make more sense than standardized mean difference for binary variables. These arguments are analogous to the \code{binary} and \code{continuous} arguments in \code{bal.tab()} in \pkg{cobalt}.}
+
+\item{solver}{string; the name of the optimization solver to use. Allowable options depend on \code{norm}. Default is to use whichever eligible solver is installed, if any, or the default solver for the corresponding \code{norm}. See Details for information.}
 }
 \value{
 For \code{optweight()}, an \code{optweight} object with the following elements:
@@ -80,30 +83,46 @@ For \code{optweight()}, an \code{optweight} object with the following elements:
 \item{call}{The function call.}
 \item{tols}{The tolerance values for each covariate.}
 \item{duals}{A data.frame containing the dual variables for each covariate. See Details for interpretation of these values.}
-\item{info}{Information about the performance of the optimization at termination.}
+\item{info}{A list containing information about the performance of the optimization at termination.}
+\item{norm}{The \code{norm} used.}
+\item{solver}{The \code{solver} used.}
 
-For \code{optweightMV()}, an \code{optweightMV} object with the following elements:
-\item{weights}{The estimated weights, one for each unit.}
-\item{treat.list}{A list of the values of the treatment variables.}
-\item{covs.list}{A list of the covariates for each treatment used in the fitting. Only includes the raw covariates, which may have been altered in the fitting process.}
-\item{s.weights}{The provided sampling weights.}
-\item{b.weights}{The provided base weights.}
-\item{call}{The function call.}
-\item{tols}{A list of tolerance values for each covariate for each treatment.}
-\item{duals}{A list of data.frames containing the dual variables for each covariate for each treatment. See Details for interpretation of these values.}
-\item{info}{Information about the performance of the optimization at termination.}
+For \code{optweight.fit()}, an \code{optweight.fit} object with the following elements:
+\item{w}{The estimated weights, one for each unit.}
+\item{duals}{A data.frame containing the dual variables for each covariate.}
+\item{info}{A list containing information about the performance of the optimization at termination.}
+\item{norm}{The \code{norm} used.}
+\item{solver}{The \code{solver} used.}
 }
 \description{
-Estimate stable balancing weights for treatments and covariates specified in \code{formula}. The degree of balance for each covariate is specified by \code{tols} and the target population can be specified with \code{targets} or \code{estimand}. See Zubizarreta (2015) and Wang & Zubizarreta (2019) for details of the properties of the weights and the methods used to fit them.
+Estimates stable balancing weights for the supplied treatments and covariates. The degree of balance for each covariate is specified by \code{tols} and the target population can be specified with \code{targets} or \code{estimand}. See Zubizarreta (2015) and Wang & Zubizarreta (2020) for details of the properties of the weights and the methods used to fit them.
 }
 \details{
-The optimization is performed by the lower-level function \code{\link[=optweight.fit]{optweight.fit()}} (for \code{optweight()}) or \code{\link[=optweightMV.fit]{optweightMV.fit()}} (for \code{optweightMV()}).
+\code{optweight()} is the primary user-facing function for estimating stable balancing weights. The optimization is performed by the lower-level function \code{optweight.fit()}, which transforms the inputs into the required inputs for the optimization functions and then supplies the outputs (the weights, dual variables, and convergence information) back to \code{optweight()}. Little processing of inputs is performed by \code{optweight.fit()}, as this is normally handled by \code{optweight()}.
 
 For binary and multi-category treatments, weights are estimated so that the weighted mean differences of the covariates are within the given tolerance thresholds (unless \code{std.binary} or \code{std.cont} are \code{TRUE}, in which case standardized mean differences are considered for binary and continuous variables, respectively). For a covariate \eqn{x} with specified tolerance \eqn{\delta}, the weighted means of each each group will be within \eqn{\delta} of each other. Additionally, when the ATE is specified as the estimand or a target population is specified, the weighted means of each group will each be within \eqn{\delta/2} of the target means; this ensures generalizability to the same population from which the original sample was drawn.
 
 If standardized tolerance values are requested, the standardization factor corresponds to the estimand requested: when the ATE is requested or a target population specified, the standardization factor is the square root of the average variance for that covariate across treatment groups, and when the ATT or ATC are requested, the standardization factor is the standard deviation of the covariate in the focal group. The standardization factor is computed accounting for \code{s.weights}.
 
-For continuous treatments, weights are estimated so that the weighted correlation between the treatment and each covariate is within the specified tolerance threshold. If the ATE is requested or a target population is specified, the means of the weighted covariates and treatment are restricted to be equal to those of the target population to ensure generalizability to the desired target population. The weighted correlation is computed as the weighted covariance divided by the product of the \emph{unweighted} standard deviations. The means used to center the variables in computing the covariance are those specified in the target population.
+For continuous treatments, weights are estimated so that the weighted correlation between the treatment and each covariate is within the specified tolerance threshold. The means of the weighted covariates and treatment are restricted to be exactly equal to those of the target population to ensure generalizability to the desired target population, regardless of \code{tols}. The weighted correlation is computed as the weighted covariance divided by the product of the \emph{unweighted} standard deviations. The means used to center the variables in computing the covariance are those specified in the target population.
+
+Target and balance constraints are applied to the product of the estimated weights and the sampling weights. In addition,the sum of the product of the estimated weights and the sampling weights is constrained to be equal to the sum of the product of the base weights and sampling weights. For binary and multi-category treatments, these constraints apply within each treatment group.
+\subsection{\code{norm}}{
+
+The objective function for the optimization problem is \eqn{f\left(w_i, b_i, s_i\right)}, where \eqn{w_i} is the estimated weight for unit \eqn{i}, \eqn{s_i} is the sampling weight for unit \eqn{i} (supplied by \code{s.weights}) and \eqn{b_i} is the base weight for unit \eqn{i} (supplied by \code{b.weights}). The \code{norm} argument determines \eqn{f(.,.,.)}, as detailed below:
+\itemize{
+\item when \code{norm = "l2"}, \eqn{f\left(w_i, b_i, s_i\right) = \frac{1}{n} \sum_i {s_i(w_i - b_i)^2}}
+\item when \code{norm = "l1"}, \eqn{f\left(w_i, b_i, s_i\right) = \frac{1}{n} \sum_i {s_i \vert w_i - b_i \vert}}
+\item when \code{norm = "linf"}, \eqn{f\left(w_i, b_i, s_i\right) = \max_i {\vert w_i - b_i \vert}}
+\item when \code{norm = "entropy"}, \eqn{f\left(w_i, b_i, s_i\right) = \frac{1}{n} \sum_i {s_i w_i \log \frac{w_i}{b_i}}}
+\item when \code{norm = "log"}, \eqn{f\left(w_i, b_i, s_i\right) = \frac{1}{n} \sum_i {-s_i \log \frac{w_i}{b_i}}}
+}
+
+By default, \code{s.weights} and \code{b.weights} are set to 1 for all units unless supplied. \code{b.weights} must be positive when \code{norm} is \code{"entropy"} or \code{"log"}, and \code{norm = "linf"} cannot be used when \code{s.weights} are supplied.
+
+When \code{norm = "l2"} and both \code{s.weights} and \code{b.weights} are \code{NULL}, weights are estimated to maximize the effective sample size. When \code{norm = "entropy"}, the estimated weights are equivalent to entropy balancing weights (Källberg & Waernbaum, 2023). When \code{norm = "log"}, \code{b.weights} are ignored in the optimization, as they do not affect the estimated weights.
+}
+
 \subsection{Dual Variables}{
 
 Two types of constraints may be associated with each covariate: target constraints and balance constraints. Target constraints require the mean of the covariate to be at (or near) a specific target value in each treatment group (or for the whole group when treatment is continuous). Balance constraints require the means of the covariate in pairs of treatments to be near each other. For binary and multi-category treatments, balance constraints are redundant if target constraints are provided for a variable. For continuous variables, balance constraints refer to the correlation between treatment and the covariate and are not redundant with target constraints. In the \code{duals} component of the output, each covariate has a dual variable for each nonredundant constraint placed on it.
@@ -111,6 +130,46 @@ Two types of constraints may be associated with each covariate: target constrain
 The dual variable for each constraint is the instantaneous rate of change of the objective function at the optimum corresponding to a change in the constraint. Because this relationship is not linear, large changes in the constraint will not exactly map onto corresponding changes in the objective function at the optimum, but will be close for small changes in the constraint. For example, for a covariate with a balance constraint of .01 and a corresponding dual variable of 40, increasing (i.e., relaxing) the constraint to .025 will decrease the value of the objective function at the optimum by approximately \eqn{(.025 - .01) * 40 = .6}.
 
 For factor variables, \code{optweight()} takes the sum of the absolute dual variables for the constraints for all levels and reports it as the the single dual variable for the variable itself. This summed dual variable works the same way as dual variables for continuous variables do.
+}
+
+\subsection{\code{solver}}{
+
+The \code{solver} argument controls which optimization solver is used. Different solvers are compatible with each \code{norm}. See the table below for allowable options, which package they require, which function does the solving, and which function controls the settings.\tabular{lllll}{
+   \code{solver} \tab \code{norm} \tab Package \tab Solver function \tab Settings function \cr
+   \code{"osqp"} \tab \code{"l2"}, \code{"l1"}, \code{"linf"} \tab \CRANpkg{osqp} \tab \code{\link[osqp:solve_osqp]{osqp::solve_osqp()}} \tab \code{\link[osqp:osqpSettings]{osqp::osqpSettings()}} \cr
+   \code{"highs"} \tab \code{"l2"}, \code{"l1"}, \code{"linf"} \tab \CRANpkg{highs} \tab \pkgfun{highs}{highs_solve} \tab \pkgfun{highs}{highs_control} / \pkgfun{highs}{highs_available_solver_options} \cr
+   \code{"lpsolve"} \tab \code{"l1"}, \code{"linf"} \tab \CRANpkg{lpSolve} \tab \pkgfun{lpSolve}{lp} \tab . \cr
+   \code{"scs"} \tab \code{"entropy"}, \code{"log"} \tab \CRANpkg{scs} \tab \pkgfun{scs}{scs} \tab \pkgfun{scs}{scs_control} \cr
+   \code{"clarabel"} \tab \code{"entropy"}, \code{"log"} \tab \CRANpkg{clarabel} \tab \pkgfun{clarabel}{clarabel} \tab \pkgfun{clarabel}{clarabel_control} \cr
+}
+
+
+Note that \code{"lpsolve"} can only be used when \code{min.w} is nonnegative.
+
+The default \code{solver} for each \code{norm} is as follows:\tabular{ll}{
+   \code{norm} \tab Default \code{solver} \cr
+   \code{"l2"} \tab \code{"osqp"} \cr
+   \code{"l1"} \tab \code{"highs"} \cr
+   \code{"linf"} \tab \code{"highs"} \cr
+   \code{"entropy"} \tab \code{"scs"} \cr
+   \code{"log"} \tab \code{"scs"} \cr
+}
+
+
+If the package corresponding to a default \code{solver} is not installed but the package for a different eligible solver is, that will be used. Otherwise, you will be asked to install the required package. \pkg{osqp} is required for \pkg{optweight}, and so will be the default for the \code{"l1"} and \code{"linf"} norms if \pkg{highs} is not installed. The default package is the one has shown good performance for the given norm; generally, all eligible solvers perform about equally well in terms of accuracy but differ in time taken.
+}
+
+\subsection{Solving Convergence Failure}{
+
+Sometimes the optimization will fail to converge at a solution. There are a variety of reasons why this might happen, which include that the constraints are nearly impossible to satisfy or that the optimization surface is relatively flat. It can be hard to know the exact cause or how to solve it, but this section offers some solutions one might try. Typically, solutions can be found most easily when using the \code{"l2"} norm; other norms, especially \code{"linf"} and \code{"l1"}, are more likely to see problems.
+
+Rarely is the problem too few iterations, though this is possible. Most problems can be solved in the default 200,000 iterations, but sometimes it can help to increase this number with the \code{max_iter} argument. Usually, though, this just ends up taking more time without a solution found.
+
+If the problem is that the constraints are too tight, it can be helpful to loosen the constraints. Sometimes examining the dual variables of a solution that has failed to converge can reveal which constraints are causing the problem.
+
+Sometimes a suboptimal solution is possible; such a solution does not satisfy the constraints exactly but will come pretty close. To allow these solutions, the argument \code{eps} can be increased to larger values. This is more likely to occur when \code{s.weights} are supplied.
+
+Sometimes using a different solver can improve performance. Using the default \code{solver} for each \code{norm}, as described above, can reduce the probability of convergence failures.
 }
 }
 \examples{
@@ -156,15 +215,6 @@ bal.tab(ow3a, disp.means = TRUE)
 
 bal.tab(ow3b, disp.means = TRUE)
 
-# Balancing two treatments
-(ow4 <- optweightMV(list(treat ~ age + educ + race + re74,
-                         re75 ~ age + educ + race + re74),
-                    data = lalonde))
-
-summary(ow4)
-
-bal.tab(ow4)
-
 # Using a different norm
 (ow1b <- optweight(treat ~ age + educ + married +
                     nodegree + re74, data = lalonde,
@@ -176,13 +226,23 @@ summary(ow1b, weight.range = FALSE)
 summary(ow1, weight.range = FALSE)
 
 # Allowing for negative weights
-ow5 <- optweight(treat ~ age + educ + married + race +
+ow4 <- optweight(treat ~ age + educ + married + race +
                    nodegree + re74 + re75,
                  data = lalonde,
                  estimand = "ATE",
                  min.w = -Inf)
 
-summary(ow5)
+summary(ow4)
+
+# Using `optweight.fit()`
+treat <- lalonde$treat
+covs <- splitfactor(lalonde[2:8], drop.first = "if2")
+
+ow.fit <- optweight.fit(covs,
+                        treat = treat,
+                        tols = .02,
+                        estimand = "ATE",
+                        norm = "l2")
 \dontshow{\}) # examplesIf}
 }
 \references{
@@ -195,7 +255,7 @@ Wang, Y., & Zubizarreta, J. R. (2020). Minimal dispersion approximately balancin
 Zubizarreta, J. R. (2015). Stable Weights that Balance Covariates for Estimation With Incomplete Outcome Data. \emph{Journal of the American Statistical Association}, 110(511), 910–922. \doi{10.1080/01621459.2015.1023805}
 }
 \seealso{
-\code{\link[=optweight.fit]{optweight.fit()}}, the lower-level function that performs the fitting. Links on that page can help with diagnosing and fixing more subtle issues with the optimization.
+\code{\link[=optweightMV]{optweightMV()}} for estimating stable balancing weights for multivariate (i.e., multiple) treatments simultaneously.
 
 \CRANpkg{sbw}, which was the inspiration for this package and provides some additional functionality for binary treatments.
 

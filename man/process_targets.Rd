@@ -13,28 +13,28 @@ check.targets(...)
 \method{print}{optweight.targets}(x, digits = 5, ...)
 }
 \arguments{
-\item{formula}{a formula with the covariates to be targeted on the right-hand side. See \code{\link[=glm]{glm()}} for more details. Interactions and functions of covariates are allowed. Can be omitted, in which case all variables in \code{data} are assumed targeted.}
+\item{formula}{a formula with nothing on the left hand side and the covariates to be targeted on the right hand side. Interactions and functions of covariates are allowed. Can be omitted, in which case all variables in \code{data} are assumed targeted. If \code{data} is \code{NULL} and \code{formula} is a data.frame, \code{data} will be replaced with \code{formula}.}
 
 \item{data}{an optional data set in the form of a data frame that contains the variables in \code{formula}.}
 
 \item{targets}{a vector of target population mean values for each covariate. These should be in the order corresponding to the order of the corresponding variable in \code{formula}, except for interactions, which will appear after all lower-order terms. For factor variables, a target value must be specified for each level of the factor, and these values must add up to 1. If \code{NULL}, the current sample means will be produced (weighted by \code{s.weights}). If \code{NA}, an \code{NA} vector named with the covariate names will be produced.}
 
-\item{s.weights}{an optional vector of sampling weights. Default is a vector of 1s.}
+\item{s.weights}{a vector of sampling weights. For \code{optweight()}, can also be the name of a variable in \code{data} that contains sampling weights.}
 
-\item{...}{ignored.}
+\item{...}{for \code{optweight()}, additional arguments passed to \code{optweight.fit()}, including options that are passed to the settings function corresponding to \code{solver}.}
 
 \item{x}{an \code{optweight.targets} object; the output of a call to \code{process_targets()}.}
 
 \item{digits}{how many digits to print.}
 }
 \value{
-An \code{optweight.targets} object, which is a named vector of target population mean values, one for each (expanded) covariate specified in \code{formula}. This should be used as user inputs to \code{\link[=optweight]{optweight()}} and \code{\link[=optweight.svy]{optweight.svy()}}.
+An \code{optweight.targets} object, which is a named vector of target population mean values, one for each (expanded) covariate specified in \code{formula}. This should be used as an input to the \code{targets} argument of \code{\link[=optweight]{optweight()}}, \code{\link[=optweightMV]{optweightMV()}}, and \code{\link[=optweight.svy]{optweight.svy()}}.
 }
 \description{
-Checks whether proposed target population means values for \code{targets} are suitable in number and order for submission to \code{\link[=optweight]{optweight()}} and \code{\link[=optweight.svy]{optweight.svy()}}. Users should include one value per variable in \code{formula}. For factor variables, one value per level of the variable is required. The output of \code{process_targets()} can also be used as an input to \code{targets} in \code{\link[=optweight]{optweight()}} and \code{\link[=optweight.svy]{optweight.svy()}}.
+Checks whether proposed target population means values for \code{targets} are suitable in number and order for submission to \code{\link[=optweight]{optweight()}}, \code{\link[=optweightMV]{optweightMV()}}, and \code{\link[=optweight.svy]{optweight.svy()}}, and returns an object that can supplied to the \code{targets} argument of these functions.
 }
 \details{
-The purpose of \code{process_targets()} is to allow users to ensure that their proposed input to \code{targets} in \code{\link[=optweight]{optweight()}} and \code{\link[=optweight.svy]{optweight.svy()}} is correct both in the number of entries and their order. This is especially important when factor variables and interactions are included in the formula because factor variables are split into several dummies and interactions are moved to the end of the variable list, both of which can cause some confusion and potential error when entering \code{targets} values.
+The purpose of \code{process_targets()} is to allow users to ensure that their proposed input to \code{targets} in \code{\link[=optweight]{optweight()}}, \code{\link[=optweightMV]{optweightMV()}}, and \code{\link[=optweight.svy]{optweight.svy()}} is correct both in the number of entries and their order. This is especially important when factor variables and interactions are included in the formula because factor variables are split into several dummies and interactions are moved to the end of the variable list, both of which can cause some confusion and potential error when entering \code{targets} values.
 
 Factor variables are internally split into a dummy variable for each level, so the user must specify a target population mean value for each level of the factor. These must add up to 1, and an error will be displayed if they do not. These values represent the proportion of units in the target population with each factor level.
 

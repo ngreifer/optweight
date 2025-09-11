@@ -2,7 +2,8 @@
 % Please edit documentation in R/optweight.svy.R
 \name{optweight.svy}
 \alias{optweight.svy}
-\title{Estimate Targeting Weights Using Optimization}
+\alias{optweight.svy.fit}
+\title{Stable Balancing Weights for Generalization}
 \usage{
 optweight.svy(
   formula,
@@ -12,59 +13,77 @@ optweight.svy(
   s.weights = NULL,
   b.weights = NULL,
   norm = "l2",
+  min.w = 1e-08,
   verbose = FALSE,
+  ...
+)
+
+optweight.svy.fit(
+  covs,
+  targets,
+  tols = 0,
+  s.weights = NULL,
+  b.weights = NULL,
+  norm = "l2",
+  std.binary = FALSE,
+  std.cont = TRUE,
+  min.w = 1e-08,
+  verbose = FALSE,
+  solver = NULL,
   ...
 )
 }
 \arguments{
-\item{formula}{a formula with nothing on the left hand side and the
-covariates to be targeted on the right hand side. See \code{\link[=glm]{glm()}} for
-more details. Interactions and functions of covariates are allowed.}
+\item{formula}{a formula with nothing on the left hand side and the covariates to be targeted on the right hand side. Interactions and functions of covariates are allowed. Can be omitted, in which case all variables in \code{data} are assumed targeted. If \code{data} is \code{NULL} and \code{formula} is a data.frame, \code{data} will be replaced with \code{formula}.}
 
-\item{data}{An optional data set in the form of a data frame that contains the variables in \code{formula}.}
+\item{data}{an optional data set in the form of a data frame that contains the variables in \code{formula}.}
 
-\item{tols}{a vector of target balance tolerance values for each covariate.
-The resulting weighted covariate means will be no further away from the
-targets than the specified values. If only one value is supplied, it will be
-applied to all covariates. Can also be the output of a call to \code{\link[=process_tols]{process_tols()}}.}
+\item{tols}{a vector of target balance tolerance values for each covariate. The resulting weighted covariate means will be no further away from the targets than the specified values. If only one value is supplied, it will be applied to all covariates. Can also be the output of a call to \code{\link[=process_tols]{process_tols()}}. Default is 0 for all covariates.}
 
-\item{targets}{A vector of target population mean values for each baseline covariate. The resulting weights will yield sample means within \code{tols}/2 units of the target values for each covariate. If \code{NULL} or all \code{NA}, \code{estimand} will be used to determine targets. Otherwise, \code{estimand} is ignored. If any target values are \code{NA}, the corresponding variable will not be targeted and its weighted mean will be wherever the weights yield the smallest variance. Can also be the output of a call to \code{\link[=process_targets]{process_targets()}}. See Details.}
+\item{targets}{a vector of target population mean values for each covariate. The resulting weights will yield sample means within \code{tols} units of the target values for each covariate. If any target values are \code{NA}, the corresponding variable will not be targeted and its weighted mean will be wherever the weights yield the smallest variance. To ensure the weighted mean for a covariate is equal to its unweighted mean (i.e., so that its original mean is its target mean), its original mean must be supplied as a target. For factor variables, a target value must be specified for each level of the factor, and these values must add up to 1. Can also be the output of a call to \code{\link[=process_targets]{process_targets()}}.}
 
-\item{s.weights}{A vector of sampling weights or the name of a variable in \code{data} that contains sampling weights.}
+\item{s.weights}{a vector of sampling weights. For \code{optweight()}, can also be the name of a variable in \code{data} that contains sampling weights.}
 
-\item{b.weights}{A vector of base weights or the name of a variable in \code{data} that contains base weights. If supplied, the desired norm of the distance between the estimated weights and the base weights is minimized.}
+\item{b.weights}{a vector of base weights. If supplied, the desired norm of the distance between the estimated weights and the base weights is minimized. For \code{optweight()}, can also the name of a variable in \code{data} that contains base weights.}
 
-\item{norm}{\code{character}; a string containing the name of the norm corresponding to the objective function to minimize. Allowable options include \code{"l1"} for the L1 norm, \code{"l2"} for the L2 norm (the default), \code{"linf"} for the L\eqn{\infty} norm, \code{"entropy"} for the negative entropy, and \code{"log"} for the sum of the logs. See \code{\link[=optweight.fit]{optweight.fit()}} for details.}
+\item{norm}{\code{character}; a string containing the name of the norm corresponding to the objective function to minimize. Allowable options include \code{"l1"} for the L1 norm, \code{"l2"} for the L2 norm (the default), \code{"linf"} for the L\eqn{\infty} norm, \code{"entropy"} for the negative entropy, and \code{"log"} for the sum of the logs. See Details.}
+
+\item{min.w}{\code{numeric}; a single value less than 1 for the smallest allowable weight. Some analyses require nonzero weights for all units, so a small, nonzero minimum may be desirable. The default is \code{1e-8} (\eqn{10^{-8}}), which does not materially change the properties of the weights from a minimum of 0 but prevents warnings in some packages that use weights in model fitting. When \code{norm} is \code{"entropy"} or \code{"log"} and \code{min.w <= 0}, \code{min.w} will be set to the smallest nonzero value.}
 
 \item{verbose}{\code{logical}; whether information on the optimization problem solution should be printed. Default is \code{FALSE}.}
 
-\item{...}{
-  Arguments passed on to \code{\link[=optweight.svy.fit]{optweight.svy.fit}}
-  \describe{
-    \item{\code{std.binary,std.cont}}{\code{logical}; whether the tolerances are in standardized mean units (\code{TRUE}) or raw units (\code{FALSE}) for binary variables and continuous variables, respectively. The default is \code{FALSE} for \code{std.binary} because raw proportion differences make more sense than standardized mean difference for binary variables. These arguments are analogous to the \code{binary} and \code{continuous} arguments in \code{bal.tab()} in \pkg{cobalt}.}
-    \item{\code{min.w}}{\code{numeric}; a single value less than 1 for the smallest allowable weight. Some analyses require nonzero weights for all units, so a small, nonzero minimum may be desirable. The default is \code{1e-8} (\eqn{10^{-8}}), which does not materially change the properties of the weights from a minimum of 0 but prevents warnings in some packages that use weights to estimate treatment effects. When \code{norm} is \code{"entropy"} or \code{"log"} and \code{min.w <= 0}, \code{min.w} will be set to the smallest nonzero value.}
-  }}
+\item{...}{for \code{optweight()}, additional arguments passed to \code{optweight.fit()}, including options that are passed to the settings function corresponding to \code{solver}.}
+
+\item{covs}{a numeric matrix of covariates to be targeted.}
+
+\item{std.binary, std.cont}{\code{logical}; whether the tolerances are in standardized mean units (\code{TRUE}) or raw units (\code{FALSE}) for binary variables and continuous variables, respectively. The default is \code{FALSE} for \code{std.binary} because raw proportion differences make more sense than standardized mean difference for binary variables. These arguments are analogous to the \code{binary} and \code{continuous} arguments in \code{bal.tab()} in \pkg{cobalt}.}
+
+\item{solver}{string; the name of the optimization solver to use. Allowable options depend on \code{norm}. Default is to use whichever eligible solver is installed, if any, or the default solver for the corresponding \code{norm}. See Details for information.}
 }
 \value{
-An \code{optweight.svy} object with the following elements:
+For \code{optweight.svy()}, an \code{optweight.svy} object with the following elements:
 \item{weights}{The estimated weights, one for each unit.}
 \item{covs}{The covariates used in the fitting. Only includes the raw covariates, which may have been altered in the fitting process.}
 \item{s.weights}{The provided sampling weights.}
 \item{call}{The function call.}
 \item{tols}{The tolerance values for each covariate.}
 \item{duals}{A data.frame containing the dual variables for each covariate. See \code{\link[=optweight]{optweight()}} for interpretation of these values.}
-\item{info}{Information about the performance of the optimization at termination.}
+\item{info}{A list containing information about the performance of the optimization at termination.}
+\item{norm}{The \code{norm} used.}
+\item{solver}{The \code{solver} used.}
+
+For \code{optweight.svy.fit()}, an \code{optweight.svy.fit} object with the following elements:
+\item{w}{The estimated weights, one for each unit.}
+\item{duals}{A data.frame containing the dual variables for each covariate.}
+\item{info}{A list containing information about the performance of the optimization at termination.}
+\item{norm}{The \code{norm} used.}
+\item{solver}{The \code{solver} used.}
 }
 \description{
-Estimate targeting weights for covariates specified in \code{formula}. The
-target means are specified with \code{targets} and the maximum distance
-between each weighted covariate mean and the corresponding target mean is
-specified by \code{tols}. See Zubizarreta (2015) for details of the
-properties of the weights and the methods used to fit them.
+Estimates stable balancing weights to generalize a sample characterized by supplied covariates to a given target population. The target means are specified with \code{targets} and the maximum distance between each weighted covariate mean. See Zubizarreta (2015) for details of the properties of the weights and the methods used to fit them.
 }
 \details{
-The optimization is performed by the lower-level function
-\code{\link[=optweight.svy.fit]{optweight.svy.fit()}}.
+\code{optweight.svy()} is the primary user-facing function for estimating stable balancing weights for generalization to a target population. The optimization is performed by the lower-level function \code{optweight.svy.fit()}, which transforms the inputs into the required inputs for the optimization functions and then supplies the outputs (the weights, dual variables, and convergence information) back to \code{optweight.svy()}. Little processing of inputs is performed by \code{optweight.svy.fit()}, as this is normally handled by \code{optweight.svy()}.
 
 Weights are estimated so that the standardized differences between the
 weighted covariate means and the corresponding targets are within the given
@@ -76,40 +95,43 @@ with specified tolerance \eqn{\delta}, the weighted mean will be within
 the standardization factor is the standard deviation of the covariate in the
 whole sample. The standardization factor is always unweighted.
 
-See the \code{\link[=optweight]{optweight()}} help page for information on interpreting
-dual variables and solving convergence failure.
+Target constraints are applied to the product of the estimated weights and the sampling weights. In addition, sum of the product of the estimated weights and the sampling weights is constrained to be equal to the sum of the product of the base weights and sampling weights.
+
+See \code{\link[=optweight]{optweight()}} for information on \code{norm}, \code{solver}, and convergence failure.
 }
 \examples{
 \dontshow{if (requireNamespace("cobalt", quietly = TRUE)) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 library("cobalt")
 data("lalonde", package = "cobalt")
 
-cov.formula <- ~ age + educ + race + married + nodegree
+cov.names <- c("age", "educ", "race",
+               "married", "nodegree")
 
-targets <- process_targets(cov.formula, data = lalonde,
-                           targets = c(23, 9, .3, .3, .4,
-                                       .2, .5))
+targets <- c(age = 23,
+             educ = 9,
+             race_black = .3,
+             race_hispan = .3,
+             race_white = .4,
+             married = .2,
+             nodegree = .5)
 
-ows <- optweight.svy(cov.formula,
-                     data = lalonde,
-                     tols = 0,
+ows <- optweight.svy(lalonde[cov.names],
                      targets = targets)
 ows
 
-#Unweighted means
-col_w_mean(ows$covs)
+# Unweighted means
+col_w_mean(lalonde[cov.names])
 
-#Weighted means; same as targets
-col_w_mean(ows$covs, w = ows$weights)
+# Weighted means; same as targets
+col_w_mean(lalonde[cov.names],
+           w = ows$weights)
 \dontshow{\}) # examplesIf}
 }
 \references{
 Zubizarreta, J. R. (2015). Stable Weights that Balance Covariates for Estimation With Incomplete Outcome Data. \emph{Journal of the American Statistical Association}, 110(511), 910–922. \doi{10.1080/01621459.2015.1023805}
 }
 \seealso{
-\code{\link[=optweight.svy.fit]{optweight.svy.fit()}}, the lower-level function that performs the fitting.
-
-\code{\link[=optweight.fit]{optweight.fit()}} for more details about the optimization options.
-
 \code{\link[=optweight]{optweight()}} for estimating weights that balance treatment groups.
+
+\code{\link[=process_targets]{process_targets()}} for specifying the covariate target means supplied to \code{targets}.
 }

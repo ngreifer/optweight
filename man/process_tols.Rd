@@ -13,7 +13,7 @@ check.tols(...)
 \method{print}{optweight.tols}(x, internal = FALSE, digits = 5, ...)
 }
 \arguments{
-\item{formula}{a formula with the covariates to be balanced on the right-hand side. See \code{\link[=glm]{glm()}} for more details. Interactions and functions of covariates are allowed. Lists of formulas are not allowed; multiple formulas must be checked one at a time.}
+\item{formula}{a formula with the covariates to be balanced on the right-hand side. Interactions and functions of covariates are allowed. Lists of formulas are not allowed; multiple formulas must be checked one at a time.}
 
 \item{data}{an optional data set in the form of a data frame that contains the variables in \code{formula}.}
 
@@ -28,10 +28,10 @@ check.tols(...)
 \item{digits}{how many digits to print.}
 }
 \value{
-An \code{optweight.tols} object, which is a named vector of tolerance values, one for each variable specified in \code{formula}. This should be used as user inputs to \code{\link[=optweight]{optweight()}}. The \code{"internal.tols"} attribute contains the tolerance values to be used internally by \code{\link[=optweight]{optweight()}}. These will differ from the vector values when there are factor variables that are split up; the user only needs to submit one tolerance per factor variable, but separate tolerance values are produced for each new dummy created.
+An \code{optweight.tols} object, which is a named vector of tolerance values, one for each variable specified in \code{formula}. This should be used as an input to the \code{tols} argument of \code{\link[=optweight]{optweight()}}. The \code{"internal.tols"} attribute contains the tolerance values to be used internally by \code{\link[=optweight]{optweight()}}. These will differ from the vector values when there are factor variables that are split up; the user only needs to submit one tolerance per factor variable, but separate tolerance values are produced for each new dummy created.
 }
 \description{
-Checks whether proposed tolerance values for \code{tols} are suitable in number and order for submission to \code{\link[=optweight]{optweight()}}. Users should include one value per item in \code{formula}. The output can also be used as an input to \code{tols} in \code{\link[=optweight]{optweight()}}.
+Checks whether proposed tolerance values for \code{tols} are suitable in number and order for submission to \code{\link[=optweight]{optweight()}} and \code{\link[=optweight.svy]{optweight.svy()}}, and returns an object that can supplied to the \code{tols} argument of these functions.
 }
 \details{
 The purpose of \code{process_tols()} is to allow users to ensure that their proposed input to \code{tols} in \code{\link[=optweight]{optweight()}} is correct both in the number of entries and their order. This is especially important when factor variables and interactions are included in the formula because factor variables are split into several dummies and interactions are moved to the end of the variable list, both of which can cause some confusion and potential error when entering \code{tols} values.
@@ -39,8 +39,6 @@ The purpose of \code{process_tols()} is to allow users to ensure that their prop
 Factor variables are internally split into a dummy variable for each level, but the user only needs to specify one tolerance value per original variable; \code{process_tols()} automatically expands the \code{tols} input to match the newly created variables.
 
 Interactions (e.g., \code{a:b} or \code{a*b} in the \code{formula} input) are always sent to the end of the variable list even if they are specified elsewhere in the \code{formula}. It is important to run \code{process_tols()} to ensure the order of the proposed \code{tols} corresponds to the represented order of covariates used in \code{\link[=optweight]{optweight()}}. You can run \code{process_tols()} with no \code{tols} input to see the order of covariates that is required.
-
-\code{process_tols()} was designed to be used primarily for its message printing and \code{print()} method, but you can also assign its output to an object for use as an input to \code{tols} in \code{\link[=optweight]{optweight()}}.
 
 Note that only one formula and vector of tolerance values can be assessed at a time; for multiple treatments, each formula and tolerance vector must be entered separately.
 }

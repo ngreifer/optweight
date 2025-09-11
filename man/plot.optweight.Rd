@@ -4,35 +4,31 @@
 \alias{plot.optweight}
 \alias{plot.optweightMV}
 \alias{plot.optweight.svy}
-\title{Plot Dual Variables for Assessing Balance Constraints}
+\title{Plot Dual Variables for Covariate Constraints}
 \usage{
 \method{plot}{optweight}(x, ...)
 
-\method{plot}{optweightMV}(x, which.treat = 1, ...)
+\method{plot}{optweightMV}(x, which.treat = 1L, ...)
 
 \method{plot}{optweight.svy}(x, ...)
 }
 \arguments{
-\item{x}{an \code{optweight}, \code{optweightMV}, or \code{optweight.svy} object; the output of a
-call to \code{\link[=optweight]{optweight()}}, \code{\link[=optweightMV]{optweightMV()}}, or \code{\link[=optweight.svy]{optweight.svy()}}.}
+\item{x}{an \code{optweight}, \code{optweightMV}, or \code{optweight.svy} object; the output of a call to \code{\link[=optweight]{optweight()}}, \code{\link[=optweightMV]{optweightMV()}}, or \code{\link[=optweight.svy]{optweight.svy()}}.}
 
-\item{\dots}{Ignored.}
+\item{\dots}{ignored.}
 
-\item{which.treat}{For \code{optweightMV} objects, which treatment to display.
-Only one may be displayed at a time.}
+\item{which.treat}{for \code{optweightMV} objects, an integer corresponding to which treatment to display. Only one may be displayed at a time.}
 }
 \value{
 A \code{ggplot} object that can be used with other \pkg{ggplot2} functions.
 }
 \description{
-Plots the dual variables resulting from \code{\link[=optweight]{optweight()}} in a way similar to
-figure 2 of Zubizarreta (2015), which explained how to interpret these
-values. These represent the cost of changing the constraint on the variance
-of the resulting weights. For covariates with large values of the dual
-variable, tightening the constraint will increase the variability of the
-weights, and loosening the constraint will decrease the variability of the
-weights, both to a greater extent than would doing the same for covariate
-with small values of the dual variable.
+Plots the dual variables resulting from \code{\link[=optweight]{optweight()}}, \code{\link[=optweightMV]{optweightMV()}}, or \code{\link[=optweight.svy]{optweight.svy()}} in a way similar to
+figure 2 of Zubizarreta (2015), which explains how to interpret these
+values.
+}
+\details{
+Dual variables represent the cost of changing the constraint on the objective function minimized to estimate the weights. For covariates with large values of the dual variable, tightening the constraint will increase the variability of the weights, and relaxing the constraint will decrease the variability of the weights, both to a greater extent than would doing the same for covariate with small values of the dual variable. See \code{\link[=optweight]{optweight()}} and \code{vignette("optweight")} for more information on interpreting dual variables.
 }
 \examples{
 \dontshow{if (requireNamespace("cobalt", quietly = TRUE)) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
@@ -49,7 +45,7 @@ ow1 <- optweight(treat ~ age + educ + married +
                  tols = tols,
                  estimand = "ATT")
 
-summary(ow1) # Note the RMSE Dev and effective
+summary(ow1) # Note the L2 divergence and effective
 #              sample size (ESS)
 
 plot(ow1) # age has a low value, married is high
@@ -81,9 +77,7 @@ summary(ow3) # In contrast, tightening the constraint
 Zubizarreta, J. R. (2015). Stable Weights that Balance Covariates for Estimation With Incomplete Outcome Data. \emph{Journal of the American Statistical Association}, 110(511), 910–922. \doi{10.1080/01621459.2015.1023805}
 }
 \seealso{
-\code{\link[=optweight]{optweight()}}, \code{\link[=optweightMV]{optweightMV()}}, or \code{\link[=optweight.svy]{optweight.svy()}} to estimate
-the weights and the dual variables
+\code{\link[=optweight]{optweight()}}, \code{\link[=optweightMV]{optweightMV()}}, or \code{\link[=optweight.svy]{optweight.svy()}} to estimate the weights and the dual variables.
 
-\code{\link[=plot.summary.optweight]{plot.summary.optweight()}} for plots of the distribution of
-weights
+\code{\link[=plot.summary.optweight]{plot.summary.optweight()}} for plots of the distribution of weights.
 }

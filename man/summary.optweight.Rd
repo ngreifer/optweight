@@ -5,44 +5,35 @@
 \alias{summary.optweightMV}
 \alias{summary.optweight.svy}
 \alias{plot.summary.optweight}
-\title{Summarize, print, and plot information about estimated weights}
+\title{Summarize, Print, and Plot Information about Estimated Weights}
 \usage{
-\method{summary}{optweight}(object, top = 5, ignore.s.weights = FALSE, weight.range = TRUE, ...)
+\method{summary}{optweight}(object, top = 5L, ignore.s.weights = FALSE, weight.range = TRUE, ...)
 
-\method{summary}{optweightMV}(object, top = 5, ignore.s.weights = FALSE, weight.range = TRUE, ...)
+\method{summary}{optweightMV}(object, top = 5L, ignore.s.weights = FALSE, weight.range = TRUE, ...)
 
-\method{summary}{optweight.svy}(object, top = 5, ignore.s.weights = FALSE, weight.range = TRUE, ...)
+\method{summary}{optweight.svy}(object, top = 5L, ignore.s.weights = FALSE, weight.range = TRUE, ...)
 
 \method{plot}{summary.optweight}(x, ...)
 }
 \arguments{
-\item{object}{An \code{optweight}, \code{optweightMV}, or \code{optweight.svy} object; the output of a call to \code{\link[=optweight]{optweight()}} or \code{\link[=optweight.svy]{optweight.svy()}}.}
+\item{object}{an \code{optweight}, \code{optweightMV}, or \code{optweight.svy} object; the output of a call to \code{\link[=optweight]{optweight()}}, \code{\link[=optweightMV]{optweightMV()}}, or \code{\link[=optweight.svy]{optweight.svy()}}.}
 
-\item{top}{How many of the largest and smallest weights to display. Default
-is 5.}
+\item{top}{\code{integer}; how many of the largest and smallest weights to display. Default
+is 5. Ignored when \code{weight.range = FALSE}.}
 
-\item{ignore.s.weights}{Whether or not to ignore sampling weights when
-computing the weight summary. If \code{FALSE}, the default, the estimated
-weights will be multiplied by the sampling weights (if any) before values
-are computed.}
+\item{ignore.s.weights}{logical\verb{; whether to ignore sampling weights when computing the weight summary. Default is }FALSE`.}
 
-\item{weight.range}{\code{logical}; whether display statistics about the range of weights and the highest and lowest weights for each group. Default is \code{TRUE}.}
+\item{weight.range}{\code{logical}; whether to display statistics about the range of weights and the highest and lowest weights for each group. Default is \code{TRUE}.}
 
-\item{...}{Additional arguments. For \code{plot()}, additional arguments
-passed to \code{\link[graphics:hist]{graphics::hist()}} to determine the number of bins,
-though \code{\link[ggplot2:geom_histogram]{ggplot2::geom_histogram()}} from \pkg{ggplot2} is actually
-used to create the plot.}
+\item{...}{Additional arguments. For \code{plot()}, additional arguments passed to \code{\link[graphics:hist]{graphics::hist()}} to determine the number of bins, though \code{\link[ggplot2:geom_histogram]{ggplot2::geom_histogram()}} from \pkg{ggplot2} is actually used to create the plot.}
 
-\item{x}{A \code{summary.optweight}, \code{summary.optweightMV}, or \code{summary.optweight.svy} object; the output of a call to \code{summary.optweight()}, \code{summary.optweightMV()}, or ()\code{summary.optweight.svy}.}
+\item{x}{a \code{summary.optweight}, \code{summary.optweightMV}, or \code{summary.optweight.svy} object; the output of a call to \code{summary.optweight()}, \code{summary.optweightMV()}, or ()\code{summary.optweight.svy}.}
 }
 \value{
-For point treatments (i.e., \code{optweight} objects),
-\code{summary()} returns a \code{summary.optweight} object with the following
+For point treatments (i.e., \code{optweight} objects), \code{summary()} returns a \code{summary.optweight} object with the following
 elements:
-\item{weight.range}{The range (minimum and maximum) weight for
-each treatment group.}
-\item{weight.top}{The units with the greatest weights
-in each treatment group; how many are included is determined by \code{top}.}
+\item{weight.range}{The range (minimum and maximum) weight for each treatment group.}
+\item{weight.top}{The units with the greatest weights in each treatment group; how many are included is determined by \code{top}.}
 \item{l2}{The square root of the L2 norm of the estimated weights from the base weights, weighted by the sampling weights (if any): \eqn{\sqrt{\frac{1}{n}\sum_i {s_i(w_i - b_i)^2}}}}
 \item{l1}{The L1 norm of the estimated weights from the base weights, weighted by the sampling weights (if any): \eqn{\frac{1}{n}\sum_i {s_i \vert w_i - b_i \vert}}}
 \item{linf}{The L\eqn{\infty} norm (maximum absolute deviation) of the estimated weights from the base weights: \eqn{\max_i {\vert w_i - b_i \vert}}}
@@ -50,11 +41,9 @@ in each treatment group; how many are included is determined by \code{top}.}
 \item{num.zeros}{The number of units with a weight equal to 0.}
 \item{effective.sample.size}{The effective sample size for each treatment group before and after weighting.}
 
-For multivariate treatments (i.e., \code{optweightMV} objects), a list of
-the above elements for each treatment.
+For multivariate treatments (i.e., \code{optweightMV} objects), a list of the above elements for each treatment.
 
-For \code{optweight.svy} objects, a list of the above elements but with no
-treatment group divisions.
+For \code{optweight.svy} objects, the above object but with no treatment group divisions.
 
 \code{plot()} returns a \code{ggplot} object with a histogram displaying the
 distribution of the estimated weights. If the estimand is the ATT or ATC,
@@ -63,10 +52,7 @@ weights for the focal group are all 1). A dotted line is displayed at the
 mean of the weights (the mean of the base weights, or 1 if not supplied).
 }
 \description{
-These functions summarize the weights resulting from a call to
-\code{\link[=optweight]{optweight()}} or \code{\link[=optweight.svy]{optweight.svy()}}. \code{summary()} produces summary statistics on the distribution of weights, including their
-range and variability, and the effective sample size of the weighted sample
-(computing using the formula in McCaffrey, Rudgeway, & Morral, 2004). \code{plot()} creates a histogram of the weights.
+These functions summarize the weights resulting from a call to \code{\link[=optweight]{optweight()}}, \code{\link[=optweightMV]{optweightMV()}}, or \code{\link[=optweight.svy]{optweight.svy()}}. \code{summary()} produces summary statistics on the distribution of weights, including their range and variability, and the effective sample size of the weighted sample (computing using the formula in McCaffrey, Rudgeway, & Morral, 2004). \code{plot()} creates a histogram of the weights.
 }
 \examples{
 \dontshow{if (requireNamespace("cobalt", quietly = TRUE)) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}

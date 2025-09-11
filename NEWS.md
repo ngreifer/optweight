@@ -1,6 +1,14 @@
 optweight News and Updates
 ======
 
+# optweight (development version)
+
+* Moved some documentation around; `optweight()` and `optweight.fit()` are now documented on the same page, `optweightMV()` and `optweightMV.fit()` are now documented on the same page, and `optweight.svy()` and `optweight.svy.fit()` are now documented on the same page.
+
+* `min.w` is now a visible argument to `optweight()`, `optweightMV()`, and `optweight.svy()`.
+
+* Messages are now a little prettier thanks to *crayon*, which is a new dependency.
+
 # optweight 1.0.0
 
 The version involved a full rewrite and may not be backward compatible with prior versions. Basic functionality has not changed, but some of the more advanced functionality has changed.
