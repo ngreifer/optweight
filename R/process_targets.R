@@ -1,18 +1,17 @@
 #' Construct and Check Targets Input
 #'
-#' Checks whether proposed target population means values for `targets` are suitable in number and order for submission to [optweight()] and [optweight.svy()]. Users should include one value per variable in `formula`. For factor variables, one value per level of the variable is required. The output of `process_targets()` can also be used as an input to `targets` in [optweight()] and [optweight.svy()].
+#' Checks whether proposed target population means values for `targets` are suitable in number and order for submission to [optweight()], [optweightMV()], and [optweight.svy()], and returns an object that can supplied to the `targets` argument of these functions.
 #'
+#' @inheritParams optweight.svy
 #' @inheritParams process_tols
-#' @param formula a formula with the covariates to be targeted on the right-hand side. See [glm()] for more details. Interactions and functions of covariates are allowed. Can be omitted, in which case all variables in `data` are assumed targeted.
 #' @param targets a vector of target population mean values for each covariate. These should be in the order corresponding to the order of the corresponding variable in `formula`, except for interactions, which will appear after all lower-order terms. For factor variables, a target value must be specified for each level of the factor, and these values must add up to 1. If `NULL`, the current sample means will be produced (weighted by `s.weights`). If `NA`, an `NA` vector named with the covariate names will be produced.
-#' @param s.weights an optional vector of sampling weights. Default is a vector of 1s.
 #' @param x an `optweight.targets` object; the output of a call to `process_targets()`.
 #'
 #' @returns
-#' An `optweight.targets` object, which is a named vector of target population mean values, one for each (expanded) covariate specified in `formula`. This should be used as user inputs to [optweight()] and [optweight.svy()].
+#' An `optweight.targets` object, which is a named vector of target population mean values, one for each (expanded) covariate specified in `formula`. This should be used as an input to the `targets` argument of [optweight()], [optweightMV()], and [optweight.svy()].
 #'
 #' @details
-#' The purpose of `process_targets()` is to allow users to ensure that their proposed input to `targets` in [optweight()] and [optweight.svy()] is correct both in the number of entries and their order. This is especially important when factor variables and interactions are included in the formula because factor variables are split into several dummies and interactions are moved to the end of the variable list, both of which can cause some confusion and potential error when entering `targets` values.
+#' The purpose of `process_targets()` is to allow users to ensure that their proposed input to `targets` in [optweight()], [optweightMV()], and [optweight.svy()] is correct both in the number of entries and their order. This is especially important when factor variables and interactions are included in the formula because factor variables are split into several dummies and interactions are moved to the end of the variable list, both of which can cause some confusion and potential error when entering `targets` values.
 #'
 #' Factor variables are internally split into a dummy variable for each level, so the user must specify a target population mean value for each level of the factor. These must add up to 1, and an error will be displayed if they do not. These values represent the proportion of units in the target population with each factor level.
 #'
@@ -187,11 +186,11 @@ print.optweight.targets <- function(x, digits = 5, ...) {
   names(targets) <- names(x)
 
   if (all(is.na(targets))) {
-    cat(sprintf("- vars:\n\t%s",
-                paste(names(targets), collapse = space(3L))))
+    cat0(" - ", .it("variables"), ":\n\t",
+         paste(names(targets), collapse = space(3L)))
   }
   else {
-    cat("- targets:\n")
+    cat0(" - ", .it("targets"), ":\n")
     print(round(targets, digits))
   }
 
