@@ -34,7 +34,7 @@
 
     <a class="navbar-brand me-2" href="index.html">optweight</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -146,7 +146,7 @@
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">ow</span><span class="op">)</span></span></code></pre></div>
 <p><img src="reference/figures/README-unnamed-chunk-4-1.png" style="display: block; margin: auto;"></p>
 <p>We can see that <code>race</code> has the highest dual variable; relaxing the constraint on <code>race</code> would yield the biggest improvement in effective sample size, while tightening its constraint would yield the biggest decrease in effective sample size.</p>
-<p>The lower-level function <code><a href="reference/optweight.fit.html">optweight.fit()</a></code> operates on the covariates and treatment variables directly. <code><a href="reference/optweight.html">optweightMV()</a></code> supports multivariate (i.e., multiple) treatments.</p>
+<p>The lower-level function <code><a href="reference/optweight.html">optweight.fit()</a></code> operates on the covariates and treatment variables directly. <code><a href="reference/optweightMV.html">optweightMV()</a></code> supports multivariate (i.e., multiple) treatments.</p>
 <p>In addition to estimating balancing weights for estimating treatment effects, <em>optweight</em> can estimate sampling weights for generalizing an estimate to a new target population defined by covariate moments using <code><a href="reference/optweight.svy.html">optweight.svy()</a></code>.</p>
 <p>To cite <em>optweight</em>, please use <code>citation("optweight")</code> to generate the correct reference. Be sure to include the version of the package. Please submit bug reports, questions, comments, or other issues to <a href="https://github.com/ngreifer/optweight/issues" class="external-link uri">https://github.com/ngreifer/optweight/issues</a>.</p>
 <div class="section level2">

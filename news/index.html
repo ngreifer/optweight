@@ -13,7 +13,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">optweight</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -39,9 +39,15 @@
     </div>
 
     <div class="section level2">
+<h2 class="pkg-version" data-toc-text="development version" id="optweight-development-version">optweight (development version)<a class="anchor" aria-label="anchor" href="#optweight-development-version"></a></h2>
+<ul><li><p>Moved some documentation around; <code><a href="../reference/optweight.html">optweight()</a></code> and <code><a href="../reference/optweight.html">optweight.fit()</a></code> are now documented on the same page, <code><a href="../reference/optweightMV.html">optweightMV()</a></code> and <code><a href="../reference/optweightMV.html">optweightMV.fit()</a></code> are now documented on the same page, and <code><a href="../reference/optweight.svy.html">optweight.svy()</a></code> and <code><a href="../reference/optweight.svy.html">optweight.svy.fit()</a></code> are now documented on the same page.</p></li>
+<li><p><code>min.w</code> is now a visible argument to <code><a href="../reference/optweight.html">optweight()</a></code>, <code><a href="../reference/optweightMV.html">optweightMV()</a></code>, and <code><a href="../reference/optweight.svy.html">optweight.svy()</a></code>.</p></li>
+<li><p>Messages are now a little prettier thanks to <em>crayon</em>, which is a new dependency.</p></li>
+</ul></div>
+    <div class="section level2">
 <h2 class="pkg-version" data-toc-text="1.0.0" id="optweight-100">optweight 1.0.0<a class="anchor" aria-label="anchor" href="#optweight-100"></a></h2><p class="text-muted">CRAN release: 2025-09-09</p>
 <p>The version involved a full rewrite and may not be backward compatible with prior versions. Basic functionality has not changed, but some of the more advanced functionality has changed.</p>
-<ul><li><p>Added a new function, <code><a href="../reference/optweight.html">optweightMV()</a></code>, for performing weighting for multivariate treatments. This takes the place of the old functionality of <code><a href="../reference/optweight.html">optweight()</a></code> to take in a list of formulas. Documentation and other supporting text has been updated to emphasize that the purpose of this function is for multivariate treatments, not longitudinal treatments as previously documented. Note that <code><a href="../reference/optweight.html">optweight()</a></code> now throws an error if a list of formulas is supplied. A lower-level version, <code><a href="../reference/optweight.fit.html">optweightMV.fit()</a></code>, is also available.</p></li>
+<ul><li><p>Added a new function, <code><a href="../reference/optweightMV.html">optweightMV()</a></code>, for performing weighting for multivariate treatments. This takes the place of the old functionality of <code><a href="../reference/optweight.html">optweight()</a></code> to take in a list of formulas. Documentation and other supporting text has been updated to emphasize that the purpose of this function is for multivariate treatments, not longitudinal treatments as previously documented. Note that <code><a href="../reference/optweight.html">optweight()</a></code> now throws an error if a list of formulas is supplied. A lower-level version, <code><a href="../reference/optweightMV.html">optweightMV.fit()</a></code>, is also available.</p></li>
 <li><p><code><a href="../reference/process_tols.html">check.tols()</a></code> and <code><a href="../reference/process_targets.html">check.targets()</a></code> have been renamed <code><a href="../reference/process_tols.html">process_tols()</a></code> and <code><a href="../reference/process_targets.html">process_targets()</a></code>, respectively, and have some new functionality. The <code>stop</code> argument has been removed. <code><a href="../reference/process_targets.html">process_targets()</a></code> now accepts <code>s.weights</code> to compute sampling-weighted target means.</p></li>
 <li><p><code>norm</code> can be set to <code>"entropy"</code> in <code><a href="../reference/optweight.html">optweight()</a></code>, etc., which minimizes the negative entropy of the weights. This is equivalent to entropy balancing, which is implemented more efficiently in <em>WeightIt</em>, but has support for inexact balance and multivariate treatments.</p></li>
 <li><p><code>norm</code> can also be set to <code>"log"</code> in <code><a href="../reference/optweight.html">optweight()</a></code>, etc., which minimizes the sum of the negative log of the weights. This is equivalent to nonparametric covariate balancing propensity score (npCBPS) weighting, a version of which is implemented in <em>CBPS</em>. The implementation here has support for inexact balance and multivariate treatments.</p></li>
@@ -81,9 +87,9 @@
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.2.1" id="optweight-021">optweight 0.2.1<a class="anchor" aria-label="anchor" href="#optweight-021"></a></h2><p class="text-muted">CRAN release: 2019-01-16</p>
-<ul><li><p>Changed default <code>min.w</code> in <code><a href="../reference/optweight.fit.html">optweight.fit()</a></code> and <code><a href="../reference/optweight.svy.fit.html">optweight.svy.fit()</a></code> to 1E-8 from 0. This ensures all weights are nonzero, which can reduce bugs in other functions that require nonzero weights (e.g, <code>jtools::summ()</code> and <code>survey::svyglm()</code>).</p></li>
+<ul><li><p>Changed default <code>min.w</code> in <code><a href="../reference/optweight.html">optweight.fit()</a></code> and <code><a href="../reference/optweight.svy.html">optweight.svy.fit()</a></code> to 1E-8 from 0. This ensures all weights are nonzero, which can reduce bugs in other functions that require nonzero weights (e.g, <code>jtools::summ()</code> and <code>survey::svyglm()</code>).</p></li>
 <li><p>Fixed warning that would occur when interactions were present in the model formula in <code><a href="../reference/optweight.html">optweight()</a></code>.</p></li>
-<li><p>Stable balancing weights have been discovered to be invalid for longitudinal treatments, so attempting to use <code><a href="../reference/optweight.html">optweight()</a></code>or <code><a href="../reference/optweight.fit.html">optweight.fit()</a></code> with longitudinal treatments will now produce an error. This can be overridden by setting <code>force = TRUE</code>, though this is not recommended until further research is done.</p></li>
+<li><p>Stable balancing weights have been discovered to be invalid for longitudinal treatments, so attempting to use <code><a href="../reference/optweight.html">optweight()</a></code>or <code><a href="../reference/optweight.html">optweight.fit()</a></code> with longitudinal treatments will now produce an error. This can be overridden by setting <code>force = TRUE</code>, though this is not recommended until further research is done.</p></li>
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.2.0" id="optweight-020">optweight 0.2.0<a class="anchor" aria-label="anchor" href="#optweight-020"></a></h2><p class="text-muted">CRAN release: 2018-10-17</p>

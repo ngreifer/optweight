@@ -31,7 +31,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">optweight</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -65,7 +65,7 @@
                         <h4 data-toc-skip class="author">Noah
 Greifer</h4>
             
-            <h4 data-toc-skip class="date">2025-09-09</h4>
+            <h4 data-toc-skip class="date">2025-09-11</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/ngreifer/optweight/blob/master/vignettes/optweight.Rmd" class="external-link"><code>vignettes/optweight.Rmd</code></a></small>
       <div class="d-none name"><code>optweight.Rmd</code></div>
@@ -223,7 +223,7 @@ balance on the covariates, and requires all weights to be greater than
 <span>                  <span class="va">re74</span> <span class="op">+</span> <span class="va">re75</span>, data <span class="op">=</span> <span class="va">lalonde</span>,</span>
 <span>                estimand <span class="op">=</span> <span class="st">"ATT"</span><span class="op">)</span></span>
 <span><span class="va">ow</span></span></code></pre></div>
-<pre><code><span><span class="co">## An optweight object</span></span>
+<pre><code><span><span class="co">## A <span style="font-style: italic;">optweight</span> object</span></span>
 <span><span class="co">##  - number of obs.: 614</span></span>
 <span><span class="co">##  - norm minimized: "l2"</span></span>
 <span><span class="co">##  - sampling weights: present</span></span>
@@ -256,25 +256,30 @@ sample. We can use <code><a href="https://rdrr.io/r/base/summary.html" class="ex
 the weights:</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">ow</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Summary of weights:</span></span>
+<pre><code><span><span class="co">##                   <span style="text-decoration: underline;">Summary of weights</span></span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## - Weight ranges:</span></span>
+<span><span class="co">## - <span style="font-style: italic;">Weight ranges</span>:</span></span>
+<span><span class="co">## </span></span>
 <span><span class="co">##         Min                                 Max</span></span>
 <span><span class="co">## treated   1      ||                       1.   </span></span>
 <span><span class="co">## control   0 |---------------------------| 6.002</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## - Units with 5 greatest weights by group:</span></span>
-<span><span class="co">##                                            </span></span>
-<span><span class="co">##               1      2      3      4      5</span></span>
-<span><span class="co">##  treated      1      1      1      1      1</span></span>
-<span><span class="co">##             423    388    226    196    118</span></span>
-<span><span class="co">##  control 5.5685 5.6016 5.6698 5.9221 6.0023</span></span>
+<span><span class="co">## - <span style="font-style: italic;">Units with the 5 most extreme weights by group</span>:</span></span>
+<span><span class="co">##                                      </span></span>
+<span><span class="co">##              1     2    3     4     5</span></span>
+<span><span class="co">##  treated     1     1    1     1     1</span></span>
+<span><span class="co">##            423   388  226   196   118</span></span>
+<span><span class="co">##  control 5.568 5.602 5.67 5.922 6.002</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## - <span style="font-style: italic;">Weight statistics</span>:</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">##            L2    L1    L∞ Rel Ent # Zeros</span></span>
 <span><span class="co">## treated 0.    0.    0.       0.         0</span></span>
 <span><span class="co">## control 1.717 1.339 5.002    1.23       0</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## - Effective Sample Sizes:</span></span>
+<span><span class="co">## - <span style="font-style: italic;">Effective Sample Sizes</span>:</span></span>
+<span><span class="co">## </span></span>
 <span><span class="co">##            Control Treated</span></span>
 <span><span class="co">## Unweighted   429.      185</span></span>
 <span><span class="co">## Weighted     108.6     185</span></span></code></pre>
@@ -337,19 +342,23 @@ mean difference allowed for continuous variables and the largest raw
 mean difference for binary variables. To change whether tolerances for
 binary or continuous variables should be in standardized units or not,
 see the <code>std.binary</code> and <code>std.cont</code> arguments of
-<code><a href="../reference/optweight.fit.html">optweight.fit()</a></code>, which <code><a href="../reference/optweight.html">optweight()</a></code> calls under
+<code><a href="../reference/optweight.html">optweight.fit()</a></code>, which <code><a href="../reference/optweight.html">optweight()</a></code> calls under
 the hood.</p>
 <p>Allowing for more relaxed imbalance also increases the ESS. The L2
 statistic has shrunk correspondingly:</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">ow2</span>, weight.range <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Summary of weights:</span></span>
+<pre><code><span><span class="co">##                   <span style="text-decoration: underline;">Summary of weights</span></span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## - <span style="font-style: italic;">Weight statistics</span>:</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">##            L2    L1    L∞ Rel Ent # Zeros</span></span>
 <span><span class="co">## treated 0.    0.    0.      0.          0</span></span>
 <span><span class="co">## control 1.616 1.267 4.212   1.118       0</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## - Effective Sample Sizes:</span></span>
+<span><span class="co">## - <span style="font-style: italic;">Effective Sample Sizes</span>:</span></span>
+<span><span class="co">## </span></span>
 <span><span class="co">##            Control Treated</span></span>
 <span><span class="co">## Unweighted   429.      185</span></span>
 <span><span class="co">## Weighted     118.8     185</span></span></code></pre>
@@ -365,7 +374,7 @@ modifiable vector of balance tolerances that can be supplied to
 <span>                       <span class="va">re74</span> <span class="op">+</span> <span class="va">re75</span>, data <span class="op">=</span> <span class="va">lalonde</span>,</span>
 <span>                     tols <span class="op">=</span> <span class="fl">.02</span><span class="op">)</span></span>
 <span><span class="va">tols</span></span></code></pre></div>
-<pre><code><span><span class="co">## - tols:</span></span>
+<pre><code><span><span class="co">##  - <span style="font-style: italic;">tols</span>:</span></span>
 <span><span class="co">##      age     educ     race  married nodegree     re74     re75 </span></span>
 <span><span class="co">##     0.02     0.02     0.02     0.02     0.02     0.02     0.02</span></span></code></pre>
 <p>Here, we’ll relax the constraint on <code>race</code> and then
@@ -374,7 +383,7 @@ estimate the weights.</p>
 <code class="sourceCode R"><span><span class="va">tols</span><span class="op">[</span><span class="st">"race"</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fl">.07</span></span>
 <span></span>
 <span><span class="va">tols</span></span></code></pre></div>
-<pre><code><span><span class="co">## - tols:</span></span>
+<pre><code><span><span class="co">##  - <span style="font-style: italic;">tols</span>:</span></span>
 <span><span class="co">##      age     educ     race  married nodegree     re74     re75 </span></span>
 <span><span class="co">##     0.02     0.02     0.07     0.02     0.02     0.02     0.02</span></span></code></pre>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
@@ -444,13 +453,17 @@ how those choices affect the properties of the weights.</p>
 <span>                   norm <span class="op">=</span> <span class="st">"l2"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">ow_l2</span>, weight.range <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Summary of weights:</span></span>
+<pre><code><span><span class="co">##                   <span style="text-decoration: underline;">Summary of weights</span></span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## - <span style="font-style: italic;">Weight statistics</span>:</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">##            L2    L1    L∞ Rel Ent # Zeros</span></span>
 <span><span class="co">## treated 0.    0.    0.       0.         0</span></span>
 <span><span class="co">## control 1.717 1.339 5.002    1.23       0</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## - Effective Sample Sizes:</span></span>
+<span><span class="co">## - <span style="font-style: italic;">Effective Sample Sizes</span>:</span></span>
+<span><span class="co">## </span></span>
 <span><span class="co">##            Control Treated</span></span>
 <span><span class="co">## Unweighted   429.      185</span></span>
 <span><span class="co">## Weighted     108.6     185</span></span></code></pre>
@@ -462,13 +475,17 @@ how those choices affect the properties of the weights.</p>
 <span>                   norm <span class="op">=</span> <span class="st">"l1"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">ow_l1</span>, weight.range <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Summary of weights:</span></span>
+<pre><code><span><span class="co">##                   <span style="text-decoration: underline;">Summary of weights</span></span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## - <span style="font-style: italic;">Weight statistics</span>:</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">##            L2    L1    L∞ Rel Ent # Zeros</span></span>
 <span><span class="co">## treated 0.    0.     0.     0.          0</span></span>
 <span><span class="co">## control 2.082 1.281 10.83   1.239       0</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## - Effective Sample Sizes:</span></span>
+<span><span class="co">## - <span style="font-style: italic;">Effective Sample Sizes</span>:</span></span>
+<span><span class="co">## </span></span>
 <span><span class="co">##            Control Treated</span></span>
 <span><span class="co">## Unweighted  429.       185</span></span>
 <span><span class="co">## Weighted     80.42     185</span></span></code></pre>
@@ -481,13 +498,17 @@ how those choices affect the properties of the weights.</p>
 <span>                   eps <span class="op">=</span> <span class="fl">1e-5</span><span class="op">)</span> <span class="co"># to improve convergence</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">ow_linf</span>, weight.range <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Summary of weights:</span></span>
+<pre><code><span><span class="co">##                   <span style="text-decoration: underline;">Summary of weights</span></span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## - <span style="font-style: italic;">Weight statistics</span>:</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">##            L2    L1    L∞ Rel Ent # Zeros</span></span>
 <span><span class="co">## treated 0.    0.    0.        0.        0</span></span>
 <span><span class="co">## control 1.877 1.548 3.577     1.5       0</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## - Effective Sample Sizes:</span></span>
+<span><span class="co">## - <span style="font-style: italic;">Effective Sample Sizes</span>:</span></span>
+<span><span class="co">## </span></span>
 <span><span class="co">##            Control Treated</span></span>
 <span><span class="co">## Unweighted  429.       185</span></span>
 <span><span class="co">## Weighted     94.83     185</span></span></code></pre>
@@ -499,13 +520,17 @@ how those choices affect the properties of the weights.</p>
 <span>                   norm <span class="op">=</span> <span class="st">"entropy"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">ow_re</span>, weight.range <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Summary of weights:</span></span>
+<pre><code><span><span class="co">##                   <span style="text-decoration: underline;">Summary of weights</span></span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## - <span style="font-style: italic;">Weight statistics</span>:</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">##            L2    L1   L∞ Rel Ent # Zeros</span></span>
 <span><span class="co">## treated 0.    0.    0.     0.          0</span></span>
 <span><span class="co">## control 1.832 1.287 8.42   1.101       0</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## - Effective Sample Sizes:</span></span>
+<span><span class="co">## - <span style="font-style: italic;">Effective Sample Sizes</span>:</span></span>
+<span><span class="co">## </span></span>
 <span><span class="co">##            Control Treated</span></span>
 <span><span class="co">## Unweighted  429.       185</span></span>
 <span><span class="co">## Weighted     98.46     185</span></span></code></pre>
@@ -578,7 +603,7 @@ can be used to create a vector of target means which are supplied to the
 <span>                           data <span class="op">=</span> <span class="va">lalonde</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">targets</span></span></code></pre></div>
-<pre><code><span><span class="co">## - targets:</span></span>
+<pre><code><span><span class="co">##  - <span style="font-style: italic;">targets</span>:</span></span>
 <span><span class="co">##         age        educ  race_black race_hispan  race_white     married    nodegree        re74 </span></span>
 <span><span class="co">##     27.3632     10.2687      0.3958      0.1173      0.4870      0.4153      0.6303   4557.5466 </span></span>
 <span><span class="co">##        re75 </span></span>
@@ -592,7 +617,7 @@ covariates, the proportions in the groups must sum to 1.</p>
 <span><span class="va">targets</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"race_black"</span>, <span class="st">"race_hispan"</span>, <span class="st">"race_white"</span><span class="op">)</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">.5</span>, <span class="fl">.3</span>, <span class="fl">.2</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">targets</span></span></code></pre></div>
-<pre><code><span><span class="co">## - targets:</span></span>
+<pre><code><span><span class="co">##  - <span style="font-style: italic;">targets</span>:</span></span>
 <span><span class="co">##         age        educ  race_black race_hispan  race_white     married    nodegree        re74 </span></span>
 <span><span class="co">##     35.0000     10.2687      0.5000      0.3000      0.2000      0.4153      0.6303   4557.5466 </span></span>
 <span><span class="co">##        re75 </span></span>
@@ -799,13 +824,17 @@ all covariates.</p>
 <span>                tols <span class="op">=</span> <span class="va">tols</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">ow</span>, weight.range <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Summary of weights:</span></span>
+<pre><code><span><span class="co">##                   <span style="text-decoration: underline;">Summary of weights</span></span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## - <span style="font-style: italic;">Weight statistics</span>:</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">##            L2    L1    L∞ Rel Ent # Zeros</span></span>
 <span><span class="co">## treated 0.    0.    0.      0.          0</span></span>
 <span><span class="co">## control 1.616 1.267 4.212   1.118       0</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## - Effective Sample Sizes:</span></span>
+<span><span class="co">## - <span style="font-style: italic;">Effective Sample Sizes</span>:</span></span>
+<span><span class="co">## </span></span>
 <span><span class="co">##            Control Treated</span></span>
 <span><span class="co">## Unweighted   429.      185</span></span>
 <span><span class="co">## Weighted     118.8     185</span></span></code></pre>
@@ -839,13 +868,17 @@ the balance constraint for <code>race</code> to .1.</p>
 <span>                 tols <span class="op">=</span> <span class="va">tols</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">ow2</span>, weight.range <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Summary of weights:</span></span>
+<pre><code><span><span class="co">##                   <span style="text-decoration: underline;">Summary of weights</span></span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## - <span style="font-style: italic;">Weight statistics</span>:</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">##            L2    L1    L∞ Rel Ent # Zeros</span></span>
 <span><span class="co">## treated 0.    0.    0.       0.         0</span></span>
 <span><span class="co">## control 1.424 1.113 3.638    0.91       0</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## - Effective Sample Sizes:</span></span>
+<span><span class="co">## - <span style="font-style: italic;">Effective Sample Sizes</span>:</span></span>
+<span><span class="co">## </span></span>
 <span><span class="co">##            Control Treated</span></span>
 <span><span class="co">## Unweighted   429.      185</span></span>
 <span><span class="co">## Weighted     141.7     185</span></span></code></pre>
@@ -864,13 +897,17 @@ then set the balance constraint for <code>re75</code> to .1.</p>
 <span>                 tols <span class="op">=</span> <span class="va">tols</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">ow3</span>, weight.range <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Summary of weights:</span></span>
+<pre><code><span><span class="co">##                   <span style="text-decoration: underline;">Summary of weights</span></span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## - <span style="font-style: italic;">Weight statistics</span>:</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">##            L2    L1    L∞ Rel Ent # Zeros</span></span>
 <span><span class="co">## treated 0.    0.    0.      0.          0</span></span>
 <span><span class="co">## control 1.616 1.267 4.207   1.118       0</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## - Effective Sample Sizes:</span></span>
+<span><span class="co">## - <span style="font-style: italic;">Effective Sample Sizes</span>:</span></span>
+<span><span class="co">## </span></span>
 <span><span class="co">##            Control Treated</span></span>
 <span><span class="co">## Unweighted   429.      185</span></span>
 <span><span class="co">## Weighted     118.8     185</span></span></code></pre>
@@ -887,13 +924,17 @@ Below, we decrease the tolerance on <code>re75</code> to 0:</p>
 <span>                 tols <span class="op">=</span> <span class="va">tols</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">ow4</span>, weight.range <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Summary of weights:</span></span>
+<pre><code><span><span class="co">##                   <span style="text-decoration: underline;">Summary of weights</span></span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## - <span style="font-style: italic;">Weight statistics</span>:</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">##            L2    L1    L∞ Rel Ent # Zeros</span></span>
 <span><span class="co">## treated 0.    0.    0.       0.         0</span></span>
 <span><span class="co">## control 1.617 1.269 4.229    1.12       0</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## - Effective Sample Sizes:</span></span>
+<span><span class="co">## - <span style="font-style: italic;">Effective Sample Sizes</span>:</span></span>
+<span><span class="co">## </span></span>
 <span><span class="co">##            Control Treated</span></span>
 <span><span class="co">## Unweighted   429.      185</span></span>
 <span><span class="co">## Weighted     118.7     185</span></span></code></pre>
@@ -937,7 +978,7 @@ effect on the ESS.</p>
 <p>It is possible to supply balance constraints for multiple (i.e.,
 multivariate) treatments simultaneously to estimate a single set of
 weights that satisfies them all. This approach is described by <span class="citation">Chen and Zhou (<a href="#ref-chenCausalEffectEstimation2023">2023</a>)</span> in the
-context of multiple continuous treatments. <code><a href="../reference/optweight.html">optweightMV()</a></code>
+context of multiple continuous treatments. <code><a href="../reference/optweightMV.html">optweightMV()</a></code>
 provides an interface to balancing multiple treatments and works
 similarly to <code><a href="../reference/optweight.html">optweight()</a></code>, though with the ability to supply
 multiple balancing formulas. Though this can be used with conceptually
@@ -947,16 +988,16 @@ that in order to eliminate the bias due to certain kinds of imbalance
 with a continuous treatment, the square of the centered treatment must
 be uncorrelated with the covariates, in addition to the treatment itself
 being uncorrelated with the covariates.</p>
-<p>To use <code><a href="../reference/optweight.html">optweightMV()</a></code>, supply a list of balancing
+<p>To use <code><a href="../reference/optweightMV.html">optweightMV()</a></code>, supply a list of balancing
 formulas to the <code>formula.list</code> argument. The
 <code>tols.list</code> argument must also be a list with a vector of
 tolerances for each treatment, each with a value for each covariate.
 However, <code>targets</code> should be a vector with a value for each
 unique covariate since one cannot specify multiple targets for the same
 covariate. Below is example (not run) of how to specify a call to
-<code><a href="../reference/optweight.html">optweightMV()</a></code>:</p>
+<code><a href="../reference/optweightMV.html">optweightMV()</a></code>:</p>
 <div class="sourceCode" id="cb62"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">owmv</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/optweight.html">optweightMV</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">t1</span> <span class="op">~</span> <span class="va">x1</span> <span class="op">+</span> <span class="va">x2</span> <span class="op">+</span> <span class="va">x3</span>,</span>
+<code class="sourceCode R"><span><span class="va">owmv</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/optweightMV.html">optweightMV</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">t1</span> <span class="op">~</span> <span class="va">x1</span> <span class="op">+</span> <span class="va">x2</span> <span class="op">+</span> <span class="va">x3</span>,</span>
 <span>                         <span class="va">t2</span> <span class="op">~</span> <span class="va">x1</span> <span class="op">+</span> <span class="va">x2</span> <span class="op">+</span> <span class="va">x3</span>,</span>
 <span>                         <span class="va">t3</span> <span class="op">~</span> <span class="va">x1</span> <span class="op">+</span> <span class="va">x2</span> <span class="op">+</span> <span class="va">x3</span><span class="op">)</span>,</span>
 <span>                    data <span class="op">=</span> <span class="va">data</span>,</span>
@@ -975,7 +1016,7 @@ list with a single value, e.g., <code>tols.list = list(.02)</code>.
 <code>targets</code> can be omitted to target the ATE (i.e., to balance
 the covariates at their means in the sample), but no other estimands can
 be specified.</p>
-<p>One might be tempted to use <code><a href="../reference/optweight.html">optweightMV()</a></code> to estimate
+<p>One might be tempted to use <code><a href="../reference/optweightMV.html">optweightMV()</a></code> to estimate
 balancing weights for longitudinal treatments. While this is possible,
 it’s not as simple as supplying a balancing formula for each treatment
 balancing the treatment and covariate history to that treatment <span class="citation">(<a href="#ref-yiuJointCalibratedEstimation2020">Yiu
@@ -1022,7 +1063,7 @@ the formula can be omitted (for both <code><a href="../reference/process_targets
 <span><span class="va">targets</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/process_targets.html">process_targets</a></span><span class="op">(</span><span class="va">lalonde_c</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">targets</span></span></code></pre></div>
-<pre><code><span><span class="co">## - targets:</span></span>
+<pre><code><span><span class="co">##  - <span style="font-style: italic;">targets</span>:</span></span>
 <span><span class="co">##         age        educ  race_black race_hispan  race_white     married    nodegree        re74 </span></span>
 <span><span class="co">##     28.0303     10.2354      0.2028      0.1422      0.6550      0.5128      0.5967   5619.2365 </span></span>
 <span><span class="co">##        re75        re78 </span></span>
@@ -1044,7 +1085,7 @@ mean.</p>
 <span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">targets</span><span class="op">[</span><span class="st">"re78"</span><span class="op">]</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="cn">TRUE</span></span>
 <span></span>
 <span><span class="va">targets</span></span></code></pre></div>
-<pre><code><span><span class="co">## - targets:</span></span>
+<pre><code><span><span class="co">##  - <span style="font-style: italic;">targets</span>:</span></span>
 <span><span class="co">##         age        educ  race_black race_hispan  race_white     married    nodegree        re74 </span></span>
 <span><span class="co">##        40.0         9.0         0.2         0.2         0.6         0.6         0.6      1000.0 </span></span>
 <span><span class="co">##        re75        re78 </span></span>
@@ -1058,7 +1099,7 @@ effectively dropped from the sample.</p>
 <span>                      min.w <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">ow_s</span></span></code></pre></div>
-<pre><code><span><span class="co">## An optweight.svy object</span></span>
+<pre><code><span><span class="co">## A <span style="font-style: italic;">optweight.svy</span> object</span></span>
 <span><span class="co">##  - number of obs.: 429</span></span>
 <span><span class="co">##  - norm minimized: "l2"</span></span>
 <span><span class="co">##  - sampling weights: present</span></span>
@@ -1066,21 +1107,26 @@ effectively dropped from the sample.</p>
 <span><span class="co">##  - covariates: age, educ, race, married, nodegree, re74, re75, re78</span></span></code></pre>
 <div class="sourceCode" id="cb69"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">ow_s</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Summary of weights:</span></span>
+<pre><code><span><span class="co">##                   <span style="text-decoration: underline;">Summary of weights</span></span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## - Weight ranges:</span></span>
+<span><span class="co">## - <span style="font-style: italic;">Weight ranges</span>:</span></span>
+<span><span class="co">## </span></span>
 <span><span class="co">##     Min                                 Max</span></span>
 <span><span class="co">## all   0 |---------------------------| 13.54</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## - Units with 5 greatest weights by group:</span></span>
-<span><span class="co">##                                          </span></span>
-<span><span class="co">##         404   152     111      19      16</span></span>
-<span><span class="co">##  all 9.4881 9.669 11.3265 11.4289 13.5373</span></span>
+<span><span class="co">## - <span style="font-style: italic;">Units with the 5 most extreme weights</span>:</span></span>
+<span><span class="co">##                                      </span></span>
+<span><span class="co">##        404   152    111     19     16</span></span>
+<span><span class="co">##  all 9.488 9.669 11.326 11.429 13.537</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## - <span style="font-style: italic;">Weight statistics</span>:</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">##        L2  L1    L∞ # Zeros</span></span>
 <span><span class="co">## all 2.237 1.5 12.54     307</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## - Effective Sample Sizes:</span></span>
+<span><span class="co">## - <span style="font-style: italic;">Effective Sample Sizes</span>:</span></span>
+<span><span class="co">## </span></span>
 <span><span class="co">##             Total</span></span>
 <span><span class="co">## Unweighted 429.  </span></span>
 <span><span class="co">## Weighted    71.44</span></span></code></pre>
@@ -1118,7 +1164,7 @@ by setting a more relaxed tolerance for <code>re74</code> using
 <span><span class="va">tols</span><span class="op">[</span><span class="st">"re74"</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fl">300</span></span>
 <span></span>
 <span><span class="va">tols</span></span></code></pre></div>
-<pre><code><span><span class="co">## - tols:</span></span>
+<pre><code><span><span class="co">##  - <span style="font-style: italic;">tols</span>:</span></span>
 <span><span class="co">##      age     educ     race  married nodegree     re74     re75     re78 </span></span>
 <span><span class="co">##        0        0        0        0        0      300        0        0</span></span></code></pre>
 <p>Here we set the tolerance for <code>re74</code> to be 300. We need to
@@ -1135,12 +1181,16 @@ target of 1000.</p>
 <span>                       std.cont <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">ow_s2</span>, weight.range <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Summary of weights:</span></span>
+<pre><code><span><span class="co">##                   <span style="text-decoration: underline;">Summary of weights</span></span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## - <span style="font-style: italic;">Weight statistics</span>:</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">##       L2   L1    L∞ # Zeros</span></span>
 <span><span class="co">## all 2.07 1.44 10.68     290</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## - Effective Sample Sizes:</span></span>
+<span><span class="co">## - <span style="font-style: italic;">Effective Sample Sizes</span>:</span></span>
+<span><span class="co">## </span></span>
 <span><span class="co">##             Total</span></span>
 <span><span class="co">## Unweighted 429.  </span></span>
 <span><span class="co">## Weighted    81.15</span></span></code></pre>

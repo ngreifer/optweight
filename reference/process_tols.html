@@ -5,7 +5,7 @@
       fontURL: "https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/output/chtml/fonts/woff-v2"
     }
   };
-</script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"><link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet"><script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet"><link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet"><script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Construct and Check Tolerance Input — process_tols"><meta name="description" content="Checks whether proposed tolerance values for tols are suitable in number and order for submission to optweight(). Users should include one value per item in formula. The output can also be used as an input to tols in optweight()."><meta property="og:description" content="Checks whether proposed tolerance values for tols are suitable in number and order for submission to optweight(). Users should include one value per item in formula. The output can also be used as an input to tols in optweight()."><meta property="og:image" content="https://ngreifer.github.io/optweight/logo.png"></head><body>
+</script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"><link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet"><script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet"><link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet"><script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Construct and Check Tolerance Input — process_tols"><meta name="description" content="Checks whether proposed tolerance values for tols are suitable in number and order for submission to optweight() and optweight.svy(), and returns an object that can supplied to the tols argument of these functions."><meta property="og:description" content="Checks whether proposed tolerance values for tols are suitable in number and order for submission to optweight() and optweight.svy(), and returns an object that can supplied to the tols argument of these functions."><meta property="og:image" content="https://ngreifer.github.io/optweight/logo.png"></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
@@ -13,7 +13,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">optweight</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -40,7 +40,7 @@
     </div>
 
     <div class="ref-description section level2">
-    <p>Checks whether proposed tolerance values for <code>tols</code> are suitable in number and order for submission to <code><a href="optweight.html">optweight()</a></code>. Users should include one value per item in <code>formula</code>. The output can also be used as an input to <code>tols</code> in <code><a href="optweight.html">optweight()</a></code>.</p>
+    <p>Checks whether proposed tolerance values for <code>tols</code> are suitable in number and order for submission to <code><a href="optweight.html">optweight()</a></code> and <code><a href="optweight.svy.html">optweight.svy()</a></code>, and returns an object that can supplied to the <code>tols</code> argument of these functions.</p>
     </div>
 
     <div class="section level2">
@@ -58,7 +58,7 @@
 
 
 <dl><dt id="arg-formula">formula<a class="anchor" aria-label="anchor" href="#arg-formula"></a></dt>
-<dd><p>a formula with the covariates to be balanced on the right-hand side. See <code><a href="https://rdrr.io/r/stats/glm.html" class="external-link">glm()</a></code> for more details. Interactions and functions of covariates are allowed. Lists of formulas are not allowed; multiple formulas must be checked one at a time.</p></dd>
+<dd><p>a formula with the covariates to be balanced on the right-hand side. Interactions and functions of covariates are allowed. Lists of formulas are not allowed; multiple formulas must be checked one at a time.</p></dd>
 
 
 <dt id="arg-data">data<a class="anchor" aria-label="anchor" href="#arg-data"></a></dt>
@@ -87,14 +87,13 @@
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>An <code>optweight.tols</code> object, which is a named vector of tolerance values, one for each variable specified in <code>formula</code>. This should be used as user inputs to <code><a href="optweight.html">optweight()</a></code>. The <code>"internal.tols"</code> attribute contains the tolerance values to be used internally by <code><a href="optweight.html">optweight()</a></code>. These will differ from the vector values when there are factor variables that are split up; the user only needs to submit one tolerance per factor variable, but separate tolerance values are produced for each new dummy created.</p>
+    <p>An <code>optweight.tols</code> object, which is a named vector of tolerance values, one for each variable specified in <code>formula</code>. This should be used as an input to the <code>tols</code> argument of <code><a href="optweight.html">optweight()</a></code>. The <code>"internal.tols"</code> attribute contains the tolerance values to be used internally by <code><a href="optweight.html">optweight()</a></code>. These will differ from the vector values when there are factor variables that are split up; the user only needs to submit one tolerance per factor variable, but separate tolerance values are produced for each new dummy created.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>The purpose of <code>process_tols()</code> is to allow users to ensure that their proposed input to <code>tols</code> in <code><a href="optweight.html">optweight()</a></code> is correct both in the number of entries and their order. This is especially important when factor variables and interactions are included in the formula because factor variables are split into several dummies and interactions are moved to the end of the variable list, both of which can cause some confusion and potential error when entering <code>tols</code> values.</p>
 <p>Factor variables are internally split into a dummy variable for each level, but the user only needs to specify one tolerance value per original variable; <code>process_tols()</code> automatically expands the <code>tols</code> input to match the newly created variables.</p>
 <p>Interactions (e.g., <code>a:b</code> or <code>a*b</code> in the <code>formula</code> input) are always sent to the end of the variable list even if they are specified elsewhere in the <code>formula</code>. It is important to run <code>process_tols()</code> to ensure the order of the proposed <code>tols</code> corresponds to the represented order of covariates used in <code><a href="optweight.html">optweight()</a></code>. You can run <code>process_tols()</code> with no <code>tols</code> input to see the order of covariates that is required.</p>
-<p><code>process_tols()</code> was designed to be used primarily for its message printing and <code><a href="https://rdrr.io/r/base/print.html" class="external-link">print()</a></code> method, but you can also assign its output to an object for use as an input to <code>tols</code> in <code><a href="optweight.html">optweight()</a></code>.</p>
 <p>Note that only one formula and vector of tolerance values can be assessed at a time; for multiple treatments, each formula and tolerance vector must be entered separately.</p>
     </div>
     <div class="section level2">
@@ -113,7 +112,7 @@
 <span class="r-in"><span>                     data <span class="op">=</span> <span class="va">lalonde</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">tols</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> - tols:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  - <span style="font-style: italic;">tols</span>:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>      age     educ  married nodegree     re74 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>        0        0        0        0        0 </span>
 <span class="r-in"><span></span></span>
@@ -123,7 +122,7 @@
 <span class="r-in"><span>                     tols <span class="op">=</span> <span class="fl">.05</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">tols</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> - tols:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  - <span style="font-style: italic;">tols</span>:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>      age     educ  married nodegree     re74 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     0.05     0.05     0.05     0.05     0.05 </span>
 <span class="r-in"><span></span></span>
@@ -135,17 +134,17 @@
 <span class="r-in"><span>                     tols <span class="op">=</span> <span class="fl">.05</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">tols</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> - tols:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  - <span style="font-style: italic;">tols</span>:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>      married         race     nodegree         re74     age:educ married:race </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         0.05         0.05         0.05         0.05         0.05         0.05 </span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Internal tolerances for expanded covariates</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">tols</span>, internal <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> - tols:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  - <span style="font-style: italic;">tols</span>:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>      married         race     nodegree         re74     age:educ married:race </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         0.05         0.05         0.05         0.05         0.05         0.05 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> - tols used internally by optweight:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  - <span style="font-style: italic;">tols used internally by optweight</span>:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>             married          race_black         race_hispan          race_white </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                0.05                0.05                0.05                0.05 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>            nodegree                re74            age:educ  married:race_black </span>

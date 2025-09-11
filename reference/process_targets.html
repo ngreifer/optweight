@@ -5,7 +5,7 @@
       fontURL: "https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/output/chtml/fonts/woff-v2"
     }
   };
-</script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"><link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet"><script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet"><link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet"><script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Construct and Check Targets Input — process_targets"><meta name="description" content="Checks whether proposed target population means values for targets are suitable in number and order for submission to optweight() and optweight.svy(). Users should include one value per variable in formula. For factor variables, one value per level of the variable is required. The output of process_targets() can also be used as an input to targets in optweight() and optweight.svy()."><meta property="og:description" content="Checks whether proposed target population means values for targets are suitable in number and order for submission to optweight() and optweight.svy(). Users should include one value per variable in formula. For factor variables, one value per level of the variable is required. The output of process_targets() can also be used as an input to targets in optweight() and optweight.svy()."><meta property="og:image" content="https://ngreifer.github.io/optweight/logo.png"></head><body>
+</script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"><link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet"><script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet"><link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet"><script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Construct and Check Targets Input — process_targets"><meta name="description" content="Checks whether proposed target population means values for targets are suitable in number and order for submission to optweight(), optweightMV(), and optweight.svy(), and returns an object that can supplied to the targets argument of these functions."><meta property="og:description" content="Checks whether proposed target population means values for targets are suitable in number and order for submission to optweight(), optweightMV(), and optweight.svy(), and returns an object that can supplied to the targets argument of these functions."><meta property="og:image" content="https://ngreifer.github.io/optweight/logo.png"></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
@@ -13,7 +13,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">optweight</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -40,7 +40,7 @@
     </div>
 
     <div class="ref-description section level2">
-    <p>Checks whether proposed target population means values for <code>targets</code> are suitable in number and order for submission to <code><a href="optweight.html">optweight()</a></code> and <code><a href="optweight.svy.html">optweight.svy()</a></code>. Users should include one value per variable in <code>formula</code>. For factor variables, one value per level of the variable is required. The output of <code>process_targets()</code> can also be used as an input to <code>targets</code> in <code><a href="optweight.html">optweight()</a></code> and <code><a href="optweight.svy.html">optweight.svy()</a></code>.</p>
+    <p>Checks whether proposed target population means values for <code>targets</code> are suitable in number and order for submission to <code><a href="optweight.html">optweight()</a></code>, <code><a href="optweightMV.html">optweightMV()</a></code>, and <code><a href="optweight.svy.html">optweight.svy()</a></code>, and returns an object that can supplied to the <code>targets</code> argument of these functions.</p>
     </div>
 
     <div class="section level2">
@@ -58,7 +58,7 @@
 
 
 <dl><dt id="arg-formula">formula<a class="anchor" aria-label="anchor" href="#arg-formula"></a></dt>
-<dd><p>a formula with the covariates to be targeted on the right-hand side. See <code><a href="https://rdrr.io/r/stats/glm.html" class="external-link">glm()</a></code> for more details. Interactions and functions of covariates are allowed. Can be omitted, in which case all variables in <code>data</code> are assumed targeted.</p></dd>
+<dd><p>a formula with nothing on the left hand side and the covariates to be targeted on the right hand side. Interactions and functions of covariates are allowed. Can be omitted, in which case all variables in <code>data</code> are assumed targeted. If <code>data</code> is <code>NULL</code> and <code>formula</code> is a data.frame, <code>data</code> will be replaced with <code>formula</code>.</p></dd>
 
 
 <dt id="arg-data">data<a class="anchor" aria-label="anchor" href="#arg-data"></a></dt>
@@ -70,11 +70,11 @@
 
 
 <dt id="arg-s-weights">s.weights<a class="anchor" aria-label="anchor" href="#arg-s-weights"></a></dt>
-<dd><p>an optional vector of sampling weights. Default is a vector of 1s.</p></dd>
+<dd><p>a vector of sampling weights. For <code><a href="optweight.html">optweight()</a></code>, can also be the name of a variable in <code>data</code> that contains sampling weights.</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
-<dd><p>ignored.</p></dd>
+<dd><p>for <code><a href="optweight.html">optweight()</a></code>, additional arguments passed to <code><a href="optweight.html">optweight.fit()</a></code>, including options that are passed to the settings function corresponding to <code>solver</code>.</p></dd>
 
 
 <dt id="arg-x">x<a class="anchor" aria-label="anchor" href="#arg-x"></a></dt>
@@ -87,11 +87,11 @@
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>An <code>optweight.targets</code> object, which is a named vector of target population mean values, one for each (expanded) covariate specified in <code>formula</code>. This should be used as user inputs to <code><a href="optweight.html">optweight()</a></code> and <code><a href="optweight.svy.html">optweight.svy()</a></code>.</p>
+    <p>An <code>optweight.targets</code> object, which is a named vector of target population mean values, one for each (expanded) covariate specified in <code>formula</code>. This should be used as an input to the <code>targets</code> argument of <code><a href="optweight.html">optweight()</a></code>, <code><a href="optweightMV.html">optweightMV()</a></code>, and <code><a href="optweight.svy.html">optweight.svy()</a></code>.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>The purpose of <code>process_targets()</code> is to allow users to ensure that their proposed input to <code>targets</code> in <code><a href="optweight.html">optweight()</a></code> and <code><a href="optweight.svy.html">optweight.svy()</a></code> is correct both in the number of entries and their order. This is especially important when factor variables and interactions are included in the formula because factor variables are split into several dummies and interactions are moved to the end of the variable list, both of which can cause some confusion and potential error when entering <code>targets</code> values.</p>
+    <p>The purpose of <code>process_targets()</code> is to allow users to ensure that their proposed input to <code>targets</code> in <code><a href="optweight.html">optweight()</a></code>, <code><a href="optweightMV.html">optweightMV()</a></code>, and <code><a href="optweight.svy.html">optweight.svy()</a></code> is correct both in the number of entries and their order. This is especially important when factor variables and interactions are included in the formula because factor variables are split into several dummies and interactions are moved to the end of the variable list, both of which can cause some confusion and potential error when entering <code>targets</code> values.</p>
 <p>Factor variables are internally split into a dummy variable for each level, so the user must specify a target population mean value for each level of the factor. These must add up to 1, and an error will be displayed if they do not. These values represent the proportion of units in the target population with each factor level.</p>
 <p>Interactions (e.g., <code>a:b</code> or <code>a*b</code> in the <code>formula</code> input) are always sent to the end of the variable list even if they are specified elsewhere in the <code>formula</code>. It is important to run <code>process_targets()</code> to ensure the order of the proposed <code>targets</code> corresponds to the represented order of covariates used in the formula. You can run <code>process_targets(., targets = NA)</code> to see the order of covariates that is required without specifying any targets.</p>
     </div>
@@ -112,7 +112,7 @@
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Notice race is split into three values</span></span></span>
 <span class="r-in"><span><span class="va">targets</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> - targets:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  - <span style="font-style: italic;">targets</span>:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         age  race_black race_hispan  race_white     married    nodegree </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    27.36319     0.39577     0.11726     0.48697     0.41531     0.63029 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>        re74 </span>
@@ -124,7 +124,7 @@
 <span class="r-in"><span>                           data <span class="op">=</span> <span class="va">lalonde</span>,</span></span>
 <span class="r-in"><span>                           targets <span class="op">=</span> <span class="cn">NA</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">targets</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> - vars:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  - <span style="font-style: italic;">variables</span>:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 	age   race_black   race_hispan   race_white   married   nodegree   re74</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Can also supply just a dataset</span></span></span>
@@ -135,7 +135,7 @@
 <span class="r-in"><span><span class="va">targets</span> <span class="op">&lt;-</span> <span class="fu">process_targets</span><span class="op">(</span><span class="va">covs</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">targets</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> - targets:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  - <span style="font-style: italic;">targets</span>:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         age  race_black race_hispan  race_white     married    nodegree </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    27.36319     0.39577     0.11726     0.48697     0.41531     0.63029 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>        re74 </span>
