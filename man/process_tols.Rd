@@ -43,7 +43,7 @@ Interactions (e.g., \code{a:b} or \code{a*b} in the \code{formula} input) are al
 Note that only one formula and vector of tolerance values can be assessed at a time; for multiple treatments, each formula and tolerance vector must be entered separately.
 }
 \examples{
-\dontshow{if (requireNamespace("cobalt", quietly = TRUE)) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\dontshow{if (rlang::is_installed("cobalt")) withAutoprint(\{ # examplesIf}
 library("cobalt")
 data("lalonde", package = "cobalt")
 

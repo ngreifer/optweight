@@ -63,25 +63,30 @@ ow
 summary(ow)
 ```
 
-    #> Summary of weights:
+    #>                   Summary of weights
     #> 
     #> - Weight ranges:
-    #>         Min                                  Max
-    #> treated   1      ||                       1.    
-    #> control   0 |---------------------------| 5.5885
     #> 
-    #> - Units with 5 greatest weights by group:
-    #>                                            
-    #>               1      2      3      4      5
-    #>  treated      1      1      1      1      1
-    #>             423    388    226    196    118
-    #>  control 5.2698 5.2985 5.3241 5.4795 5.5885
+    #>         Min                                 Max
+    #> treated   1      ||                       1.   
+    #> control   0 |---------------------------| 5.588
+    #> 
+    #> - Units with the 5 most extreme weights by group:
+    #>                                      
+    #>             1     2     3     4     5
+    #>  treated    1     1     1     1     1
+    #>           423   388   226   196   118
+    #>  control 5.27 5.298 5.324 5.479 5.588
+    #> 
+    #> 
+    #> - Weight statistics:
     #> 
     #>            L2    L1    L∞ # Zeros
     #> treated 0.    0.    0.          0
     #> control 1.663 1.302 4.588     231
     #> 
     #> - Effective Sample Sizes:
+    #> 
     #>            Control Treated
     #> Unweighted   429.      185
     #> Weighted     113.9     185
@@ -136,7 +141,9 @@ and treatment variables directly. `optweightMV()` supports multivariate
 In addition to estimating balancing weights for estimating treatment
 effects, *optweight* can estimate sampling weights for generalizing an
 estimate to a new target population defined by covariate moments using
-`optweight.svy()`.
+`optweight.svy()`, which implements the methods described in Jackson,
+Rhodes, and Ouwens ([2021](#ref-jacksonAlternativeWeightingSchemes2021))
+for matching-adjusted indirect comparison (MAIC).
 
 To cite *optweight*, please use `citation("optweight")` to generate the
 correct reference. Be sure to include the version of the package. Please
@@ -147,6 +154,15 @@ submit bug reports, questions, comments, or other issues to
 
 <div id="refs" class="references csl-bib-body hanging-indent"
 entry-spacing="0">
+
+<div id="ref-jacksonAlternativeWeightingSchemes2021" class="csl-entry">
+
+Jackson, Dan, Kirsty Rhodes, and Mario Ouwens. 2021. “Alternative
+Weighting Schemes When Performing Matching-Adjusted Indirect
+Comparisons.” *Research Synthesis Methods* 12 (3): 333–46.
+<https://doi.org/10.1002/jrsm.1466>.
+
+</div>
 
 <div id="ref-kallbergLargeSampleProperties2023" class="csl-entry">
 

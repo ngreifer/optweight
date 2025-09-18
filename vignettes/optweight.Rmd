@@ -588,6 +588,28 @@ avg_comparisons(fit,
 
 Robust standard errors treat the weights as fixed, which often yields larger standard errors than the bootstrap.
 
+## Further reading
+
+The methods implemented here have been described in several papers. Below is a selected annotated reading list for more information on the weights and their uses, properties, and extensions.
+
+-   The canonical reference for SBW is @zubizarretaStableWeightsThat2015, which introduces them.
+
+-   The general theory of weighting for balance is described for applied audiences by @chattopadhyayBalancingVsModeling2020 and @cohnWeightingCausalInference2025.
+
+-   A complete theoretical perspective on SBW is offered by @wangMinimalDispersionApproximately2020. Note their results primarily extend to cases where the constraint on the nonnegativity of the weights is removed.
+
+-   @chanGloballyEfficientNonparametric2016 describe a general framework that includes SBW, with a focus on exact balance. The specific method they describe is equivalent to entropy balancing (i.e., using `norm = "entropy"`.
+
+-   Entropy balancing in general is described by @hainmuellerEntropyBalancingCausal2012 and expanded on by @zhaoEntropyBalancingDoubly2017 and @kallbergLargeSampleProperties2023.
+
+-   SBW for multi-category treatments is described by @delosangelesresaDirectStableWeight2020. SBW for continuous treatments is described by @greiferEstimatingBalancingWeights2020. Related theory for continuous treatments by in the context of entropy balancing is described by @tubbickeEntropyBalancingContinuous2022 and @vegetabileNonparametricEstimationPopulation2021.
+
+-   SBW for generalizing a single sample to a target population (i.e., as implemented in `optweight.svy()`), also known as matching-adjusted indirect comparison (MAIC), is described in @jacksonAlternativeWeightingSchemes2021. The general theory of MAIC is developed in @signorovitchComparativeEffectivenessHeadtoHead2010 and reviewed in @jiangComprehensiveReviewShiny2024. @wangMatchingadjustedIndirectComparison2021 also discusses MAIC, including the performance of different `norm` choices.
+
+-   SBW for simultaneously balancing and generalizing to a target population is described by @chattopadhyayOneStepWeightingGeneralize2024.
+
+-   The connections between SBW and g-computation for estimating treatments effects is described by @chattopadhyayImpliedWeightsLinear2023, @chattopadhyayLmwLinearModel2024, and @chattopadhyayCausationComparisonRegression2024.
+
 ## References
 
 ::: {#refs}

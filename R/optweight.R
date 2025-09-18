@@ -51,7 +51,7 @@
 #'
 #' For continuous treatments, weights are estimated so that the weighted correlation between the treatment and each covariate is within the specified tolerance threshold. The means of the weighted covariates and treatment are restricted to be exactly equal to those of the target population to ensure generalizability to the desired target population, regardless of `tols`. The weighted correlation is computed as the weighted covariance divided by the product of the *unweighted* standard deviations. The means used to center the variables in computing the covariance are those specified in the target population.
 #'
-#' Target and balance constraints are applied to the product of the estimated weights and the sampling weights. In addition,the sum of the product of the estimated weights and the sampling weights is constrained to be equal to the sum of the product of the base weights and sampling weights. For binary and multi-category treatments, these constraints apply within each treatment group.
+#' Target and balance constraints are applied to the product of the estimated weights and the sampling weights. In addition, the sum of the product of the estimated weights and the sampling weights is constrained to be equal to the sum of the product of the base weights and sampling weights. For binary and multi-category treatments, these constraints apply within each treatment group.
 #'
 #' ## `norm`
 #'
@@ -116,6 +116,8 @@
 #' @references
 #' Chattopadhyay, A., Cohn, E. R., & Zubizarreta, J. R. (2024). One-Step Weighting to Generalize and Transport Treatment Effect Estimates to a Target Population. *The American Statistician*, 78(3), 280–289. \doi{10.1080/00031305.2023.2267598}
 #'
+#' de los Angeles Resa, M., & Zubizarreta, J. R. (2020). Direct and Stable Weight Adjustment in Non-Experimental Studies With Multivalued Treatments: Analysis of the Effect of an Earthquake on Post-Traumatic Stress. *Journal of the Royal Statistical Society Series A: Statistics in Society*, 183(4), 1387–1410. \doi{10.1111/rssa.12561}
+#'
 #' Källberg, D., & Waernbaum, I. (2023). Large Sample Properties of Entropy Balancing Estimators of Average Causal Effects. *Econometrics and Statistics*. \doi{10.1016/j.ecosta.2023.11.004}
 #'
 #' Wang, Y., & Zubizarreta, J. R. (2020). Minimal dispersion approximately balancing weights: Asymptotic properties and practical considerations. *Biometrika*, 107(1), 93–105. \doi{10.1093/biomet/asz050}
@@ -129,7 +131,7 @@
 #'
 #' \CRANpkg{WeightIt}, which provides a simplified interface to `optweight()` and a more efficient implementation of entropy balancing.
 #'
-#' @examplesIf requireNamespace("cobalt", quietly = TRUE)
+#' @examplesIf rlang::is_installed("cobalt")
 #' library("cobalt")
 #' data("lalonde", package = "cobalt")
 #'
@@ -582,7 +584,7 @@ print.optweight <- function(x, ...) {
     treat.type[treat.type == "multinomial"] <- "multi-category"
   }
 
-  cat(sprintf("A %s object\n", .it(class(x)[1L])))
+  cat(sprintf("An %s object\n", .it(class(x)[1L])))
 
   cat(sprintf(" - number of obs.: %s\n",
               length(x[["weights"]])))

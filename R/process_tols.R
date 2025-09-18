@@ -24,7 +24,7 @@
 #'
 #' @seealso [process_targets()]
 #'
-#' @examplesIf requireNamespace("cobalt", quietly = TRUE)
+#' @examplesIf rlang::is_installed("cobalt")
 #' library("cobalt")
 #' data("lalonde", package = "cobalt")
 #'

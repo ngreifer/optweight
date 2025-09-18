@@ -1,6 +1,6 @@
 #' Stable Balancing Weights for Generalization
 #'
-#' Estimates stable balancing weights to generalize a sample characterized by supplied covariates to a given target population. The target means are specified with `targets` and the maximum distance between each weighted covariate mean. See Zubizarreta (2015) for details of the properties of the weights and the methods used to fit them.
+#' Estimates stable balancing weights to generalize a sample characterized by supplied covariates to a given target population. The target means are specified with `targets` and the maximum distance between each weighted covariate mean. See Jackson et al. (2021) for details of the properties of the weights and the methods used to fit them.
 #'
 #' @inheritParams optweight
 #' @param formula a formula with nothing on the left hand side and the covariates to be targeted on the right hand side. Interactions and functions of covariates are allowed. Can be omitted, in which case all variables in `data` are assumed targeted. If `data` is `NULL` and `formula` is a data.frame, `data` will be replaced with `formula`.
@@ -50,9 +50,9 @@
 #' [process_targets()] for specifying the covariate target means supplied to `targets`.
 #'
 #' @references
-#' Zubizarreta, J. R. (2015). Stable Weights that Balance Covariates for Estimation With Incomplete Outcome Data. *Journal of the American Statistical Association*, 110(511), 910–922. \doi{10.1080/01621459.2015.1023805}
+#' Jackson, D., Rhodes, K., & Ouwens, M. (2021). Alternative weighting schemes when performing matching-adjusted indirect comparisons. *Research Synthesis Methods*, 12(3), 333–346. \doi{10.1002/jrsm.1466}
 #'
-#' @examplesIf requireNamespace("cobalt", quietly = TRUE)
+#' @examplesIf rlang::is_installed("cobalt")
 #' library("cobalt")
 #' data("lalonde", package = "cobalt")
 #'

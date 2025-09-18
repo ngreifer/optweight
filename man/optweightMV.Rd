@@ -97,7 +97,7 @@ Estimates stable balancing weights for the supplied multivariate (i.e., multiple
 See \code{\link[=optweight]{optweight()}} for more information about balance tolerances (i.e., those specified in \code{tols.list}), \code{targets}, \code{norm}, \code{solver}, and convergence failure.
 }
 \examples{
-\dontshow{if (requireNamespace("cobalt", quietly = TRUE)) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\dontshow{if (rlang::is_installed("cobalt")) withAutoprint(\{ # examplesIf}
 library("cobalt")
 data("lalonde", package = "cobalt")
 

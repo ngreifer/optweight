@@ -80,7 +80,7 @@ For \code{optweight.svy.fit()}, an \code{optweight.svy.fit} object with the foll
 \item{solver}{The \code{solver} used.}
 }
 \description{
-Estimates stable balancing weights to generalize a sample characterized by supplied covariates to a given target population. The target means are specified with \code{targets} and the maximum distance between each weighted covariate mean. See Zubizarreta (2015) for details of the properties of the weights and the methods used to fit them.
+Estimates stable balancing weights to generalize a sample characterized by supplied covariates to a given target population. The target means are specified with \code{targets} and the maximum distance between each weighted covariate mean. See Jackson et al. (2021) for details of the properties of the weights and the methods used to fit them.
 }
 \details{
 \code{optweight.svy()} is the primary user-facing function for estimating stable balancing weights for generalization to a target population. The optimization is performed by the lower-level function \code{optweight.svy.fit()}, which transforms the inputs into the required inputs for the optimization functions and then supplies the outputs (the weights, dual variables, and convergence information) back to \code{optweight.svy()}. Little processing of inputs is performed by \code{optweight.svy.fit()}, as this is normally handled by \code{optweight.svy()}.
@@ -100,7 +100,7 @@ Target constraints are applied to the product of the estimated weights and the s
 See \code{\link[=optweight]{optweight()}} for information on \code{norm}, \code{solver}, and convergence failure.
 }
 \examples{
-\dontshow{if (requireNamespace("cobalt", quietly = TRUE)) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\dontshow{if (rlang::is_installed("cobalt")) withAutoprint(\{ # examplesIf}
 library("cobalt")
 data("lalonde", package = "cobalt")
 
@@ -128,7 +128,7 @@ col_w_mean(lalonde[cov.names],
 \dontshow{\}) # examplesIf}
 }
 \references{
-Zubizarreta, J. R. (2015). Stable Weights that Balance Covariates for Estimation With Incomplete Outcome Data. \emph{Journal of the American Statistical Association}, 110(511), 910–922. \doi{10.1080/01621459.2015.1023805}
+Jackson, D., Rhodes, K., & Ouwens, M. (2021). Alternative weighting schemes when performing matching-adjusted indirect comparisons. \emph{Research Synthesis Methods}, 12(3), 333–346. \doi{10.1002/jrsm.1466}
 }
 \seealso{
 \code{\link[=optweight]{optweight()}} for estimating weights that balance treatment groups.

@@ -9,6 +9,8 @@ optweight News and Updates
 
 * Messages are now a little prettier thanks to *crayon*, which is a new dependency.
 
+* Documentation and vignette updates.
+
 # optweight 1.0.0
 
 The version involved a full rewrite and may not be backward compatible with prior versions. Basic functionality has not changed, but some of the more advanced functionality has changed.

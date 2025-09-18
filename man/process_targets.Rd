@@ -41,7 +41,7 @@ Factor variables are internally split into a dummy variable for each level, so t
 Interactions (e.g., \code{a:b} or \code{a*b} in the \code{formula} input) are always sent to the end of the variable list even if they are specified elsewhere in the \code{formula}. It is important to run \code{process_targets()} to ensure the order of the proposed \code{targets} corresponds to the represented order of covariates used in the formula. You can run \code{process_targets(., targets = NA)} to see the order of covariates that is required without specifying any targets.
 }
 \examples{
-\dontshow{if (requireNamespace("cobalt", quietly = TRUE)) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\dontshow{if (rlang::is_installed("cobalt")) withAutoprint(\{ # examplesIf}
 library("cobalt")
 data("lalonde", package = "cobalt")
 

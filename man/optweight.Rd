@@ -106,7 +106,7 @@ If standardized tolerance values are requested, the standardization factor corre
 
 For continuous treatments, weights are estimated so that the weighted correlation between the treatment and each covariate is within the specified tolerance threshold. The means of the weighted covariates and treatment are restricted to be exactly equal to those of the target population to ensure generalizability to the desired target population, regardless of \code{tols}. The weighted correlation is computed as the weighted covariance divided by the product of the \emph{unweighted} standard deviations. The means used to center the variables in computing the covariance are those specified in the target population.
 
-Target and balance constraints are applied to the product of the estimated weights and the sampling weights. In addition,the sum of the product of the estimated weights and the sampling weights is constrained to be equal to the sum of the product of the base weights and sampling weights. For binary and multi-category treatments, these constraints apply within each treatment group.
+Target and balance constraints are applied to the product of the estimated weights and the sampling weights. In addition, the sum of the product of the estimated weights and the sampling weights is constrained to be equal to the sum of the product of the base weights and sampling weights. For binary and multi-category treatments, these constraints apply within each treatment group.
 \subsection{\code{norm}}{
 
 The objective function for the optimization problem is \eqn{f\left(w_i, b_i, s_i\right)}, where \eqn{w_i} is the estimated weight for unit \eqn{i}, \eqn{s_i} is the sampling weight for unit \eqn{i} (supplied by \code{s.weights}) and \eqn{b_i} is the base weight for unit \eqn{i} (supplied by \code{b.weights}). The \code{norm} argument determines \eqn{f(.,.,.)}, as detailed below:
@@ -173,7 +173,7 @@ Sometimes using a different solver can improve performance. Using the default \c
 }
 }
 \examples{
-\dontshow{if (requireNamespace("cobalt", quietly = TRUE)) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\dontshow{if (rlang::is_installed("cobalt")) withAutoprint(\{ # examplesIf}
 library("cobalt")
 data("lalonde", package = "cobalt")
 
@@ -247,6 +247,8 @@ ow.fit <- optweight.fit(covs,
 }
 \references{
 Chattopadhyay, A., Cohn, E. R., & Zubizarreta, J. R. (2024). One-Step Weighting to Generalize and Transport Treatment Effect Estimates to a Target Population. \emph{The American Statistician}, 78(3), 280–289. \doi{10.1080/00031305.2023.2267598}
+
+de los Angeles Resa, M., & Zubizarreta, J. R. (2020). Direct and Stable Weight Adjustment in Non-Experimental Studies With Multivalued Treatments: Analysis of the Effect of an Earthquake on Post-Traumatic Stress. \emph{Journal of the Royal Statistical Society Series A: Statistics in Society}, 183(4), 1387–1410. \doi{10.1111/rssa.12561}
 
 Källberg, D., & Waernbaum, I. (2023). Large Sample Properties of Entropy Balancing Estimators of Average Causal Effects. \emph{Econometrics and Statistics}. \doi{10.1016/j.ecosta.2023.11.004}
 

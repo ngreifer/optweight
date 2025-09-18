@@ -52,7 +52,7 @@
 #' @seealso
 #' [optweight()] for more information on the optimization, specifications, and options.
 #'
-#' @examplesIf requireNamespace("cobalt", quietly = TRUE)
+#' @examplesIf rlang::is_installed("cobalt")
 #' library("cobalt")
 #' data("lalonde", package = "cobalt")
 #'
@@ -471,7 +471,7 @@ print.optweightMV <- function(x, ...) {
 
   treat.names <- vapply(x[["treat.list"]], attr, character(1L), "treat.name")
 
-  cat(sprintf("A %s object\n", .it(class(x)[1L])))
+  cat(sprintf("An %s object\n", .it(class(x)[1L])))
 
   cat(sprintf(" - number of obs.: %s\n",
               length(x[["weights"]])))

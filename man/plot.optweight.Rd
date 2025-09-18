@@ -31,7 +31,7 @@ values.
 Dual variables represent the cost of changing the constraint on the objective function minimized to estimate the weights. For covariates with large values of the dual variable, tightening the constraint will increase the variability of the weights, and relaxing the constraint will decrease the variability of the weights, both to a greater extent than would doing the same for covariate with small values of the dual variable. See \code{\link[=optweight]{optweight()}} and \code{vignette("optweight")} for more information on interpreting dual variables.
 }
 \examples{
-\dontshow{if (requireNamespace("cobalt", quietly = TRUE)) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\dontshow{if (rlang::is_installed("cobalt")) withAutoprint(\{ # examplesIf}
 library("cobalt")
 data("lalonde", package = "cobalt")
 

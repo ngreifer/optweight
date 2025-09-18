@@ -22,7 +22,7 @@
 #' @references
 #' Zubizarreta, J. R. (2015). Stable Weights that Balance Covariates for Estimation With Incomplete Outcome Data. *Journal of the American Statistical Association*, 110(511), 910–922. \doi{10.1080/01621459.2015.1023805}
 #'
-#' @examplesIf requireNamespace("cobalt", quietly = TRUE)
+#' @examplesIf rlang::is_installed("cobalt")
 #' library("cobalt")
 #' data("lalonde", package = "cobalt")
 #'

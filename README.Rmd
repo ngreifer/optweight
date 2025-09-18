@@ -72,7 +72,7 @@ We can see that `race` has the highest dual variable; relaxing the constraint on
 
 The lower-level function `optweight.fit()` operates on the covariates and treatment variables directly. `optweightMV()` supports multivariate (i.e., multiple) treatments.
 
-In addition to estimating balancing weights for estimating treatment effects, *optweight* can estimate sampling weights for generalizing an estimate to a new target population defined by covariate moments using `optweight.svy()`.
+In addition to estimating balancing weights for estimating treatment effects, *optweight* can estimate sampling weights for generalizing an estimate to a new target population defined by covariate moments using `optweight.svy()`, which implements the methods described in @jacksonAlternativeWeightingSchemes2021 for matching-adjusted indirect comparison (MAIC).
 
 To cite *optweight*, please use `citation("optweight")` to generate the correct reference. Be sure to include the version of the package. Please submit bug reports, questions, comments, or other issues to https://github.com/ngreifer/optweight/issues.
 

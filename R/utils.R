@@ -249,7 +249,9 @@ space <- function(n) {
   strrep(" ", n)
 }
 str_rev <- function(x) {
-  vapply(lapply(strsplit(x, NULL), rev), paste, character(1L), collapse = "")
+  strsplit(x, NULL) |>
+    lapply(rev) |>
+    vapply(paste, character(1L), collapse = "")
 }
 safe_str2expression <- function(text) {
   expr <- try(str2expression(text), silent = TRUE)
@@ -581,7 +583,7 @@ get_varnames <- function(expr) {
     fn <- as.character(e[[1L]])
 
     if (fn == as.name("$") || fn == as.name("[[") || fn == as.name("[")) {
-    # if (fn %in% c("$", "[[", "[")) {
+      # if (fn %in% c("$", "[[", "[")) {
 
       # keep as-is for $, [[, and [
       return(deparse1(e))
@@ -1241,7 +1243,8 @@ make_df <- function(ncol, nrow = 0L, types = "numeric") {
 }
 rep_with <- function(x, y) {
   #Helper function to fill named vectors with x and given names of y
-  setNames(rep.int(x, length(y)), names(y))
+  rep.int(x, length(y)) |>
+    setNames(names(y))
 }
 is_null <- function(x) length(x) == 0L
 is_not_null <- function(x) !is_null(x)

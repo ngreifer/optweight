@@ -1,6 +1,6 @@
 #' Summarize, Print, and Plot Information about Estimated Weights
 #'
-#' These functions summarize the weights resulting from a call to [optweight()], [optweightMV()], or [optweight.svy()]. `summary()` produces summary statistics on the distribution of weights, including their range and variability, and the effective sample size of the weighted sample (computing using the formula in McCaffrey, Rudgeway, & Morral, 2004). `plot()` creates a histogram of the weights.
+#' These functions summarize the weights resulting from a call to [optweight()], [optweightMV()], or [optweight.svy()]. `summary()` produces summary statistics on the distribution of weights, including their range and variability, and the effective sample size of the weighted sample (computed using the formula in McCaffrey, Rudgeway, & Morral, 2004). `plot()` creates a histogram of the weights.
 #'
 #' @param object an `optweight`, `optweightMV`, or `optweight.svy` object; the output of a call to [optweight()], [optweightMV()], or [optweight.svy()].
 #' @param top `integer`; how many of the largest and smallest weights to display. Default
@@ -41,7 +41,7 @@
 #' Propensity Score Estimation With Boosted Regression for Evaluating Causal
 #' Effects in Observational Studies. *Psychological Methods*, 9(4), 403–425. \doi{10.1037/1082-989X.9.4.403}
 #'
-#' @examplesIf requireNamespace("cobalt", quietly = TRUE)
+#' @examplesIf rlang::is_installed("cobalt")
 #' library("cobalt")
 #' data("lalonde", package = "cobalt")
 #'
@@ -170,16 +170,15 @@ print.summary.optweight <- function(x, digits = 3L, ...) {
 print.summary.optweightMV <- function(x, digits = 3L, ...) {
   chk::chk_whole_number(digits)
 
-  only.one <- length(x) == 1L || all_apply(x, identical, x[[1L]])
+  only.one <- length(x) == 1L || all_apply(x, function(y) isTRUE(all.equal(x[[1L]], y)))
 
   cat0(space(18L), .ul("Summary of weights"), "\n\n")
 
   for (ti in seq_along(x)) {
     if (!only.one) {
-      cat0(.st(space(11L)),
+      cat0(.st(space(19L)),
            .it(sprintf(" Treatment %s ", ti)),
-           .st(space(11L)), "\n")
-      cat(sprintf(" - - - - - - - - - - Treatment %s - - - - - - - - - -\n", ti))
+           .st(space(19L)), "\n")
     }
 
     .print_summary_internal(x[[ti]], digits = digits, ...)
@@ -289,14 +288,16 @@ plot.summary.optweight <- function(x, ...) {
     x$weight.range |>
       text_box_plot(width = 28L) |>
       round_df_char(digits = digits, pad = " ") |>
-      print.data.frame(...)
+      print.data.frame()
+
+    top <- max(lengths(x$weight.top))
 
     cat0("\n- ", .it(sprintf("Units with the %s most extreme weights%s",
-                             length(x$weight.top[[1L]]),
+                             top,
                              ngettext(length(x$weight.top), "", " by group"))),
          ":\n")
 
-    top <- max(lengths(x$weight.top))
+
     data.frame(unlist(lapply(names(x$weight.top), function(y) c(" ", y))),
                matrix(unlist(lapply(x$weight.top, function(y) c(names(y), character(top - length(y)),
                                                                 round(y, digits), character(top - length(y))))),
@@ -309,22 +310,17 @@ plot.summary.optweight <- function(x, ...) {
 
   cat0("\n- ", .it("Weight statistics"), ":\n\n")
 
-  matrix(c(x$l2, x$l1, x$linf, x$rel.ent, x$num.zeros),
-         nrow = length(x$l2),
-         byrow = FALSE,
-         dimnames = list(names(x$l2),
-                         c("L2", "L1", "L\u221E",
-                           "Rel Ent"[is_not_null(x$rel.ent)],
-                           "# Zeros"))) |>
+  cbind(x$l2, x$l1, x$linf, x$rel.ent, x$num.zeros) |>
     as.data.frame() |>
+    setNames(c("L2", "L1", "L\u221E", "Rel Ent"[is_not_null(x$rel.ent)], "# Zeros")) |>
     round_df_char(digits = digits, pad = " ") |>
-    print.data.frame(...)
+    print.data.frame()
 
   cat0("\n- ", .it("Effective Sample Sizes"), ":\n\n")
 
   x$effective.sample.size |>
-    round_df_char(digits = 2, pad = " ") |>
-    print.data.frame(...)
+    round_df_char(digits = 2L, pad = " ") |>
+    print.data.frame()
 
   invisible(x)
 }
