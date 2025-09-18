@@ -22,8 +22,8 @@
 <script src="deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Optimization-Based Stable Balancing Weights">
-<meta name="description" content="Use optimization to estimate weights that balance covariates for binary, multi-category, continuous, and multivariate treatments in the spirit of Zubizarreta (2015) &lt;doi:10.1080/01621459.2015.1023805&gt;. The degree of balance can be specified for each covariate. In addition, sampling weights can be estimated that allow a sample to generalize to a population specified with given target moments of covariates.">
-<meta property="og:description" content="Use optimization to estimate weights that balance covariates for binary, multi-category, continuous, and multivariate treatments in the spirit of Zubizarreta (2015) &lt;doi:10.1080/01621459.2015.1023805&gt;. The degree of balance can be specified for each covariate. In addition, sampling weights can be estimated that allow a sample to generalize to a population specified with given target moments of covariates.">
+<meta name="description" content="Use optimization to estimate weights that balance covariates for binary, multi-category, continuous, and multivariate treatments in the spirit of Zubizarreta (2015) &lt;doi:10.1080/01621459.2015.1023805&gt;. The degree of balance can be specified for each covariate. In addition, sampling weights can be estimated that allow a sample to generalize to a population specified with given target moments of covariates, as in matching-adjusted indirect comparison (MAIC).">
+<meta property="og:description" content="Use optimization to estimate weights that balance covariates for binary, multi-category, continuous, and multivariate treatments in the spirit of Zubizarreta (2015) &lt;doi:10.1080/01621459.2015.1023805&gt;. The degree of balance can be specified for each covariate. In addition, sampling weights can be estimated that allow a sample to generalize to a population specified with given target moments of covariates, as in matching-adjusted indirect comparison (MAIC).">
 <meta property="og:image" content="https://ngreifer.github.io/optweight/logo.png">
 </head>
 <body>
@@ -34,7 +34,7 @@
 
     <a class="navbar-brand me-2" href="index.html">optweight</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0.9001</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -99,28 +99,33 @@
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Information about the weights</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">ow</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb5"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="co">#&gt; Summary of weights:</span></span>
+<div class="sourceCode" id="cb5"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="co">#&gt;                   Summary of weights</span></span>
 <span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a><span class="co">#&gt; - Weight ranges:</span></span>
-<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a><span class="co">#&gt;         Min                                  Max</span></span>
-<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a><span class="co">#&gt; treated   1      ||                       1.    </span></span>
-<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a><span class="co">#&gt; control   0 |---------------------------| 5.5885</span></span>
-<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a><span class="co">#&gt; - Units with 5 greatest weights by group:</span></span>
-<span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a><span class="co">#&gt;                                            </span></span>
-<span id="cb5-10"><a href="#cb5-10" tabindex="-1"></a><span class="co">#&gt;               1      2      3      4      5</span></span>
-<span id="cb5-11"><a href="#cb5-11" tabindex="-1"></a><span class="co">#&gt;  treated      1      1      1      1      1</span></span>
-<span id="cb5-12"><a href="#cb5-12" tabindex="-1"></a><span class="co">#&gt;             423    388    226    196    118</span></span>
-<span id="cb5-13"><a href="#cb5-13" tabindex="-1"></a><span class="co">#&gt;  control 5.2698 5.2985 5.3241 5.4795 5.5885</span></span>
-<span id="cb5-14"><a href="#cb5-14" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb5-15"><a href="#cb5-15" tabindex="-1"></a><span class="co">#&gt;            L2    L1    L∞ # Zeros</span></span>
-<span id="cb5-16"><a href="#cb5-16" tabindex="-1"></a><span class="co">#&gt; treated 0.    0.    0.          0</span></span>
-<span id="cb5-17"><a href="#cb5-17" tabindex="-1"></a><span class="co">#&gt; control 1.663 1.302 4.588     231</span></span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a><span class="co">#&gt;         Min                                 Max</span></span>
+<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a><span class="co">#&gt; treated   1      ||                       1.   </span></span>
+<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a><span class="co">#&gt; control   0 |---------------------------| 5.588</span></span>
+<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a><span class="co">#&gt; - Units with the 5 most extreme weights by group:</span></span>
+<span id="cb5-10"><a href="#cb5-10" tabindex="-1"></a><span class="co">#&gt;                                      </span></span>
+<span id="cb5-11"><a href="#cb5-11" tabindex="-1"></a><span class="co">#&gt;             1     2     3     4     5</span></span>
+<span id="cb5-12"><a href="#cb5-12" tabindex="-1"></a><span class="co">#&gt;  treated    1     1     1     1     1</span></span>
+<span id="cb5-13"><a href="#cb5-13" tabindex="-1"></a><span class="co">#&gt;           423   388   226   196   118</span></span>
+<span id="cb5-14"><a href="#cb5-14" tabindex="-1"></a><span class="co">#&gt;  control 5.27 5.298 5.324 5.479 5.588</span></span>
+<span id="cb5-15"><a href="#cb5-15" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb5-16"><a href="#cb5-16" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb5-17"><a href="#cb5-17" tabindex="-1"></a><span class="co">#&gt; - Weight statistics:</span></span>
 <span id="cb5-18"><a href="#cb5-18" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb5-19"><a href="#cb5-19" tabindex="-1"></a><span class="co">#&gt; - Effective Sample Sizes:</span></span>
-<span id="cb5-20"><a href="#cb5-20" tabindex="-1"></a><span class="co">#&gt;            Control Treated</span></span>
-<span id="cb5-21"><a href="#cb5-21" tabindex="-1"></a><span class="co">#&gt; Unweighted   429.      185</span></span>
-<span id="cb5-22"><a href="#cb5-22" tabindex="-1"></a><span class="co">#&gt; Weighted     113.9     185</span></span></code></pre></div>
+<span id="cb5-19"><a href="#cb5-19" tabindex="-1"></a><span class="co">#&gt;            L2    L1    L∞ # Zeros</span></span>
+<span id="cb5-20"><a href="#cb5-20" tabindex="-1"></a><span class="co">#&gt; treated 0.    0.    0.          0</span></span>
+<span id="cb5-21"><a href="#cb5-21" tabindex="-1"></a><span class="co">#&gt; control 1.663 1.302 4.588     231</span></span>
+<span id="cb5-22"><a href="#cb5-22" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb5-23"><a href="#cb5-23" tabindex="-1"></a><span class="co">#&gt; - Effective Sample Sizes:</span></span>
+<span id="cb5-24"><a href="#cb5-24" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb5-25"><a href="#cb5-25" tabindex="-1"></a><span class="co">#&gt;            Control Treated</span></span>
+<span id="cb5-26"><a href="#cb5-26" tabindex="-1"></a><span class="co">#&gt; Unweighted   429.      185</span></span>
+<span id="cb5-27"><a href="#cb5-27" tabindex="-1"></a><span class="co">#&gt; Weighted     113.9     185</span></span></code></pre></div>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Covariate balance</span></span>
 <span><span class="fu"><a href="https://ngreifer.github.io/cobalt/reference/bal.tab.html" class="external-link">bal.tab</a></span><span class="op">(</span><span class="va">ow</span><span class="op">)</span></span></code></pre></div>
@@ -147,12 +152,15 @@
 <p><img src="reference/figures/README-unnamed-chunk-4-1.png" style="display: block; margin: auto;"></p>
 <p>We can see that <code>race</code> has the highest dual variable; relaxing the constraint on <code>race</code> would yield the biggest improvement in effective sample size, while tightening its constraint would yield the biggest decrease in effective sample size.</p>
 <p>The lower-level function <code><a href="reference/optweight.html">optweight.fit()</a></code> operates on the covariates and treatment variables directly. <code><a href="reference/optweightMV.html">optweightMV()</a></code> supports multivariate (i.e., multiple) treatments.</p>
-<p>In addition to estimating balancing weights for estimating treatment effects, <em>optweight</em> can estimate sampling weights for generalizing an estimate to a new target population defined by covariate moments using <code><a href="reference/optweight.svy.html">optweight.svy()</a></code>.</p>
+<p>In addition to estimating balancing weights for estimating treatment effects, <em>optweight</em> can estimate sampling weights for generalizing an estimate to a new target population defined by covariate moments using <code><a href="reference/optweight.svy.html">optweight.svy()</a></code>, which implements the methods described in Jackson, Rhodes, and Ouwens (<a href="#ref-jacksonAlternativeWeightingSchemes2021">2021</a>) for matching-adjusted indirect comparison (MAIC).</p>
 <p>To cite <em>optweight</em>, please use <code>citation("optweight")</code> to generate the correct reference. Be sure to include the version of the package. Please submit bug reports, questions, comments, or other issues to <a href="https://github.com/ngreifer/optweight/issues" class="external-link uri">https://github.com/ngreifer/optweight/issues</a>.</p>
 <div class="section level2">
 <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
 <div id="refs" class="references csl-bib-body hanging-indent" entry-spacing="0">
+<div id="ref-jacksonAlternativeWeightingSchemes2021" class="csl-entry">
+Jackson, Dan, Kirsty Rhodes, and Mario Ouwens. 2021. “Alternative Weighting Schemes When Performing Matching-Adjusted Indirect Comparisons.” <em>Research Synthesis Methods</em> 12 (3): 333–46. <a href="https://doi.org/10.1002/jrsm.1466" class="external-link uri">https://doi.org/10.1002/jrsm.1466</a>.
+</div>
 <div id="ref-kallbergLargeSampleProperties2023" class="csl-entry">
 Källberg, David, and Ingeborg Waernbaum. 2023. “Large Sample Properties of Entropy Balancing Estimators of Average Causal Effects.” <em>Econometrics and Statistics</em>, November. <a href="https://doi.org/10.1016/j.ecosta.2023.11.004" class="external-link uri">https://doi.org/10.1016/j.ecosta.2023.11.004</a>.
 </div>

@@ -31,7 +31,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">optweight</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0.9001</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -65,7 +65,7 @@
                         <h4 data-toc-skip class="author">Noah
 Greifer</h4>
             
-            <h4 data-toc-skip class="date">2025-09-11</h4>
+            <h4 data-toc-skip class="date">2025-09-18</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/ngreifer/optweight/blob/master/vignettes/optweight.Rmd" class="external-link"><code>vignettes/optweight.Rmd</code></a></small>
       <div class="d-none name"><code>optweight.Rmd</code></div>
@@ -94,11 +94,11 @@ weights. SBW is also known as empirical balancing calibration weighting
 2016</a>)</span> and entropy balancing <span class="citation">(<a href="#ref-kallbergLargeSampleProperties2023">Källberg and Waernbaum
 2023</a>)</span>. These methods are related to inverse probability
 weighting (IPW), and there are some equivalences between SBW and IPW
-<span class="citation">(<a href="#ref-wangMinimalDispersionApproximately2020">Wang and Zubizarreta
-2020</a>)</span>. While IPW typically involves fitting a propensity
-score model for the probability of receiving treatment, SBW estimates
-weights directly that balance the covariates. The distinction between
-these two approaches is described in detail by <span class="citation">Chattopadhyay, Hase, and Zubizarreta (<a href="#ref-chattopadhyayBalancingVsModeling2020">2020</a>)</span>.</p>
+<span class="citation">(<a href="#ref-wangMinimalDispersionApproximately2020">Y. Wang and
+Zubizarreta 2020</a>)</span>. While IPW typically involves fitting a
+propensity score model for the probability of receiving treatment, SBW
+estimates weights directly that balance the covariates. The distinction
+between these two approaches is described in detail by <span class="citation">Chattopadhyay, Hase, and Zubizarreta (<a href="#ref-chattopadhyayBalancingVsModeling2020">2020</a>)</span>.</p>
 <p>SBW involves solving the following optimization problem:</p>
 <span class="math display">\[\begin{align}
 \min_{\mathbf{w}} \quad &amp; f(\mathbf{w}, \mathbf{b},\mathbf{s}) \\
@@ -147,7 +147,7 @@ weights to fall within some range. The original formulation of SBW used
 constraint altogether, which allows the weights to be negative, is also
 possible.</p></li>
 </ul>
-<p>Asymptotic properties of SBW are described in <span class="citation">Wang and Zubizarreta (<a href="#ref-wangMinimalDispersionApproximately2020">2020</a>)</span>. In
+<p>Asymptotic properties of SBW are described in <span class="citation">Y. Wang and Zubizarreta (<a href="#ref-wangMinimalDispersionApproximately2020">2020</a>)</span>. In
 general, the weights are precise and perform well, and adding
 approximate balance constraints (i.e., using <span class="math inline">\(\delta_k&gt;0\)</span>) tends to improve precision
 without greatly affecting bias. There is also a weak double-robustness
@@ -223,7 +223,7 @@ balance on the covariates, and requires all weights to be greater than
 <span>                  <span class="va">re74</span> <span class="op">+</span> <span class="va">re75</span>, data <span class="op">=</span> <span class="va">lalonde</span>,</span>
 <span>                estimand <span class="op">=</span> <span class="st">"ATT"</span><span class="op">)</span></span>
 <span><span class="va">ow</span></span></code></pre></div>
-<pre><code><span><span class="co">## A <span style="font-style: italic;">optweight</span> object</span></span>
+<pre><code><span><span class="co">## An <span style="font-style: italic;">optweight</span> object</span></span>
 <span><span class="co">##  - number of obs.: 614</span></span>
 <span><span class="co">##  - norm minimized: "l2"</span></span>
 <span><span class="co">##  - sampling weights: present</span></span>
@@ -1099,7 +1099,7 @@ effectively dropped from the sample.</p>
 <span>                      min.w <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">ow_s</span></span></code></pre></div>
-<pre><code><span><span class="co">## A <span style="font-style: italic;">optweight.svy</span> object</span></span>
+<pre><code><span><span class="co">## An <span style="font-style: italic;">optweight.svy</span> object</span></span>
 <span><span class="co">##  - number of obs.: 429</span></span>
 <span><span class="co">##  - norm minimized: "l2"</span></span>
 <span><span class="co">##  - sampling weights: present</span></span>
@@ -1306,9 +1306,60 @@ treatment effect estimate.</p>
 larger standard errors than the bootstrap.</p>
 </div>
 <div class="section level2">
+<h2 id="further-reading">Further reading<a class="anchor" aria-label="anchor" href="#further-reading"></a>
+</h2>
+<p>The methods implemented here have been described in several papers.
+Below is a selected annotated reading list for more information on the
+weights and their uses, properties, and extensions.</p>
+<ul>
+<li><p>The canonical reference for SBW is <span class="citation">Zubizarreta (<a href="#ref-zubizarretaStableWeightsThat2015">2015</a>)</span>, which
+introduces them.</p></li>
+<li><p>The general theory of weighting for balance is described for
+applied audiences by <span class="citation">Chattopadhyay, Hase, and
+Zubizarreta (<a href="#ref-chattopadhyayBalancingVsModeling2020">2020</a>)</span> and
+<span class="citation">Cohn and Zubizarreta (<a href="#ref-cohnWeightingCausalInference2025">2025</a>)</span>.</p></li>
+<li><p>A complete theoretical perspective on SBW is offered by <span class="citation">Y. Wang and Zubizarreta (<a href="#ref-wangMinimalDispersionApproximately2020">2020</a>)</span>.
+Note their results primarily extend to cases where the constraint on the
+nonnegativity of the weights is removed.</p></li>
+<li><p><span class="citation">Chan, Yam, and Zhang (<a href="#ref-chanGloballyEfficientNonparametric2016">2016</a>)</span>
+describe a general framework that includes SBW, with a focus on exact
+balance. The specific method they describe is equivalent to entropy
+balancing (i.e., using <code>norm = "entropy"</code>.</p></li>
+<li><p>Entropy balancing in general is described by <span class="citation">Hainmueller (<a href="#ref-hainmuellerEntropyBalancingCausal2012">2012</a>)</span> and
+expanded on by <span class="citation">Zhao and Percival (<a href="#ref-zhaoEntropyBalancingDoubly2017">2017</a>)</span> and <span class="citation">Källberg and Waernbaum (<a href="#ref-kallbergLargeSampleProperties2023">2023</a>)</span>.</p></li>
+<li><p>SBW for multi-category treatments is described by <span class="citation">Angeles Resa and Zubizarreta (<a href="#ref-delosangelesresaDirectStableWeight2020">2020</a>)</span>. SBW
+for continuous treatments is described by <span class="citation">Greifer
+(<a href="#ref-greiferEstimatingBalancingWeights2020">2020</a>)</span>.
+Related theory for continuous treatments by in the context of entropy
+balancing is described by <span class="citation">Tübbicke (<a href="#ref-tubbickeEntropyBalancingContinuous2022">2022</a>)</span> and
+<span class="citation">Vegetabile et al. (<a href="#ref-vegetabileNonparametricEstimationPopulation2021">2021</a>)</span>.</p></li>
+<li><p>SBW for generalizing a single sample to a target population
+(i.e., as implemented in <code><a href="../reference/optweight.svy.html">optweight.svy()</a></code>), also known as
+matching-adjusted indirect comparison (MAIC), is described in <span class="citation">Jackson, Rhodes, and Ouwens (<a href="#ref-jacksonAlternativeWeightingSchemes2021">2021</a>)</span>. The
+general theory of MAIC is developed in <span class="citation">Signorovitch et al. (<a href="#ref-signorovitchComparativeEffectivenessHeadtoHead2010">2010</a>)</span>
+and reviewed in <span class="citation">Jiang et al. (<a href="#ref-jiangComprehensiveReviewShiny2024">2024</a>)</span>. <span class="citation">J. Wang (<a href="#ref-wangMatchingadjustedIndirectComparison2021">n.d.</a>)</span>
+also discusses MAIC, including the performance of different
+<code>norm</code> choices.</p></li>
+<li><p>SBW for simultaneously balancing and generalizing to a target
+population is described by <span class="citation">Chattopadhyay, Cohn,
+and Zubizarreta (<a href="#ref-chattopadhyayOneStepWeightingGeneralize2024">2024</a>)</span>.</p></li>
+<li><p>The connections between SBW and g-computation for estimating
+treatments effects is described by <span class="citation">Chattopadhyay
+and Zubizarreta (<a href="#ref-chattopadhyayImpliedWeightsLinear2023">2023</a>)</span>,
+<span class="citation">Chattopadhyay, Greifer, and Zubizarreta (<a href="#ref-chattopadhyayLmwLinearModel2024">2024</a>)</span>, and <span class="citation">Chattopadhyay and Zubizarreta (<a href="#ref-chattopadhyayCausationComparisonRegression2024">2024</a>)</span>.</p></li>
+</ul>
+</div>
+<div class="section level2">
 <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
 <div id="refs" class="references csl-bib-body hanging-indent" entry-spacing="0">
+<div id="ref-delosangelesresaDirectStableWeight2020" class="csl-entry">
+Angeles Resa, María de los, and José R. Zubizarreta. 2020. <span>“Direct
+and Stable Weight Adjustment in Non-Experimental Studies With
+Multivalued Treatments: Analysis of the Effect of an Earthquake on
+Post-Traumatic Stress.”</span> <em>Journal of the Royal Statistical
+Society Series A: Statistics in Society</em> 183 (4): 1387–1410. <a href="https://doi.org/10.1111/rssa.12561" class="external-link">https://doi.org/10.1111/rssa.12561</a>.
+</div>
 <div id="ref-chanGloballyEfficientNonparametric2016" class="csl-entry">
 Chan, Kwun Chuen Gary, Sheung Chi Phillip Yam, and Zheng Zhang. 2016.
 <span>“Globally Efficient Non-Parametric Inference of Average Treatment
@@ -1322,6 +1373,11 @@ Chattopadhyay, Ambarish, Eric R. Cohn, and José R. Zubizarreta. 2024.
 Estimates to a Target Population.”</span> <em>The American
 Statistician</em> 78 (3): 280–89. <a href="https://doi.org/10.1080/00031305.2023.2267598" class="external-link">https://doi.org/10.1080/00031305.2023.2267598</a>.
 </div>
+<div id="ref-chattopadhyayLmwLinearModel2024" class="csl-entry">
+Chattopadhyay, Ambarish, Noah Greifer, and José R. Zubizarreta. 2024.
+<span>“Lmw: Linear Model Weights for Causal Inference.”</span>
+<em>Observational Studies</em> 10 (2): 33–62. <a href="https://doi.org/10.1353/obs.2024.a946582" class="external-link">https://doi.org/10.1353/obs.2024.a946582</a>.
+</div>
 <div id="ref-chattopadhyayBalancingVsModeling2020" class="csl-entry">
 Chattopadhyay, Ambarish, Christopher H. Hase, and José R. Zubizarreta.
 2020. <span>“Balancing Vs Modeling Approaches to Weighting in
@@ -1332,10 +1388,20 @@ Chattopadhyay, Ambarish, and José R Zubizarreta. 2023. <span>“On the
 Implied Weights of Linear Regression for Causal Inference.”</span>
 <em>Biometrika</em> 110 (3): 615–29. <a href="https://doi.org/10.1093/biomet/asac058" class="external-link">https://doi.org/10.1093/biomet/asac058</a>.
 </div>
+<div id="ref-chattopadhyayCausationComparisonRegression2024" class="csl-entry">
+Chattopadhyay, Ambarish, and José R. Zubizarreta. 2024.
+<span>“Causation, Comparison, and Regression.”</span> <em>Harvard Data
+Science Review</em> 6 (1). <a href="https://doi.org/10.1162/99608f92.87c6125f" class="external-link">https://doi.org/10.1162/99608f92.87c6125f</a>.
+</div>
 <div id="ref-chenCausalEffectEstimation2023" class="csl-entry">
 Chen, Juan, and Yingchun Zhou. 2023. <span>“Causal Effect Estimation for
 Multivariate Continuous Treatments.”</span> <em>Biometrical Journal</em>
 65 (5): 2200122. <a href="https://doi.org/10.1002/bimj.202200122" class="external-link">https://doi.org/10.1002/bimj.202200122</a>.
+</div>
+<div id="ref-cohnWeightingCausalInference2025" class="csl-entry">
+Cohn, Eric R., and José R. Zubizarreta. 2025. <span>“Weighting for
+Causal Inference in Mental Health Research.”</span> <em>International
+Journal of Methods in Psychiatric Research</em> 34 (2): e70018. <a href="https://doi.org/10.1002/mpr.70018" class="external-link">https://doi.org/10.1002/mpr.70018</a>.
 </div>
 <div id="ref-dorieAutomatedDoityourselfMethods2019" class="csl-entry">
 Dorie, Vincent, Jennifer Hill, Uri Shalit, Marc Scott, and Dan Cervone.
@@ -1358,6 +1424,19 @@ Hainmueller, J. 2012. <span>“Entropy Balancing for Causal Effects: A
 Multivariate Reweighting Method to Produce Balanced Samples in
 Observational Studies.”</span> <em>Political Analysis</em> 20 (1):
 25–46. <a href="https://doi.org/10.1093/pan/mpr025" class="external-link">https://doi.org/10.1093/pan/mpr025</a>.
+</div>
+<div id="ref-jacksonAlternativeWeightingSchemes2021" class="csl-entry">
+Jackson, Dan, Kirsty Rhodes, and Mario Ouwens. 2021. <span>“Alternative
+Weighting Schemes When Performing Matching-Adjusted Indirect
+Comparisons.”</span> <em>Research Synthesis Methods</em> 12 (3): 333–46.
+<a href="https://doi.org/10.1002/jrsm.1466" class="external-link">https://doi.org/10.1002/jrsm.1466</a>.
+</div>
+<div id="ref-jiangComprehensiveReviewShiny2024" class="csl-entry">
+Jiang, Ziren, Joseph C. Cappelleri, Margaret Gamalo, Yong Chen, Neal
+Thomas, and Haitao Chu. 2024. <span>“A Comprehensive Review and Shiny
+Application on the Matching<span>-</span>Adjusted Indirect
+Comparison.”</span> <em>Research Synthesis Methods</em> 15 (4): 671–86.
+<a href="https://doi.org/10.1002/jrsm.1709" class="external-link">https://doi.org/10.1002/jrsm.1709</a>.
 </div>
 <div id="ref-kallbergLargeSampleProperties2023" class="csl-entry">
 Källberg, David, and Ingeborg Waernbaum. 2023. <span>“Large Sample
@@ -1390,6 +1469,10 @@ Cefalu, Michael W. Robbins, and Daniel F. McCaffrey. 2021.
 Curves Using Entropy Balancing Weights for Continuous Exposures.”</span>
 <em>Health Services and Outcomes Research Methodology</em> 21 (1):
 69–110. <a href="https://doi.org/10.1007/s10742-020-00236-2" class="external-link">https://doi.org/10.1007/s10742-020-00236-2</a>.
+</div>
+<div id="ref-wangMatchingadjustedIndirectComparison2021" class="csl-entry">
+Wang, Jixian. n.d. <span>“On Matching-Adjusted Indirect Comparison and
+Calibration Estimation.”</span> <a href="https://doi.org/10.48550/arXiv.2107.11687" class="external-link">https://doi.org/10.48550/arXiv.2107.11687</a>.
 </div>
 <div id="ref-wangMinimalDispersionApproximately2020" class="csl-entry">
 Wang, Yixin, and Jose R. Zubizarreta. 2020. <span>“Minimal Dispersion

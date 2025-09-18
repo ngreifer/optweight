@@ -13,7 +13,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">optweight</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0.9001</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -213,7 +213,7 @@
 <p>For binary and multi-category treatments, weights are estimated so that the weighted mean differences of the covariates are within the given tolerance thresholds (unless <code>std.binary</code> or <code>std.cont</code> are <code>TRUE</code>, in which case standardized mean differences are considered for binary and continuous variables, respectively). For a covariate \(x\) with specified tolerance \(\delta\), the weighted means of each each group will be within \(\delta\) of each other. Additionally, when the ATE is specified as the estimand or a target population is specified, the weighted means of each group will each be within \(\delta/2\) of the target means; this ensures generalizability to the same population from which the original sample was drawn.</p>
 <p>If standardized tolerance values are requested, the standardization factor corresponds to the estimand requested: when the ATE is requested or a target population specified, the standardization factor is the square root of the average variance for that covariate across treatment groups, and when the ATT or ATC are requested, the standardization factor is the standard deviation of the covariate in the focal group. The standardization factor is computed accounting for <code>s.weights</code>.</p>
 <p>For continuous treatments, weights are estimated so that the weighted correlation between the treatment and each covariate is within the specified tolerance threshold. The means of the weighted covariates and treatment are restricted to be exactly equal to those of the target population to ensure generalizability to the desired target population, regardless of <code>tols</code>. The weighted correlation is computed as the weighted covariance divided by the product of the <em>unweighted</em> standard deviations. The means used to center the variables in computing the covariance are those specified in the target population.</p>
-<p>Target and balance constraints are applied to the product of the estimated weights and the sampling weights. In addition,the sum of the product of the estimated weights and the sampling weights is constrained to be equal to the sum of the product of the base weights and sampling weights. For binary and multi-category treatments, these constraints apply within each treatment group.</p><div class="section">
+<p>Target and balance constraints are applied to the product of the estimated weights and the sampling weights. In addition, the sum of the product of the estimated weights and the sampling weights is constrained to be equal to the sum of the product of the base weights and sampling weights. For binary and multi-category treatments, these constraints apply within each treatment group.</p><div class="section">
 <h3 id="norm"><code>norm</code><a class="anchor" aria-label="anchor" href="#norm"></a></h3>
 
 
@@ -258,6 +258,7 @@
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>
     <p>Chattopadhyay, A., Cohn, E. R., &amp; Zubizarreta, J. R. (2024). One-Step Weighting to Generalize and Transport Treatment Effect Estimates to a Target Population. <em>The American Statistician</em>, 78(3), 280–289. <a href="https://doi.org/10.1080/00031305.2023.2267598" class="external-link">doi:10.1080/00031305.2023.2267598</a></p>
+<p>de los Angeles Resa, M., &amp; Zubizarreta, J. R. (2020). Direct and Stable Weight Adjustment in Non-Experimental Studies With Multivalued Treatments: Analysis of the Effect of an Earthquake on Post-Traumatic Stress. <em>Journal of the Royal Statistical Society Series A: Statistics in Society</em>, 183(4), 1387–1410. <a href="https://doi.org/10.1111/rssa.12561" class="external-link">doi:10.1111/rssa.12561</a></p>
 <p>Källberg, D., &amp; Waernbaum, I. (2023). Large Sample Properties of Entropy Balancing Estimators of Average Causal Effects. <em>Econometrics and Statistics</em>. <a href="https://doi.org/10.1016/j.ecosta.2023.11.004" class="external-link">doi:10.1016/j.ecosta.2023.11.004</a></p>
 <p>Wang, Y., &amp; Zubizarreta, J. R. (2020). Minimal dispersion approximately balancing weights: Asymptotic properties and practical considerations. <em>Biometrika</em>, 107(1), 93–105. <a href="https://doi.org/10.1093/biomet/asz050" class="external-link">doi:10.1093/biomet/asz050</a></p>
 <p>Zubizarreta, J. R. (2015). Stable Weights that Balance Covariates for Estimation With Incomplete Outcome Data. <em>Journal of the American Statistical Association</em>, 110(511), 910–922. <a href="https://doi.org/10.1080/01621459.2015.1023805" class="external-link">doi:10.1080/01621459.2015.1023805</a></p>
@@ -280,7 +281,7 @@
 <span class="r-in"><span>                    <span class="va">nodegree</span> <span class="op">+</span> <span class="va">re74</span>, data <span class="op">=</span> <span class="va">lalonde</span>,</span></span>
 <span class="r-in"><span>                  tols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">.01</span>, <span class="fl">.02</span>, <span class="fl">.03</span>, <span class="fl">.04</span>, <span class="fl">.05</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>                  estimand <span class="op">=</span> <span class="st">"ATE"</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> A <span style="font-style: italic;">optweight</span> object</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> An <span style="font-style: italic;">optweight</span> object</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  - number of obs.: 614</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  - norm minimized: "l2"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  - sampling weights: present</span>
@@ -307,7 +308,7 @@
 <span class="r-in"><span>                    <span class="va">nodegree</span> <span class="op">+</span> <span class="va">re74</span>, data <span class="op">=</span> <span class="va">lalonde</span>,</span></span>
 <span class="r-in"><span>                  tols <span class="op">=</span> <span class="fl">0</span>, estimand <span class="op">=</span> <span class="st">"ATT"</span>,</span></span>
 <span class="r-in"><span>                  focal <span class="op">=</span> <span class="st">"black"</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> A <span style="font-style: italic;">optweight</span> object</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> An <span style="font-style: italic;">optweight</span> object</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  - number of obs.: 614</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  - norm minimized: "l2"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  - sampling weights: present</span>
@@ -341,7 +342,7 @@
 <span class="r-in"><span>                     <span class="va">nodegree</span> <span class="op">+</span> <span class="va">re74</span>, data <span class="op">=</span> <span class="va">lalonde</span>,</span></span>
 <span class="r-in"><span>                   targets <span class="op">=</span> <span class="va">targets</span>,</span></span>
 <span class="r-in"><span>                   estimand <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> A <span style="font-style: italic;">optweight</span> object</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> An <span style="font-style: italic;">optweight</span> object</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  - number of obs.: 614</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  - norm minimized: "l2"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  - sampling weights: present</span>
@@ -371,7 +372,7 @@
 <span class="r-in"><span>                     <span class="va">nodegree</span> <span class="op">+</span> <span class="va">re74</span>, data <span class="op">=</span> <span class="va">lalonde</span>,</span></span>
 <span class="r-in"><span>                   targets <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
 <span class="r-in"><span>                   estimand <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> A <span style="font-style: italic;">optweight</span> object</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> An <span style="font-style: italic;">optweight</span> object</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  - number of obs.: 614</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  - norm minimized: "l2"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  - sampling weights: present</span>
@@ -401,7 +402,7 @@
 <span class="r-in"><span>                  tols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">.01</span>, <span class="fl">.02</span>, <span class="fl">.03</span>, <span class="fl">.04</span>, <span class="fl">.05</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>                  estimand <span class="op">=</span> <span class="st">"ATE"</span>,</span></span>
 <span class="r-in"><span>                  norm <span class="op">=</span> <span class="st">"l1"</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> A <span style="font-style: italic;">optweight</span> object</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> An <span style="font-style: italic;">optweight</span> object</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  - number of obs.: 614</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  - norm minimized: "l1"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  - sampling weights: present</span>
