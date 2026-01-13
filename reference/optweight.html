@@ -13,7 +13,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">optweight</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0.9001</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0.9002</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -51,6 +51,7 @@
 <span>  tols <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  estimand <span class="op">=</span> <span class="st">"ATE"</span>,</span>
 <span>  targets <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  target.tols <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  s.weights <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  b.weights <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  focal <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -66,6 +67,7 @@
 <span>  tols <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  estimand <span class="op">=</span> <span class="st">"ATE"</span>,</span>
 <span>  targets <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  target.tols <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  s.weights <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  b.weights <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  focal <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -101,6 +103,10 @@
 
 <dt id="arg-targets">targets<a class="anchor" aria-label="anchor" href="#arg-targets"></a></dt>
 <dd><p>an optional vector of target population mean values for each covariate. The resulting weights will yield sample means within <code>tols</code>/2 units of the target values for each covariate. If <code>NULL</code> or all <code>NA</code>, <code>estimand</code> will be used to determine targets. Otherwise, <code>estimand</code> is ignored. If any target values are <code>NA</code>, the corresponding variable will not be targeted and its weighted mean will be wherever the weights yield the smallest variance; this is only allowed for binary and multi-category treatments. Can also be the output of a call to <code><a href="process_targets.html">process_targets()</a></code>. See Details.</p></dd>
+
+
+<dt id="arg-target-tols">target.tols<a class="anchor" aria-label="anchor" href="#arg-target-tols"></a></dt>
+<dd><p>a vector of target balance tolerance values for each covariate. For binary and multi-category treatments, the average of each pair of means will be at most as far from the target means as these values. Can also be the output of a call to <code><a href="process_tols.html">process_tols()</a></code>. See Details. Default is 0 for all covariates. Ignored with continuous treatments and when <code>estimand</code> is <code>"ATT"</code> or <code>"ATC"</code>.</p></dd>
 
 
 <dt id="arg-s-weights">s.weights<a class="anchor" aria-label="anchor" href="#arg-s-weights"></a></dt>
@@ -175,7 +181,10 @@
 <dd><p>The function call.</p></dd>
 
 <dt>tols</dt>
-<dd><p>The tolerance values for each covariate.</p></dd>
+<dd><p>The balance tolerance values for each covariate.</p></dd>
+
+<dt>target.tols</dt>
+<dd><p>The target tolerance values for each covariate.</p></dd>
 
 <dt>duals</dt>
 <dd><p>A data.frame containing the dual variables for each covariate. See Details for interpretation of these values.</p></dd>
@@ -210,9 +219,14 @@
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p><code>optweight()</code> is the primary user-facing function for estimating stable balancing weights. The optimization is performed by the lower-level function <code>optweight.fit()</code>, which transforms the inputs into the required inputs for the optimization functions and then supplies the outputs (the weights, dual variables, and convergence information) back to <code>optweight()</code>. Little processing of inputs is performed by <code>optweight.fit()</code>, as this is normally handled by <code>optweight()</code>.</p>
-<p>For binary and multi-category treatments, weights are estimated so that the weighted mean differences of the covariates are within the given tolerance thresholds (unless <code>std.binary</code> or <code>std.cont</code> are <code>TRUE</code>, in which case standardized mean differences are considered for binary and continuous variables, respectively). For a covariate \(x\) with specified tolerance \(\delta\), the weighted means of each each group will be within \(\delta\) of each other. Additionally, when the ATE is specified as the estimand or a target population is specified, the weighted means of each group will each be within \(\delta/2\) of the target means; this ensures generalizability to the same population from which the original sample was drawn.</p>
+<p>For binary and multi-category treatments, weights are estimated so that the weighted mean differences of the covariates are within the given tolerance thresholds controlled by <code>tols</code> and <code>target.tols</code> (unless <code>std.binary</code> or <code>std.cont</code> are <code>TRUE</code>, in which case standardized mean differences are considered for binary and continuous variables, respectively). For a covariate \(x\) with specified balance tolerance \(\delta\) and target tolerance \(\varepsilon\), the weighted means of each each group will be within \(\delta\) of each other, and the midpoint between the weighted group means will be with \(\varepsilon\) of the target means. More specifically, the constraints are specified as follows:
+$$
+\left| \bar{x}^w_1 - \bar{x}^w_0 \right| \le \delta \\
+\left| \frac{\bar{x}^w_1 + \bar{x}^w_0}{2} - \bar{x}^* \right| \le \varepsilon
+$$
+where \(\bar{x}^w_1\) and \(\bar{x}^w_0\) are the weighted means of covariate \(x\) for treatment groups 1 and 0, respectively, and \(\bar{x}^*\) is the target mean for that covariate. \(\delta\) corresponds to <code>tols</code>, and \(\varepsilon\) corresponds to <code>target.tols</code>. Setting a covariate's value of <code>target.tols</code> to <code>Inf</code> or its <code>target</code> to <code>NA</code> both serve to remove the second constraint, as is done in Barnard et al. (2025).</p>
 <p>If standardized tolerance values are requested, the standardization factor corresponds to the estimand requested: when the ATE is requested or a target population specified, the standardization factor is the square root of the average variance for that covariate across treatment groups, and when the ATT or ATC are requested, the standardization factor is the standard deviation of the covariate in the focal group. The standardization factor is computed accounting for <code>s.weights</code>.</p>
-<p>For continuous treatments, weights are estimated so that the weighted correlation between the treatment and each covariate is within the specified tolerance threshold. The means of the weighted covariates and treatment are restricted to be exactly equal to those of the target population to ensure generalizability to the desired target population, regardless of <code>tols</code>. The weighted correlation is computed as the weighted covariance divided by the product of the <em>unweighted</em> standard deviations. The means used to center the variables in computing the covariance are those specified in the target population.</p>
+<p>For continuous treatments, weights are estimated so that the weighted correlation between the treatment and each covariate is within the specified tolerance threshold. The means of the weighted covariates and treatment are restricted to be exactly equal to those of the target population to ensure generalizability to the desired target population, regardless of <code>tols</code> or <code>target.tols</code>. The weighted correlation is computed as the weighted covariance divided by the product of the <em>unweighted</em> standard deviations. The means used to center the variables in computing the covariance are those specified in the target population.</p>
 <p>Target and balance constraints are applied to the product of the estimated weights and the sampling weights. In addition, the sum of the product of the estimated weights and the sampling weights is constrained to be equal to the sum of the product of the base weights and sampling weights. For binary and multi-category treatments, these constraints apply within each treatment group.</p><div class="section">
 <h3 id="norm"><code>norm</code><a class="anchor" aria-label="anchor" href="#norm"></a></h3>
 
@@ -230,9 +244,9 @@
 <h3 id="dual-variables">Dual Variables<a class="anchor" aria-label="anchor" href="#dual-variables"></a></h3>
 
 
-<p>Two types of constraints may be associated with each covariate: target constraints and balance constraints. Target constraints require the mean of the covariate to be at (or near) a specific target value in each treatment group (or for the whole group when treatment is continuous). Balance constraints require the means of the covariate in pairs of treatments to be near each other. For binary and multi-category treatments, balance constraints are redundant if target constraints are provided for a variable. For continuous variables, balance constraints refer to the correlation between treatment and the covariate and are not redundant with target constraints. In the <code>duals</code> component of the output, each covariate has a dual variable for each nonredundant constraint placed on it.</p>
-<p>The dual variable for each constraint is the instantaneous rate of change of the objective function at the optimum corresponding to a change in the constraint. Because this relationship is not linear, large changes in the constraint will not exactly map onto corresponding changes in the objective function at the optimum, but will be close for small changes in the constraint. For example, for a covariate with a balance constraint of .01 and a corresponding dual variable of 40, increasing (i.e., relaxing) the constraint to .025 will decrease the value of the objective function at the optimum by approximately \((.025 - .01) * 40 = .6\).</p>
+<p>Two types of constraints may be associated with each covariate: target constraints and balance constraints, controlled by <code>target.tols</code> and <code>tols</code>, respectively. In the <code>duals</code> component of the output, each covariate has a dual variable for each constraint placed on it. The dual variable for each constraint is the instantaneous rate of change of the objective function at the optimum corresponding to a change in the constraint. Because this relationship is not linear, large changes in the constraint will not exactly map onto corresponding changes in the objective function at the optimum, but will be close for small changes in the constraint. For example, for a covariate with a balance constraint of .01 and a corresponding dual variable of 40, increasing (i.e., relaxing) the constraint to .025 will decrease the value of the objective function at the optimum by approximately \((.025 - .01) * 40 = .6\).</p>
 <p>For factor variables, <code>optweight()</code> takes the sum of the absolute dual variables for the constraints for all levels and reports it as the the single dual variable for the variable itself. This summed dual variable works the same way as dual variables for continuous variables do.</p>
+<p>An addition dual variable is computed for the constraint on the range of the weights, controlled by <code>min.w</code>. A high dual variable for this constraint implies that decreasing <code>min.w</code> will decrease the value of the objective function at the optimum.</p>
 </div>
 
 <div class="section">
@@ -240,7 +254,7 @@
 
 
 <p>The <code>solver</code> argument controls which optimization solver is used. Different solvers are compatible with each <code>norm</code>. See the table below for allowable options, which package they require, which function does the solving, and which function controls the settings.</p><table class="table table"><tr><td><code>solver</code></td><td><code>norm</code></td><td>Package</td><td>Solver function</td><td>Settings function</td></tr><tr><td><code>"osqp"</code></td><td><code>"l2"</code>, <code>"l1"</code>, <code>"linf"</code></td><td><a href="https://CRAN.R-project.org/package=osqp" class="external-link"><span class="pkg">osqp</span></a></td><td><code><a href="https://rdrr.io/pkg/osqp/man/solve_osqp.html" class="external-link">osqp::solve_osqp()</a></code></td><td><code><a href="https://rdrr.io/pkg/osqp/man/osqpSettings.html" class="external-link">osqp::osqpSettings()</a></code></td></tr><tr><td><code>"highs"</code></td><td><code>"l2"</code>, <code>"l1"</code>, <code>"linf"</code></td><td><a href="https://CRAN.R-project.org/package=highs" class="external-link"><span class="pkg">highs</span></a></td><td><code><a href="https://rdrr.io/pkg/highs/man/highs_solve.html" class="external-link">highs::highs_solve()</a></code></td><td><code><a href="https://rdrr.io/pkg/highs/man/highs_control.html" class="external-link">highs::highs_control()</a></code> / <code><a href="https://rdrr.io/pkg/highs/man/highs_available_solver_options.html" class="external-link">highs::highs_available_solver_options()</a></code></td></tr><tr><td><code>"lpsolve"</code></td><td><code>"l1"</code>, <code>"linf"</code></td><td><a href="https://CRAN.R-project.org/package=lpSolve" class="external-link"><span class="pkg">lpSolve</span></a></td><td><code><a href="https://rdrr.io/pkg/lpSolve/man/lp.html" class="external-link">lpSolve::lp()</a></code></td><td>.</td></tr><tr><td><code>"scs"</code></td><td><code>"entropy"</code>, <code>"log"</code></td><td><a href="https://CRAN.R-project.org/package=scs" class="external-link"><span class="pkg">scs</span></a></td><td><code><a href="https://rdrr.io/pkg/scs/man/scs.html" class="external-link">scs::scs()</a></code></td><td><code><a href="https://rdrr.io/pkg/scs/man/scs_control.html" class="external-link">scs::scs_control()</a></code></td></tr><tr><td><code>"clarabel"</code></td><td><code>"entropy"</code>, <code>"log"</code></td><td><a href="https://CRAN.R-project.org/package=clarabel" class="external-link"><span class="pkg">clarabel</span></a></td><td><code><a href="https://oxfordcontrol.github.io/clarabel-r/reference/clarabel.html" class="external-link">clarabel::clarabel()</a></code></td><td><code><a href="https://oxfordcontrol.github.io/clarabel-r/reference/clarabel_control.html" class="external-link">clarabel::clarabel_control()</a></code></td></tr></table><p>Note that <code>"lpsolve"</code> can only be used when <code>min.w</code> is nonnegative.</p>
-<p>The default <code>solver</code> for each <code>norm</code> is as follows:</p><table class="table table"><tr><td><code>norm</code></td><td>Default <code>solver</code></td></tr><tr><td><code>"l2"</code></td><td><code>"osqp"</code></td></tr><tr><td><code>"l1"</code></td><td><code>"highs"</code></td></tr><tr><td><code>"linf"</code></td><td><code>"highs"</code></td></tr><tr><td><code>"entropy"</code></td><td><code>"scs"</code></td></tr><tr><td><code>"log"</code></td><td><code>"scs"</code></td></tr></table><p>If the package corresponding to a default <code>solver</code> is not installed but the package for a different eligible solver is, that will be used. Otherwise, you will be asked to install the required package. <span class="pkg">osqp</span> is required for <span class="pkg">optweight</span>, and so will be the default for the <code>"l1"</code> and <code>"linf"</code> norms if <span class="pkg">highs</span> is not installed. The default package is the one has shown good performance for the given norm; generally, all eligible solvers perform about equally well in terms of accuracy but differ in time taken.</p>
+<p>The default <code>solver</code> for each <code>norm</code> is as follows:</p><table class="table table"><tr><td><code>norm</code></td><td>Default <code>solver</code></td></tr><tr><td><code>"l2"</code></td><td><code>"osqp"</code></td></tr><tr><td><code>"l1"</code></td><td><code>"highs"</code></td></tr><tr><td><code>"linf"</code></td><td><code>"highs"</code></td></tr><tr><td><code>"entropy"</code></td><td><code>"scs"</code></td></tr><tr><td><code>"log"</code></td><td><code>"scs"</code></td></tr></table><p>If the package corresponding to a default <code>solver</code> is not installed but the package for a different eligible solver is, that will be used. Otherwise, you will be asked to install the required package. <span class="pkg">osqp</span> is required for <span class="pkg">optweight</span>, and so will be the default for the <code>"l1"</code> and <code>"linf"</code> norms if <span class="pkg">highs</span> is not installed. The default package is the one has shown good performance for the given norm in informal testing; generally, all eligible solvers perform about equally well in terms of accuracy but differ in time taken.</p>
 </div>
 
 <div class="section">
@@ -249,7 +263,7 @@
 
 <p>Sometimes the optimization will fail to converge at a solution. There are a variety of reasons why this might happen, which include that the constraints are nearly impossible to satisfy or that the optimization surface is relatively flat. It can be hard to know the exact cause or how to solve it, but this section offers some solutions one might try. Typically, solutions can be found most easily when using the <code>"l2"</code> norm; other norms, especially <code>"linf"</code> and <code>"l1"</code>, are more likely to see problems.</p>
 <p>Rarely is the problem too few iterations, though this is possible. Most problems can be solved in the default 200,000 iterations, but sometimes it can help to increase this number with the <code>max_iter</code> argument. Usually, though, this just ends up taking more time without a solution found.</p>
-<p>If the problem is that the constraints are too tight, it can be helpful to loosen the constraints. Sometimes examining the dual variables of a solution that has failed to converge can reveal which constraints are causing the problem.</p>
+<p>If the problem is that the constraints are too tight, it can be helpful to loosen the constraints. Sometimes examining the dual variables of a solution that has failed to converge can reveal which constraints are causing the problem. An extreme value of a dual variable typically suggests that its corresponding constraint is one cause of the failure to converge.</p>
 <p>Sometimes a suboptimal solution is possible; such a solution does not satisfy the constraints exactly but will come pretty close. To allow these solutions, the argument <code>eps</code> can be increased to larger values. This is more likely to occur when <code>s.weights</code> are supplied.</p>
 <p>Sometimes using a different solver can improve performance. Using the default <code>solver</code> for each <code>norm</code>, as described above, can reduce the probability of convergence failures.</p>
 </div>
@@ -257,7 +271,8 @@
     </div>
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>
-    <p>Chattopadhyay, A., Cohn, E. R., &amp; Zubizarreta, J. R. (2024). One-Step Weighting to Generalize and Transport Treatment Effect Estimates to a Target Population. <em>The American Statistician</em>, 78(3), 280–289. <a href="https://doi.org/10.1080/00031305.2023.2267598" class="external-link">doi:10.1080/00031305.2023.2267598</a></p>
+    <p>Barnard, M., Huling, J. D., &amp; Wolfson, J. (2025). Partially Retargeted Balancing Weights for Causal Effect Estimation Under Positivity Violations (No. arXiv:2510.22072). arXiv. <a href="https://doi.org/10.48550/arXiv.2510.22072" class="external-link">doi:10.48550/arXiv.2510.22072</a></p>
+<p>Chattopadhyay, A., Cohn, E. R., &amp; Zubizarreta, J. R. (2024). One-Step Weighting to Generalize and Transport Treatment Effect Estimates to a Target Population. <em>The American Statistician</em>, 78(3), 280–289. <a href="https://doi.org/10.1080/00031305.2023.2267598" class="external-link">doi:10.1080/00031305.2023.2267598</a></p>
 <p>de los Angeles Resa, M., &amp; Zubizarreta, J. R. (2020). Direct and Stable Weight Adjustment in Non-Experimental Studies With Multivalued Treatments: Analysis of the Effect of an Earthquake on Post-Traumatic Stress. <em>Journal of the Royal Statistical Society Series A: Statistics in Society</em>, 183(4), 1387–1410. <a href="https://doi.org/10.1111/rssa.12561" class="external-link">doi:10.1111/rssa.12561</a></p>
 <p>Källberg, D., &amp; Waernbaum, I. (2023). Large Sample Properties of Entropy Balancing Estimators of Average Causal Effects. <em>Econometrics and Statistics</em>. <a href="https://doi.org/10.1016/j.ecosta.2023.11.004" class="external-link">doi:10.1016/j.ecosta.2023.11.004</a></p>
 <p>Wang, Y., &amp; Zubizarreta, J. R. (2020). Minimal dispersion approximately balancing weights: Asymptotic properties and practical considerations. <em>Biometrika</em>, 107(1), 93–105. <a href="https://doi.org/10.1093/biomet/asz050" class="external-link">doi:10.1093/biomet/asz050</a></p>
@@ -292,7 +307,7 @@
 <span class="r-in"><span><span class="fu"><a href="https://ngreifer.github.io/cobalt/reference/bal.tab.html" class="external-link">bal.tab</a></span><span class="op">(</span><span class="va">ow1</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="text-decoration: underline;">Balance Measures</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>             Type Diff.Adj</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> age      Contin.    -0.00</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> age      Contin.    -0.01</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> educ     Contin.     0.02</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> married   Binary    -0.03</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> nodegree  Binary     0.04</span>
@@ -300,8 +315,8 @@
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="text-decoration: underline;">Effective sample sizes</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>            Control Treated</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Unadjusted   429.    185. </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Adjusted     415.3   125.3</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Unadjusted  429.     185. </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Adjusted    415.09   125.3</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Exactly alancing covariates with respect to race (multi-category)</span></span></span>
 <span class="r-in"><span><span class="op">(</span><span class="va">ow2</span> <span class="op">&lt;-</span> <span class="fu">optweight</span><span class="op">(</span><span class="va">race</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">educ</span> <span class="op">+</span> <span class="va">married</span> <span class="op">+</span></span></span>
@@ -414,33 +429,31 @@
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">ow1b</span>, weight.range <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                   <span style="text-decoration: underline;">Summary of weights</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> - <span style="font-style: italic;">Weight statistics</span>:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>           L2    L1     L∞ Rel Ent # Zeros</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> treated 2.16 0.422 26.361   0.664       0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> control 1.04 0.165 14.038   0.228       0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>            L2    L1     L∞ Rel Ent # Zeros</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> treated 1.637 0.422 16.956   0.567       0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> control 1.03  0.165 16.058   0.222       0</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> - <span style="font-style: italic;">Effective Sample Sizes</span>:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>            Control Treated</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Unweighted  429.    185.  </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Weighted    206.18   32.65</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Weighted    208.09   50.29</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">ow1</span>, weight.range <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                   <span style="text-decoration: underline;">Summary of weights</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> - <span style="font-style: italic;">Weight statistics</span>:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>            L2    L1    L∞ Rel Ent # Zeros</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> treated 0.69  0.536 3.419   0.198       0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> control 0.182 0.165 0.409   0.017       0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> control 0.183 0.166 0.424   0.017       0</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> - <span style="font-style: italic;">Effective Sample Sizes</span>:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>            Control Treated</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Unweighted   429.    185. </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Weighted     415.3   125.3</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Unweighted  429.     185. </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Weighted    415.09   125.3</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Allowing for negative weights</span></span></span>
 <span class="r-in"><span><span class="va">ow4</span> <span class="op">&lt;-</span> <span class="fu">optweight</span><span class="op">(</span><span class="va">treat</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">educ</span> <span class="op">+</span> <span class="va">married</span> <span class="op">+</span> <span class="va">race</span> <span class="op">+</span></span></span>
@@ -451,7 +464,6 @@
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">ow4</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                   <span style="text-decoration: underline;">Summary of weights</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> - <span style="font-style: italic;">Weight ranges</span>:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>            Min                                 Max</span>
@@ -498,7 +510,7 @@
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer></div>
