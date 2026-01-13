@@ -6,6 +6,7 @@
 #'
 #' @param x an `optweight`, `optweightMV`, or `optweight.svy` object; the output of a call to [optweight()], [optweightMV()], or [optweight.svy()].
 #' @param which.treat for `optweightMV` objects, an integer corresponding to which treatment to display. Only one may be displayed at a time.
+#' @param type the type of plot to display; allowable options include `"variables"` (the default), which produces a row for each covariates, and `"constraints"`, which produces a row for each type of constraint (computed as the sum of the absolute dual variables for each constraint type).
 #' @param \dots ignored.
 #'
 #' @returns
@@ -65,47 +66,78 @@
 
 
 #' @exportS3Method plot optweight
-plot.optweight <- function(x, ...) {
+plot.optweight <- function(x, type = "variables", ...) {
+  chk::chk_string(type)
+  type <- match_arg(type, c("variables", "constraints"))
+
   title <- "Dual Variables for Constraints"
 
-  .plot_optweight_internal(x$duals, title)
+  .plot_optweight_internal(x$duals, title, type)
 }
 
 #' @rdname plot.optweight
 #' @exportS3Method plot optweightMV
-plot.optweightMV <- function(x, which.treat = 1L, ...) {
+plot.optweightMV <- function(x, which.treat = 1L, type = "variables", ...) {
   chk::chk_count(which.treat)
 
-  if (which.treat %nin% seq_along(x$duals)) {
-    .err("`which.treat` must correspond to an available treatment")
+  if (which.treat %nin% seq_len(max(x$duals$component))) {
+    .err("{.arg which.treat} must correspond to an available treatment")
   }
+
+  chk::chk_string(type)
+  type <- match_arg(type, c("variables", "constraints"))
 
   title <- sprintf("Dual Variables for Constraints for Treatment %s",
                    which.treat)
 
-  .plot_optweight_internal(x$duals[[which.treat]], title)
+  duals <- ss(x$duals, x$duals$component %in% c(0L, which.treat))
+
+  .plot_optweight_internal(duals, title, type)
 }
 
 #' @rdname plot.optweight
 #' @exportS3Method plot optweight.svy
 plot.optweight.svy <- plot.optweight
 
-.plot_optweight_internal <- function(d, title) {
-  d$cov <- factor(d$cov, levels = rev(unique(d$cov)))
+.plot_optweight_internal <- function(d, title, type) {
 
-  constraint_types <- unique(d$constraint, nmax = 2L)
+  if (type == "variables") {
+    constraint_types <- c("target", "balance")
 
-  d$constraint <- factor(d$constraint,
-                         levels = constraint_types,
-                         labels = paste("Constraint:", constraint_types))
+    d <- ss(d, d$constraint %in% constraint_types)
 
-  ggplot(d) +
-    geom_col(aes(y = .data$cov, x = .data$dual)) +
-    scale_x_continuous(expand = expansion(c(0, .05))) +
-    facet_grid(rows = vars(.data$constraint),
-               scales = "free_y", space = "free") +
-    labs(x = "Absolute Dual Variable",
-         y = "Variable",
-         title = title) +
-    theme_bw()
+    d$cov <- factor(d$cov, levels = unique(rev(d$cov)))
+
+    d$constraint <- factor(d$constraint,
+                           levels = constraint_types,
+                           labels = paste("Constraint:", constraint_types))
+
+    p <- ggplot(d) +
+      geom_col(aes(y = .data$cov, x = .data$dual)) +
+      scale_x_continuous(expand = expansion(c(0, .05))) +
+      facet_grid(rows = vars(.data$constraint),
+                 scales = "free_y", space = "free") +
+      labs(x = "Absolute Dual Variable",
+           y = "Variable",
+           title = title) +
+      theme_bw()
+  }
+  else {
+    constraint_types <- c("target", "balance", "weight range")
+
+    d$constraint <- factor(d$constraint,
+                           levels = constraint_types)
+
+    agg <- collap(d, dual ~ constraint, FUN = sum, sort = FALSE)
+
+    p <- ggplot(agg) +
+      geom_col(aes(y = .data$constraint, x = .data$dual)) +
+      scale_x_continuous(expand = expansion(c(0, .05))) +
+      labs(x = "Absolute Dual Variable",
+           y = "Constraint",
+           title = title) +
+      theme_bw()
+  }
+
+  p
 }
