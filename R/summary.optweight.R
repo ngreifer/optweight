@@ -70,10 +70,7 @@ summary.optweight <- function(object, top = 5L, ignore.s.weights = FALSE, weight
     else object$s.weights
   }
 
-  bw <- {
-    if (is_null(object$b.weights)) rep_with(1, object$weights)
-    else object$b.weights
-  }
+  bw <- object$b.weights %or% rep_with(1, object$weights)
 
   t <- object$treat
 
@@ -108,10 +105,7 @@ summary.optweightMV <- function(object, top = 5L, ignore.s.weights = FALSE, weig
     else object$s.weights
   }
 
-  bw <- {
-    if (is_null(object$b.weights)) rep_with(1, object$weights)
-    else object$b.weights
-  }
+  bw <- object$b.weights %or% rep_with(1, object$weights)
 
   out.list <- lapply(object$treat.list, function(t) {
     .summary_internal(t, attr(t, "treat.type"),
@@ -141,10 +135,7 @@ summary.optweight.svy <- function(object, top = 5L, ignore.s.weights = FALSE, we
     else object$s.weights
   }
 
-  bw <- {
-    if (is_null(object$b.weights)) rep_with(1, object$weights)
-    else object$b.weights
-  }
+  bw <- object$b.weights %or% rep_with(1, object$weights)
 
   out <- .summary_internal(NULL, "svy", object$weights, sw, bw, top, weight.range)
 
@@ -159,7 +150,7 @@ summary.optweight.svy <- function(object, top = 5L, ignore.s.weights = FALSE, we
 print.summary.optweight <- function(x, digits = 3L, ...) {
   chk::chk_whole_number(digits)
 
-  cat0(space(18L), .ul("Summary of weights"), "\n\n")
+  cat0(space(18L), .ul("Summary of weights"), "\n")
 
   .print_summary_internal(x, digits = digits, ...)
 
@@ -172,13 +163,13 @@ print.summary.optweightMV <- function(x, digits = 3L, ...) {
 
   only.one <- length(x) == 1L || all_apply(x, function(y) isTRUE(all.equal(x[[1L]], y)))
 
-  cat0(space(18L), .ul("Summary of weights"), "\n\n")
+  cat0(space(18L), .ul("Summary of weights"), "\n")
 
   for (ti in seq_along(x)) {
     if (!only.one) {
-      cat0(.st(space(19L)),
+      cat0(txtbar(19L),
            .it(sprintf(" Treatment %s ", ti)),
-           .st(space(19L)), "\n")
+           txtbar(19L), "\n")
     }
 
     .print_summary_internal(x[[ti]], digits = digits, ...)
@@ -225,11 +216,11 @@ plot.summary.optweight <- function(x, ...) {
   ww <- w * sw
 
   if (treat.type == "binary") {
-    tx <- list(treated = which(t == 1),
-               control = which(t == 0))
+    tx <- list(treated = whichv(t, 1),
+               control = whichv(t, 0))
   }
   else if (treat.type == "multi-category") {
-    tx <- lapply(levels(t), function(i) which(t == i)) |>
+    tx <- lapply(levels(t), function(i) whichv(t, i)) |>
       setNames(levels(t))
   }
   else {
@@ -237,7 +228,7 @@ plot.summary.optweight <- function(x, ...) {
   }
 
   if (weight.range) {
-    out$weight.range <- lapply(tx, function(ti) c(min(ww[ti]), max(w[ti]))) |>
+    out$weight.range <- lapply(tx, function(ti) frange(ww[ti])) |>
       setNames(names(tx))
 
     top.weights <- lapply(tx, function(ti) sort(ww[ti], decreasing = TRUE)[seq_len(top)]) |>

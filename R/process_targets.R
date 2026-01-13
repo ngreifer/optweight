@@ -64,7 +64,7 @@ process_targets <- function(formula, data = NULL, targets = NULL, s.weights = NU
     formula.present <- TRUE
   }
   else {
-    .err("the argument to `formula` must a single formula with the covariates on the right side")
+    .err("the argument to {.arg formula} must a single formula with the covariates on the right side")
   }
 
   #Process treat and covs from formula and data
@@ -95,10 +95,10 @@ process_targets <- function(formula, data = NULL, targets = NULL, s.weights = NU
   model.vars <- colnames(model.covs)
 
   if (is_null(targets)) {
-    internal.targets <- col.w.m(model.covs, sw)
+    internal.targets <- fmean(model.covs, w = sw)
     ATE <- TRUE
   }
-  else if (all(is.na(targets)) && is_null(names(targets))) {
+  else if (allNA(targets) && is_null(names(targets))) {
     internal.targets <- setNames(rep_with(NA_real_, model.vars),
                                  model.vars)
     ATE <- FALSE
@@ -108,19 +108,17 @@ process_targets <- function(formula, data = NULL, targets = NULL, s.weights = NU
 
     if (is_null(names(targets)) || !all(nzchar(names(targets)))) {
       if (length(targets) != length(model.vars)) {
-        .err(sprintf("`targets` must contain %s values, but %s were included",
-                     length(model.vars), length(targets)))
+        .err("{.arg targets} must contain {length(model.vars)} value{?s}, but {length(targets)} {?was/were} included")
       }
 
       names(targets) <- model.vars
     }
 
     if (!all(names(targets) %in% model.vars)) {
-      .err(sprintf("all variables named in `targets` must be present in `%s`",
-                   targets_found_in))
+      .err("all variables named in {.arg targets} must be present in {.arg {targets_found_in}}")
     }
 
-    model.covs.means <- col.w.m(model.covs, sw)
+    model.covs.means <- fmean(model.covs, w = sw)
 
     overlap <- intersect(names(targets), model.vars)
 
@@ -131,7 +129,7 @@ process_targets <- function(formula, data = NULL, targets = NULL, s.weights = NU
   }
 
   if (is_not_null(formula.covs)) {
-    formula.vars <- attr(attr(formula.covs, "terms"), "term.labels")
+    formula.vars <- attr(formula.covs, "terms") |> attr("term.labels")
 
     if (is_null(formula.vars)) {
       formula.vars <- "(Intercept)"
@@ -145,12 +143,11 @@ process_targets <- function(formula, data = NULL, targets = NULL, s.weights = NU
           attr(terms(formula.covs), "dataClasses")[formula.vars == v] == "factor" &&
           !anyNA(internal.targets[original.variables == v]) &&
           !check_if_zero(sum(internal.targets[original.variables == v]) - 1)) {
-        .err(sprintf("the target values for %s must add up to 1",
-                     add_quotes(v)))
+        .err("the target values for {.var {v}} must add up to 1")
       }
     }
 
-    if (!all(is.na(internal.targets)) && any_apply(formula.vars, function(v) {
+    if (!allNA(internal.targets) && any_apply(formula.vars, function(v) {
       if (attr(terms(formula.covs), "order")[formula.vars == v] <= 1) {
         return(FALSE)
       }
@@ -159,7 +156,7 @@ process_targets <- function(formula, data = NULL, targets = NULL, s.weights = NU
 
       sum(attr(terms(formula.covs), "dataClasses")[vars.in.interaction] == "factor") > 1
     })) {
-      .wrn("interactions between factor variables were entered, but `process_targets()` cannot verify whether the target values are suitable. See `?check_targets` for details")
+      .wrn("interactions between factor variables were entered, but {.fn process_targets} cannot verify whether the target values are suitable. See {.fn process_targets} for details")
     }
 
     attr(internal.targets, "original.vars") <- formula.vars[attr(model.covs, "assign")] |> setNames(model.vars)
@@ -185,7 +182,7 @@ print.optweight.targets <- function(x, digits = 5, ...) {
   attributes(targets) <- NULL
   names(targets) <- names(x)
 
-  if (all(is.na(targets))) {
+  if (allNA(targets)) {
     cat0(" - ", .it("variables"), ":\n\t",
          paste(names(targets), collapse = space(3L)))
   }

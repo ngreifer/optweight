@@ -7,7 +7,7 @@ process_focal_and_estimand_w_targets <- function(focal, estimand, targets = NULL
   }
 
   if (is_not_null(targets)) {
-    .wrn("`targets` are not `NULL`; ignoring `estimand`")
+    .wrn("{.arg targets} are not {.val NULL}; ignoring {.arg estimand}")
 
     return(list(focal = NULL,
                 estimand = NULL,
@@ -29,10 +29,7 @@ process_focal_and_estimand_w_targets <- function(focal, estimand, targets = NULL
              continuous = "ATE")
 
   if (estimand %nin% AE[[treat.type]]) {
-    .err(sprintf("%s is not an allowable estimand with %s treatments. Only %s allowed",
-                 add_quotes(estimand),
-                 treat.type,
-                 word_list(AE[[treat.type]], quotes = TRUE, and.or = "and", is.are = TRUE)))
+    .err("{add_quotes(estimand)} is not an allowable estimand with {treat.type} treatments. Only {add_quotes(AE[[treat.type]])} {?is/are} allowed")
   }
 
   if (treat.type == "continuous") {
@@ -42,8 +39,8 @@ process_focal_and_estimand_w_targets <- function(focal, estimand, targets = NULL
   }
 
   if (is_not_null(focal) && estimand %nin% c("ATT", "ATC")) {
-    .wrn(sprintf('`estimand = %s` is not compatible with `focal`. Setting `estimand` to "ATT"',
-                 add_quotes(estimand)))
+    .wrn('{.code estimand = "{estimand}"} is not compatible with {.arg focal}. Setting {.arg estimand} to "ATT"')
+
     reported.estimand <- estimand <- "ATT"
   }
 
@@ -58,12 +55,11 @@ process_focal_and_estimand_w_targets <- function(focal, estimand, targets = NULL
     #Check focal
     if (estimand %in% c("ATT", "ATC")) {
       if (is_null(focal)) {
-        .err(sprintf("when `estimand = %s` for multi-category treatments, an argument must be supplied to `focal`",
-                     add_quotes(estimand)))
+        .err('when {.code estimand = "{estimand}"} for multi-category treatments, an argument must be supplied to {.arg focal}')
       }
 
       if (length(focal) > 1L || focal %nin% unique.vals) {
-        .err("the argument supplied to `focal` must be the name of a level of treatment")
+        .err("the argument supplied to {.arg focal} must be the name of a level of treatment")
       }
     }
     else {
@@ -110,7 +106,7 @@ process_focal_and_estimand_w_targets <- function(focal, estimand, targets = NULL
 
   if (is_not_null(focal)) {
     if (length(focal) > 1L || focal %nin% unique.vals) {
-      .err("the argument supplied to `focal` must be the name of a level of treatment")
+      .err("the argument supplied to {.arg focal} must be the name of a level of treatment")
     }
 
     if (estimand == "ATC") {
@@ -129,7 +125,7 @@ process_focal_and_estimand_w_targets <- function(focal, estimand, targets = NULL
   }
   else if (is_not_null(treated)) {
     if (length(treated) > 1L || treated %nin% unique.vals) {
-      .err("the argument supplied to `treated` must be the name of a level of treatment")
+      .err("the argument supplied to {.arg treated} must be the name of a level of treatment")
     }
   }
   else if (is.logical(treat)) {
@@ -186,17 +182,16 @@ process_focal_and_estimand_w_targets <- function(focal, estimand, targets = NULL
 
   if (throw_message) {
     if (estimand == "ATT") {
-      .msg(sprintf("assuming %s is the treated level. If not, supply an argument to `focal`",
-                   add_quotes(treated, !is.numeric(unique.vals))))
-
+      tl <- add_quotes(treated, !is.numeric(unique.vals))
+      .msg("assuming {tl} is the treated level. If not, supply an argument to {.arg focal}")
     }
     else if (estimand == "ATC") {
-      .msg(sprintf("assuming %s is the control level. If not, supply an argument to `focal`",
-                   add_quotes(control, !is.numeric(unique.vals))))
+      cl <- add_quotes(control, !is.numeric(unique.vals))
+      .msg("assuming {cl} is the control level. If not, supply an argument to {.arg focal}")
     }
     else {
-      .msg(sprintf("assuming %s is the treated level. If not, recode the treatment so that 1 is treated and 0 is control",
-                   add_quotes(treated, !is.numeric(unique.vals))))
+      tl <- add_quotes(treated, !is.numeric(unique.vals))
+      .msg("assuming {tl} is the treated level. If not, recode the treatment so that 1 is treated and 0 is control")
     }
   }
 
@@ -221,15 +216,15 @@ process_s.weights <- function(s.weights, data = NULL) {
   }
 
   if (!chk::vld_string(s.weights)) {
-    .err("the argument to `s.weights` must be a vector or data frame of sampling weights or the (quoted) name of the variable in `data` that contains sampling weights")
+    .err("the argument to {.arg s.weights} must be a vector or data frame of sampling weights or the (quoted) name of the variable in {.arg data} that contains sampling weights")
   }
 
   if (is_null(data)) {
-    .err("`s.weights` was specified as a string but there was no argument to `data`")
+    .err("{.arg s.weights} was specified as a string but there was no argument to {.arg data}")
   }
 
   if (s.weights %nin% names(data)) {
-    .err("the name supplied to `s.weights` is not the name of a variable in `data`")
+    .err("the name supplied to {.arg s.weights} is not the name of a variable in {.arg data}")
   }
 
   as.numeric(data[[s.weights]])
@@ -245,15 +240,15 @@ process_b.weights <- function(b.weights, data = NULL) {
   }
 
   if (!chk::vld_string(b.weights)) {
-    .err("the argument to `b.weights` must be a vector or data frame of base weights or the (quoted) name of the variable in `data` that contains base weights")
+    .err("the argument to {.arg b.weights} must be a vector or data frame of base weights or the (quoted) name of the variable in {.arg data} that contains base weights")
   }
 
   if (is_null(data)) {
-    .err("`b.weights` was specified as a string but there was no argument to `data`")
+    .err("{.arg b.weights} was specified as a string but there was no argument to {.arg data}")
   }
 
   if (b.weights %nin% names(data)) {
-    .err("the name supplied to `b.weights` is not the name of a variable in `data`")
+    .err("the name supplied to {.arg b.weights} is not the name of a variable in {.arg data}")
   }
 
   as.numeric(data[[b.weights]])
@@ -270,8 +265,7 @@ process_norm <- function(norm, s.weights, b.weights) {
   }
 
   if (norm %in% c("entropy", "log") && any(b.weights <= 0)) {
-    .err(sprintf("all base weights must be positive when `norm = %s`",
-                 add_quotes(norm)))
+    .err('all base weights must be positive when {.code norm = "{norm}"}')
   }
 
   norm
@@ -294,8 +288,7 @@ check_missing_covs <- function(covs) {
       covariates.with.missingness <- names(covs)[i:k][vapply(i:k, function(j) anyNA(covs[[j]]) ||
                                                                (is.numeric(covs[[j]]) && !all(is.finite(covs[[j]]))),
                                                              logical(1L))]
-      .err(sprintf("Missing and non-finite values are not allowed in the covariates. Covariates with missingness or non-finite values:\n\t%s",
-                   toString(covariates.with.missingness)), tidy = FALSE)
+      .err("missing and non-finite values are not allowed in the covariates. Covariates with missingness or non-finite values: {.var covariates.with.missingness}")
     }
   }
 }
@@ -312,7 +305,9 @@ process_solver <- function(solver = NULL, norm, min.w) {
 
   solver_option <- sprintf("optweight_solver_%s", norm)
 
-  solver <- if_null_then(solver, getOption(solver_option))
+  if (is_null(solver)) {
+    solver <- getOption(solver_option)
+  }
 
   if (is_null(solver)) {
     solver_packages <- c(scs = "scs",
@@ -339,23 +334,27 @@ process_solver <- function(solver = NULL, norm, min.w) {
 }
 
 process_duals <- function(d, tols) {
-  if (is_null(d$dual)) {
-    return(NULL)
+  for (time in seq_len(max(d$component))) {
+    .i <- d$component == time & d$constraint %in% c("target", "balance")
+
+    original.vars <- {
+      if (is.list(tols)) attr(tols[[time]], "original.vars")
+      else attr(tols, "original.vars")
+    }
+
+    na.cov <- is.na(d$cov[.i])
+
+    d$cov[.i][!na.cov] <- original.vars[d$cov[.i][!na.cov]]
+
+    if (is_not_null(d$treat) && !allNA(d$treat) && any(na.cov)) {
+      d$cov[.i][na.cov] <- d$treat[.i][na.cov]
+    }
   }
-
-  original.vars <- attr(tols, "original.vars")
-  na.cov <- is.na(d$cov)
-  d$cov[!na.cov] <- vapply(d$cov[!na.cov], function(co) original.vars[names(original.vars) == co][1L], character(1L))
-
-  if (is_not_null(d$treat) && any(na.cov)) {
-    d$cov[na.cov] <- d$treat[na.cov]
-  }
-
-  d$dual <- ave(d$dual, d$constraint, d$cov, FUN = sum) #Total effect of constraint on obj. fun. is sum of abs(duals)
 
   d$treat <- NULL
 
-  d <- unique(d)
+  d <- collap(d, dual ~ component + constraint + cov,
+              FUN = sum, sort = FALSE)
 
   rownames(d) <- NULL
 

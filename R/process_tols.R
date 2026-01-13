@@ -71,7 +71,7 @@ process_tols <- function(formula, data = NULL, tols = 0) {
     formula.present <- TRUE
   }
   else {
-    .err("the argument to `formula` must a single formula with the covariates on the right side")
+    .err("the argument to {.arg formula} must a single formula with the covariates on the right side")
   }
 
   #Process treat and covs from formula and data
@@ -94,7 +94,8 @@ process_tols <- function(formula, data = NULL, tols = 0) {
 }
 
 .process_tols_internal <- function(model.covs, tols, formula.covs = NULL,
-                                   tols_found_in = "formula") {
+                                   tols_found_in = "formula",
+                                   tols_arg = "tols") {
 
   chk::chk_numeric(tols)
   chk::chk_not_any_na(tols)
@@ -102,7 +103,7 @@ process_tols <- function(formula, data = NULL, tols = 0) {
   model.vars <- colnames(model.covs)
 
   if (is_not_null(formula.covs)) {
-    formula.vars <- attr(attr(formula.covs, "terms"), "term.labels")
+    formula.vars <- attr(formula.covs, "terms") |> attr("term.labels")
     if (is_null(formula.vars)) {
       formula.vars <- "(Intercept)"
       attr(model.covs, "assign") <- 1
@@ -121,14 +122,13 @@ process_tols <- function(formula, data = NULL, tols = 0) {
       names(tols) <- formula.vars
     }
     else {
-      .err(sprintf("`tols` must contain 1 or %s values, but %s were included",
-                   length(formula.vars), length(tols)))
+      .err("{.arg {tols_arg}} must contain {.or {unique(c(1, length(formula.vars)))}}
+            {cli::qty(max(1, length(formula.vars)))} value{?s}, but {length(tols)} {?was/were} included")
     }
   }
 
   if (!any(names(tols) %in% formula.vars)) {
-    .err(sprintf("no variables named in `tols` are present in `%s`",
-                 tols_found_in))
+    .err("no variables named in {.arg {tols_arg}} are present in {.arg {tols_found_in}}")
   }
 
   overlap <- intersect(names(tols), formula.vars)
@@ -138,11 +138,8 @@ process_tols <- function(formula, data = NULL, tols = 0) {
   user.tols[overlap] <- tols[overlap]
 
   if (!all(names(tols) %in% overlap)) {
-    bad_tols <- word_list(setdiff(names(tols), overlap), quotes = TRUE)
-    .wrn(sprintf("%s %s named in `tols` but not present in `%s` and so will be ignored",
-                 bad_tols,
-                 if (isFALSE(attr(bad_tols, "plural"))) "was" else "were",
-                 tols_found_in))
+    bad_tols <- add_quotes(setdiff(names(tols), overlap))
+    .wrn("{bad_tols} {?was/were} named in {.arg {tols_arg}} but not present in {.arg {tols_found_in}} and so will be ignored")
   }
 
   if (is_not_null(formula.covs)) {
@@ -176,7 +173,7 @@ print.optweight.tols <- function(x, internal = FALSE, digits = 5, ...) {
   attributes(tols) <- NULL
   names(tols) <- names(x)
 
-  if (all(is.na(tols))) {
+  if (allNA(tols)) {
     cat0(" - ", .it("variables"), ":\n\t",
          paste(names(tols), collapse = space(3L)))
   }
