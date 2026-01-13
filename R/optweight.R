@@ -7,6 +7,7 @@
 #' @param tols a vector of balance tolerance values for each covariate. The resulting weighted balance statistics will be at least as small as these values. If only one value is supplied, it will be applied to all covariates. Can also be the output of a call to [process_tols()]. See Details. Default is 0 for all covariates.
 #' @param estimand a string containing the desired estimand, which determines the target population. For binary treatments, can be "ATE", "ATT", "ATC", or `NULL`. For multi-category treatments, can be "ATE", "ATT", or `NULL`. For continuous treatments, can be "ATE" or `NULL`. The default for both is "ATE". `estimand` is ignored when `targets` is non-`NULL`. If both `estimand` and `targets` are `NULL`, no targeting will take place. See Details.
 #' @param targets an optional vector of target population mean values for each covariate. The resulting weights will yield sample means within `tols`/2 units of the target values for each covariate. If `NULL` or all `NA`, `estimand` will be used to determine targets. Otherwise, `estimand` is ignored. If any target values are `NA`, the corresponding variable will not be targeted and its weighted mean will be wherever the weights yield the smallest variance; this is only allowed for binary and multi-category treatments. Can also be the output of a call to [process_targets()]. See Details.
+#' @param target.tols a vector of target balance tolerance values for each covariate. For binary and multi-category treatments, the average of each pair of means will be at most as far from the target means as these values. Can also be the output of a call to [process_tols()]. See Details. Default is 0 for all covariates. Ignored with continuous treatments and when `estimand` is `"ATT"` or `"ATC"`.
 #' @param s.weights a vector of sampling weights. For `optweight()`, can also be the name of a variable in `data` that contains sampling weights.
 #' @param b.weights a vector of base weights. If supplied, the desired norm of the distance between the estimated weights and the base weights is minimized. For `optweight()`, can also the name of a variable in `data` that contains base weights.
 #' @param norm `character`; a string containing the name of the norm corresponding to the objective function to minimize. Allowable options include `"l1"` for the L1 norm, `"l2"` for the L2 norm (the default), `"linf"` for the L\eqn{\infty} norm, `"entropy"` for the negative entropy, and `"log"` for the sum of the logs. See Details.
@@ -29,7 +30,8 @@
 #' \item{estimand}{The estimand requested.}
 #' \item{focal}{The focal variable if the ATT was requested with a multi-category treatment.}
 #' \item{call}{The function call.}
-#' \item{tols}{The tolerance values for each covariate.}
+#' \item{tols}{The balance tolerance values for each covariate.}
+#' \item{target.tols}{The target tolerance values for each covariate.}
 #' \item{duals}{A data.frame containing the dual variables for each covariate. See Details for interpretation of these values.}
 #' \item{info}{A list containing information about the performance of the optimization at termination.}
 #' \item{norm}{The `norm` used.}
@@ -45,11 +47,16 @@
 #' @details
 #' `optweight()` is the primary user-facing function for estimating stable balancing weights. The optimization is performed by the lower-level function `optweight.fit()`, which transforms the inputs into the required inputs for the optimization functions and then supplies the outputs (the weights, dual variables, and convergence information) back to `optweight()`. Little processing of inputs is performed by `optweight.fit()`, as this is normally handled by `optweight()`.
 #'
-#' For binary and multi-category treatments, weights are estimated so that the weighted mean differences of the covariates are within the given tolerance thresholds (unless `std.binary` or `std.cont` are `TRUE`, in which case standardized mean differences are considered for binary and continuous variables, respectively). For a covariate \eqn{x} with specified tolerance \eqn{\delta}, the weighted means of each each group will be within \eqn{\delta} of each other. Additionally, when the ATE is specified as the estimand or a target population is specified, the weighted means of each group will each be within \eqn{\delta/2} of the target means; this ensures generalizability to the same population from which the original sample was drawn.
+#' For binary and multi-category treatments, weights are estimated so that the weighted mean differences of the covariates are within the given tolerance thresholds controlled by `tols` and `target.tols` (unless `std.binary` or `std.cont` are `TRUE`, in which case standardized mean differences are considered for binary and continuous variables, respectively). For a covariate \eqn{x} with specified balance tolerance \eqn{\delta} and target tolerance \eqn{\varepsilon}, the weighted means of each each group will be within \eqn{\delta} of each other, and the midpoint between the weighted group means will be with \eqn{\varepsilon} of the target means. More specifically, the constraints are specified as follows:
+#' \deqn{
+#' \left| \bar{x}^w_1 - \bar{x}^w_0 \right| \le \delta \\
+#' \left| \frac{\bar{x}^w_1 + \bar{x}^w_0}{2} - \bar{x}^* \right| \le \varepsilon
+#' }
+#' where \eqn{\bar{x}^w_1} and \eqn{\bar{x}^w_0} are the weighted means of covariate \eqn{x} for treatment groups 1 and 0, respectively, and \eqn{\bar{x}^*} is the target mean for that covariate. \eqn{\delta} corresponds to `tols`, and \eqn{\varepsilon} corresponds to `target.tols`. Setting a covariate's value of `target.tols` to `Inf` or its `target` to `NA` both serve to remove the second constraint, as is done in Barnard et al. (2025).
 #'
 #' If standardized tolerance values are requested, the standardization factor corresponds to the estimand requested: when the ATE is requested or a target population specified, the standardization factor is the square root of the average variance for that covariate across treatment groups, and when the ATT or ATC are requested, the standardization factor is the standard deviation of the covariate in the focal group. The standardization factor is computed accounting for `s.weights`.
 #'
-#' For continuous treatments, weights are estimated so that the weighted correlation between the treatment and each covariate is within the specified tolerance threshold. The means of the weighted covariates and treatment are restricted to be exactly equal to those of the target population to ensure generalizability to the desired target population, regardless of `tols`. The weighted correlation is computed as the weighted covariance divided by the product of the *unweighted* standard deviations. The means used to center the variables in computing the covariance are those specified in the target population.
+#' For continuous treatments, weights are estimated so that the weighted correlation between the treatment and each covariate is within the specified tolerance threshold. The means of the weighted covariates and treatment are restricted to be exactly equal to those of the target population to ensure generalizability to the desired target population, regardless of `tols` or `target.tols`. The weighted correlation is computed as the weighted covariance divided by the product of the *unweighted* standard deviations. The means used to center the variables in computing the covariance are those specified in the target population.
 #'
 #' Target and balance constraints are applied to the product of the estimated weights and the sampling weights. In addition, the sum of the product of the estimated weights and the sampling weights is constrained to be equal to the sum of the product of the base weights and sampling weights. For binary and multi-category treatments, these constraints apply within each treatment group.
 #'
@@ -69,11 +76,11 @@
 #'
 #' ## Dual Variables
 #'
-#' Two types of constraints may be associated with each covariate: target constraints and balance constraints. Target constraints require the mean of the covariate to be at (or near) a specific target value in each treatment group (or for the whole group when treatment is continuous). Balance constraints require the means of the covariate in pairs of treatments to be near each other. For binary and multi-category treatments, balance constraints are redundant if target constraints are provided for a variable. For continuous variables, balance constraints refer to the correlation between treatment and the covariate and are not redundant with target constraints. In the `duals` component of the output, each covariate has a dual variable for each nonredundant constraint placed on it.
-#'
-#' The dual variable for each constraint is the instantaneous rate of change of the objective function at the optimum corresponding to a change in the constraint. Because this relationship is not linear, large changes in the constraint will not exactly map onto corresponding changes in the objective function at the optimum, but will be close for small changes in the constraint. For example, for a covariate with a balance constraint of .01 and a corresponding dual variable of 40, increasing (i.e., relaxing) the constraint to .025 will decrease the value of the objective function at the optimum by approximately \eqn{(.025 - .01) * 40 = .6}.
+#' Two types of constraints may be associated with each covariate: target constraints and balance constraints, controlled by `target.tols` and `tols`, respectively. In the `duals` component of the output, each covariate has a dual variable for each constraint placed on it. The dual variable for each constraint is the instantaneous rate of change of the objective function at the optimum corresponding to a change in the constraint. Because this relationship is not linear, large changes in the constraint will not exactly map onto corresponding changes in the objective function at the optimum, but will be close for small changes in the constraint. For example, for a covariate with a balance constraint of .01 and a corresponding dual variable of 40, increasing (i.e., relaxing) the constraint to .025 will decrease the value of the objective function at the optimum by approximately \eqn{(.025 - .01) * 40 = .6}.
 #'
 #' For factor variables, `optweight()` takes the sum of the absolute dual variables for the constraints for all levels and reports it as the the single dual variable for the variable itself. This summed dual variable works the same way as dual variables for continuous variables do.
+#'
+#' An addition dual variable is computed for the constraint on the range of the weights, controlled by `min.w`. A high dual variable for this constraint implies that decreasing `min.w` will decrease the value of the objective function at the optimum.
 #'
 #' ## `solver`
 #'
@@ -99,7 +106,7 @@
 #' | `"entropy"` | `"scs"`          |
 #' | `"log"`     | `"scs"`          |
 #'
-#' If the package corresponding to a default `solver` is not installed but the package for a different eligible solver is, that will be used. Otherwise, you will be asked to install the required package. \pkg{osqp} is required for \pkg{optweight}, and so will be the default for the `"l1"` and `"linf"` norms if \pkg{highs} is not installed. The default package is the one has shown good performance for the given norm; generally, all eligible solvers perform about equally well in terms of accuracy but differ in time taken.
+#' If the package corresponding to a default `solver` is not installed but the package for a different eligible solver is, that will be used. Otherwise, you will be asked to install the required package. \pkg{osqp} is required for \pkg{optweight}, and so will be the default for the `"l1"` and `"linf"` norms if \pkg{highs} is not installed. The default package is the one has shown good performance for the given norm in informal testing; generally, all eligible solvers perform about equally well in terms of accuracy but differ in time taken.
 #'
 #' ## Solving Convergence Failure
 #'
@@ -107,13 +114,15 @@
 #'
 #' Rarely is the problem too few iterations, though this is possible. Most problems can be solved in the default 200,000 iterations, but sometimes it can help to increase this number with the `max_iter` argument. Usually, though, this just ends up taking more time without a solution found.
 #'
-#' If the problem is that the constraints are too tight, it can be helpful to loosen the constraints. Sometimes examining the dual variables of a solution that has failed to converge can reveal which constraints are causing the problem.
+#' If the problem is that the constraints are too tight, it can be helpful to loosen the constraints. Sometimes examining the dual variables of a solution that has failed to converge can reveal which constraints are causing the problem. An extreme value of a dual variable typically suggests that its corresponding constraint is one cause of the failure to converge.
 #'
 #' Sometimes a suboptimal solution is possible; such a solution does not satisfy the constraints exactly but will come pretty close. To allow these solutions, the argument `eps` can be increased to larger values. This is more likely to occur when `s.weights` are supplied.
 #'
 #' Sometimes using a different solver can improve performance. Using the default `solver` for each `norm`, as described above, can reduce the probability of convergence failures.
 #'
 #' @references
+#' Barnard, M., Huling, J. D., & Wolfson, J. (2025). Partially Retargeted Balancing Weights for Causal Effect Estimation Under Positivity Violations (No. arXiv:2510.22072). arXiv. \doi{10.48550/arXiv.2510.22072}
+#'
 #' Chattopadhyay, A., Cohn, E. R., & Zubizarreta, J. R. (2024). One-Step Weighting to Generalize and Transport Treatment Effect Estimates to a Target Population. *The American Statistician*, 78(3), 280–289. \doi{10.1080/00031305.2023.2267598}
 #'
 #' de los Angeles Resa, M., & Zubizarreta, J. R. (2020). Direct and Stable Weight Adjustment in Non-Experimental Studies With Multivalued Treatments: Analysis of the Effect of an Earthquake on Post-Traumatic Stress. *Journal of the Royal Statistical Society Series A: Statistics in Society*, 183(4), 1387–1410. \doi{10.1111/rssa.12561}
@@ -203,8 +212,9 @@
 #'                         norm = "l2")
 
 #' @export
-optweight <- function(formula, data = NULL, tols = 0, estimand = "ATE",
-                      targets = NULL, s.weights = NULL, b.weights = NULL, focal = NULL,
+optweight <- function(formula, data = NULL, tols = 0,
+                      estimand = "ATE", targets = NULL, target.tols = 0,
+                      s.weights = NULL, b.weights = NULL, focal = NULL,
                       norm = "l2", min.w = 1e-8, verbose = FALSE, ...) {
 
   mcall <- match.call()
@@ -248,7 +258,12 @@ optweight <- function(formula, data = NULL, tols = 0, estimand = "ATE",
   bw <- process_b.weights(b.weights, data)
 
   #Process tols
-  tols <- .process_tols_internal(covs, tols, reported.covs)
+  tols <- .process_tols_internal(covs, tols, reported.covs,
+                                 tols_arg = "tols")
+
+  #Process tols
+  target.tols <- .process_tols_internal(covs, target.tols, reported.covs,
+                                        tols_arg = "target.tols")
 
   #Process targets
   if (is_null(estimand) || is_not_null(targets)) {
@@ -256,7 +271,7 @@ optweight <- function(formula, data = NULL, tols = 0, estimand = "ATE",
       targets <- NA_real_
     }
     else if (is_not_null(estimand) && is_not_null(targets)) {
-      .wrn("`targets` are not `NULL`; ignoring `estimand`")
+      .wrn("{.arg targets} are not {.val NULL}; ignoring {.arg estimand}")
       estimand <- NULL
     }
 
@@ -270,6 +285,7 @@ optweight <- function(formula, data = NULL, tols = 0, estimand = "ATE",
                            estimand = estimand,
                            focal = focal,
                            targets = targets,
+                           target.tols = target.tols,
                            s.weights = sw,
                            b.weights = bw,
                            norm = norm,
@@ -299,6 +315,7 @@ optweight <- function(formula, data = NULL, tols = 0, estimand = "ATE",
               norm = fit_out$norm,
               call = mcall,
               tols = tols,
+              target.tols = target.tols,
               duals = duals,
               info = fit_out$info,
               solver = fit_out$solver)
@@ -310,14 +327,15 @@ optweight <- function(formula, data = NULL, tols = 0, estimand = "ATE",
 
 #' @export
 #' @rdname optweight
-optweight.fit <- function(covs, treat, tols = 0, estimand = "ATE",
-                          targets = NULL, s.weights = NULL, b.weights = NULL, focal = NULL,
-                          norm = "l2", std.binary = FALSE, std.cont = TRUE, min.w = 1e-8, verbose = FALSE,
-                          solver = NULL, ...) {
+optweight.fit <- function(covs, treat, tols = 0,
+                          estimand = "ATE", targets = NULL, target.tols = 0,
+                          s.weights = NULL, b.weights = NULL, focal = NULL,
+                          norm = "l2", std.binary = FALSE, std.cont = TRUE,
+                          min.w = 1e-8, verbose = FALSE, solver = NULL, ...) {
 
   if ((!missing(covs) && is.list(covs) && !is.data.frame(covs)) || is_not_null(...get("covs.list")) ||
       (!missing(treat) && is.list(treat)) || is_not_null(...get("treat.list"))) {
-    .err("`optweight.fit()` was called with list arguments; perhaps you meant to call `optweightMV.fit()")
+    .err("{.fn optweight.fit} was called with list arguments; perhaps you meant to call {.fn optweightMV.fit}")
   }
 
   chk::chk_not_missing(covs, "`covs`")
@@ -329,7 +347,7 @@ optweight.fit <- function(covs, treat, tols = 0, estimand = "ATE",
 
   covs <- as.matrix(covs)
 
-  treat.name <- if_null_then(attr(treat, "treat.name"), "treat")
+  treat.name <- attr(treat, "treat.name") %or% "treat"
 
   treat.type <- {
     if (chk::vld_character_or_factor(treat) || is_binary(treat)) "cat"
@@ -339,7 +357,7 @@ optweight.fit <- function(covs, treat, tols = 0, estimand = "ATE",
   N <- length(treat)
 
   if (is_null(s.weights)) {
-    sw <- rep.int(1, N)
+    sw <- alloc(1, N)
   }
   else {
     chk::chk_numeric(s.weights)
@@ -349,7 +367,7 @@ optweight.fit <- function(covs, treat, tols = 0, estimand = "ATE",
   }
 
   if (is_null(b.weights)) {
-    bw <- rep.int(1, N)
+    bw <- alloc(1, N)
   }
   else {
     chk::chk_numeric(b.weights)
@@ -358,18 +376,28 @@ optweight.fit <- function(covs, treat, tols = 0, estimand = "ATE",
     bw <- b.weights
   }
 
-  #Process tols
+  #Process tols and target.tols
   if (!inherits(tols, "optweight.tols") || is_null(attr(tols, "internal.tols"))) {
-    tols <- .process_tols_internal(covs, tols = tols, tols_found_in = "covs")
+    tols <- .process_tols_internal(covs, tols = tols, tols_found_in = "covs",
+                                   tols_arg = "tols")
   }
 
   tols <- tols |>
     attr("internal.tols") |>
     abs()
 
+  if (!inherits(target.tols, "optweight.tols") || is_null(attr(target.tols, "internal.tols"))) {
+    target.tols <- .process_tols_internal(covs, tols = target.tols, tols_found_in = "covs",
+                                          tols_arg = "target.tols")
+  }
+
+  target.tols <- target.tols |>
+    attr("internal.tols") |>
+    abs()
+
   #Process estimand and targets
   if (treat.type == "cat") {
-    treat <- as.character(treat)
+    treat <- qF(treat)
 
     if (is_null(estimand)) {
       if (is_null(targets)) {
@@ -377,7 +405,7 @@ optweight.fit <- function(covs, treat, tols = 0, estimand = "ATE",
       }
     }
     else if (is_not_null(targets)) {
-      .wrn("`targets` are not `NULL`; ignoring `estimand`")
+      .wrn("{.arg targets} are not {.val NULL}; ignoring {.arg estimand}")
       estimand <- focal <- NULL
     }
     else {
@@ -388,20 +416,24 @@ optweight.fit <- function(covs, treat, tols = 0, estimand = "ATE",
 
       if (estimand %in% c("ATT", "ATC")) {
         if (is_null(focal)) {
-          .err(sprintf("`focal` must be supplied when `estimand = %s`",
-                       add_quotes(estimand)))
+          .err('{.arg focal} must be supplied when {.code estimand = "{estimand}"}')
         }
 
         focal <- as.character(focal)
 
-        in_focal <- which(treat == focal)
+        in_focal <- whichv(treat, focal)
 
         if (is_null(in_focal)) {
-          .err("`focal` must be the name of a level of treatment")
+          .err("{.arg focal} must be the name of a level of treatment")
         }
 
-        targets <- col.w.m(covs[in_focal, , drop = FALSE],
-                           w = sw[in_focal])
+        targets <- fmean(ss(covs, in_focal), w = sw[in_focal])
+
+        if (!all(target.tols == 0) && !all(target.tols == Inf)) {
+          .wrn('{.arg target.tols} is ignored when {.code estimand = "{estimand}"}')
+        }
+
+        target.tols[] <- tols
       }
       else {
         targets <- NULL # calculated automatically for ATE
@@ -423,7 +455,7 @@ optweight.fit <- function(covs, treat, tols = 0, estimand = "ATE",
       }
     }
     else if (is_not_null(targets)) {
-      .wrn("`targets` are not `NULL`; ignoring `estimand`")
+      .wrn("{.arg targets} are not {.val NULL}; ignoring {.arg estimand}")
       estimand <- NULL
     }
     else {
@@ -431,12 +463,17 @@ optweight.fit <- function(covs, treat, tols = 0, estimand = "ATE",
       estimand <- toupper(estimand)
 
       if (estimand != "ATE") {
-        .err(sprintf("`estimand` cannot be %s with continuous treatments",
-                     add_quotes(estimand)))
+        .err('{.arg estimand} cannot be "{estimand}" with continuous treatments')
       }
 
       targets <- NULL # calculated automatically for ATE
     }
+
+    if (!allv(target.tols, 0)) {
+      .wrn("{.arg target.tols} is ignored for continuous treatments. Setting all {.arg target.tols} to 0")
+    }
+
+    target.tols[] <- 0
 
     if (!inherits(targets, "optweight.targets")) {
       targets <- .process_targets_internal(covs, targets = targets, sw = sw,
@@ -462,43 +499,32 @@ optweight.fit <- function(covs, treat, tols = 0, estimand = "ATE",
   #Process args
   args <- make_process_opt_args(solver)(..., verbose = verbose)
 
-  constraint_df <- expand.grid(time = 1L,
-                               type = c("range_w", "mean_w", "balance", "target"),
-                               constraint = list(NULL),
+  range_cons <- constraint_range_w(sw, min.w, focal, treat)
+
+  constraint_df <- expand.grid(time = 0L,
+                               type = "range_w",
+                               constraint = list(range_cons),
                                stringsAsFactors = FALSE,
-                               KEEP.OUT.ATTRS = FALSE)
+                               KEEP.OUT.ATTRS = FALSE) |>
+    rbind(expand.grid(time = 1L,
+                      type = c("mean_w", "balance", "target"),
+                      constraint = list(NULL),
+                      stringsAsFactors = FALSE,
+                      KEEP.OUT.ATTRS = FALSE))
 
   bin.covs <- is_binary_col(covs)
 
-  range_cons <- constraint_range_w(sw, min.w, focal, treat)
+  targeted <- !is.na(targets)
 
   if (treat.type == "cat") {
-    unique.treats <- sort(unique(treat))
-
-    n <- vapply(unique.treats,
-                function(t) sum(sw[treat == t] * bw[treat == t]),
-                numeric(1L))
+    n <- fsum(sw * bw, g = treat)
 
     sds <- {
       if (is_not_null(focal))
-        sqrt(col.w.v(covs[in_focal, , drop = FALSE],
-                     w = sw[in_focal],
-                     bin.vars = bin.covs))
+        col.w.sd(ss(covs, in_focal), w = sw[in_focal], bin.vars = bin.covs)
       else
-        sqrt(colMeans(do.call("rbind", lapply(unique.treats, function(t) {
-          in_treat <- which(treat == t)
-
-          col.w.v(covs[in_treat, , drop = FALSE],
-                  w = sw[in_treat], bin.vars = bin.covs)
-        }))))
+        sqrt(colMeans(col.w.v(covs, g = treat, w = sw, bin.vars = bin.covs)))
     }
-
-    targeted <- !is.na(targets)
-
-    balanced <- !targeted
-
-    treat.sd <- NA_real_
-    treat.mean <- NA_real_
 
     vars.to.standardize <- rep_with(FALSE, tols)
     if (std.binary) vars.to.standardize[bin.covs] <- TRUE
@@ -507,46 +533,36 @@ optweight.fit <- function(covs, treat, tols = 0, estimand = "ATE",
     to_std <- which(vars.to.standardize & !check_if_zero(sds))
 
     if (is_not_null(to_std)) {
-      covs[, to_std] <- mat_div(covs[, to_std, drop = FALSE], sds[to_std])
+      covs[, to_std] <- ss(covs, j = to_std) %r/% sds[to_std]
       targets[to_std] <- targets[to_std] / sds[to_std]
     }
 
-    constraint_df[["constraint"]] <- list(
-      range_w = range_cons,
-      mean_w = constraint_mean_w_cat(treat, unique.treats, sw, n),
-      balance = constraint_balance_cat(covs, treat, sw, tols,
-                                       balanced, unique.treats, n),
+    constraint_df[["constraint"]][constraint_df[["time"]] == 1L] <- list(
+      mean_w = constraint_mean_w_cat(treat, sw, n),
+      balance = constraint_balance_cat(covs, treat, sw, tols, n),
       target = constraint_target_cat(covs, treat, sw, targets,
-                                     tols, targeted, unique.treats, n, focal)
+                                     target.tols, targeted, n, focal)
     )
   }
   else {
     n <- sum(sw * bw)
 
-    sds <- sqrt(col.w.v(covs, w = sw, bin.vars = bin.covs))
+    sds <- col.w.sd(covs, w = sw, bin.vars = bin.covs)
 
-    targeted <- !is.na(targets)
+    covs <- covs %r-% targets #center covs at targets (which will be eventual means)
 
-    balanced <- rep_with(TRUE, targeted)
-
-    covs <- center(covs, at = targets) #center covs at targets (which will be eventual means)
-
-    treat.sd <- sqrt(col.w.v(treat, w = sw))
-    treat.mean <- w.m(treat, w = sw)
-
-    treat <- (treat - treat.mean) / treat.sd
+    treat <- fscale(treat, w = sw)
 
     to_std <- !check_if_zero(sds)
 
     if (is_not_null(to_std)) {
-      covs[, to_std] <- mat_div(covs[, to_std, drop = FALSE], sds[to_std])
+      covs[, to_std] <- ss(covs, j = to_std) %r/% sds[to_std]
       targets[to_std] <- targets[to_std] / sds[to_std]
     }
 
-    constraint_df[["constraint"]] <- list(
-      range_w = range_cons,
+    constraint_df[["constraint"]][constraint_df[["time"]] == 1L] <- list(
       mean_w = constraint_mean_w_cont(sw, n),
-      balance = constraint_balance_cont(covs, treat, sw, tols, balanced, n),
+      balance = constraint_balance_cont(covs, treat, sw, tols, n),
       target = constraint_target_cont(covs, treat, sw, n, treat.name)
     )
   }
@@ -565,7 +581,7 @@ optweight.fit <- function(covs, treat, tols = 0, estimand = "ATE",
   duals <- extract_duals(constraint_df, opt_out$dual_out)
 
   out <- list(w = w,
-              duals = duals[[1L]],
+              duals = duals,
               info = opt_out$info_out,
               out = opt_out$out,
               norm = norm,
@@ -604,7 +620,7 @@ print.optweight <- function(x, ...) {
                        continuous = "continuous",
                        binary = "2-category",
                        sprintf("%s-category (%s)",
-                               nunique(x[["treat"]]),
+                               fnunique(x[["treat"]]),
                                toString(levels(x[["treat"]]))))))
   }
 

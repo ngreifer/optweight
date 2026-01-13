@@ -4,8 +4,8 @@ constraint_range_w <- function(sw, min.w, focal = NULL, treat = NULL) {
   N <- length(sw)
 
   out$A <- Matrix::sparseMatrix(seq_len(N), seq_len(N), x = 1)
-  out$L <- rep.int(min.w, N)
-  out$U <- rep.int(Inf, N)
+  out$L <- alloc(min.w, N)
+  out$U <- alloc(Inf, N)
 
   zero_sw <- check_if_zero(sw)
   if (any(zero_sw)) {
@@ -14,7 +14,7 @@ constraint_range_w <- function(sw, min.w, focal = NULL, treat = NULL) {
   }
 
   if (is_not_null(focal)) {
-    in_focal <- which(treat == focal)
+    in_focal <- whichv(treat, focal)
     out$L[in_focal] <- 1
     out$U[in_focal] <- 1
   }
@@ -22,15 +22,15 @@ constraint_range_w <- function(sw, min.w, focal = NULL, treat = NULL) {
   out
 }
 
-constraint_mean_w_cat <- function(treat, unique.treats, sw, n) {
+constraint_mean_w_cat <- function(treat, sw, n) {
   #Mean of weights in each treat must equal 1
   out <- make_list(c("A", "L", "U"))
 
-  out$A <- do.call("rbind", lapply(unique.treats, function(i) (treat == i) * sw / n[i]))
-  out$L <- rep_with(1, unique.treats)
-  out$U <- rep_with(1, unique.treats)
+  out$A <- do.call("rbind", lapply(levels(treat), function(i) (treat == i) * sw / n[i]))
+  out$L <- rep_with(1, levels(treat))
+  out$U <- rep_with(1, levels(treat))
 
-  out$treat <- unique.treats
+  out$treat <- levels(treat)
 
   out
 }
@@ -55,78 +55,69 @@ constraint_mean_w_svy <- function(sw, n) {
   out
 }
 
-constraint_balance_cat <- function(covs, treat, sw, tols, balanced, unique.treats, n) {
+constraint_balance_cat <- function(covs, treat, sw, tols, n) {
+  #Targeting constraints
+  out <- make_list(c("A", "L", "U"))
+
+  covs_balanced_sw <- covs * sw
+
+  combos <- utils::combn(levels(treat), 2L, simplify = FALSE)
+
+  out$A <- do.call("rbind", lapply(combos, function(comb) {
+    t(covs_balanced_sw * ((treat == comb[1L]) / n[comb[1L]] - (treat == comb[2L]) / n[comb[2L]]))
+  }))
+
+  out$L <- unlist(lapply(combos, function(comb) {
+    -tols
+  }))
+
+  out$U <- unlist(lapply(combos, function(comb) {
+    tols
+  }))
+
+  out$covs <- rep(names(tols), length(combos))
+
+  out
+}
+constraint_balance_cont <- function(covs, treat, sw, tols, n) {
   #Balancing constraints for all covariates
   out <- make_list(c("A", "L", "U"))
 
-  if (any(balanced)) {
-    covs_balanced_sw <- covs[, balanced, drop = FALSE] * sw
+  # Note: denom of (n - n / length(sw)) is necessary to accord with col_w_corr()
+  out$A <- t(covs * treat * sw / (n - n / length(sw)))
+  out$L <- -tols
+  out$U <- tols
 
-    combos <- utils::combn(unique.treats, 2L, simplify = FALSE)
+  out$treat <- alloc(NA_character_, ncol(covs))
+  out$covs <- colnames(covs)
+
+  out
+}
+
+constraint_target_cat <- function(covs, treat, sw, targets, target.tols, targeted,
+                                  n, focal = NULL) {
+  #Targeting constraints
+  #Balance the midpoint of each pairwise comparison to target
+  out <- make_list(c("A", "L", "U"))
+
+  if (any(targeted) && (is_null(focal) || fnlevels(treat) > 2L)) {
+    covs_targeted_sw <- ss(covs, j = targeted) * sw
+
+    combos <- utils::combn(setdiff(levels(treat), focal), 2L, simplify = FALSE)
 
     out$A <- do.call("rbind", lapply(combos, function(comb) {
-      t(covs_balanced_sw * ((treat == comb[1L]) / n[comb[1L]] - (treat == comb[2L]) / n[comb[2L]]))
+      t(covs_targeted_sw * ((treat %in% comb) / (2 * n[treat])))
     }))
 
-    out$L <- rep_with(-tols[balanced], combos)
-    out$U <- rep_with(tols[balanced], combos)
-
-    out$treat.comb <- unlist(lapply(combos, function(comb) {
-      sprintf("%s vs. %s", comb[1L], comb[2L])
+    out$L <- unlist(lapply(combos, function(comb) {
+      targets[targeted] - target.tols[targeted]
     }))
 
-    out$covs <- rep_with(colnames(covs)[balanced], combos)
-  }
-
-  out
-}
-constraint_balance_cont <- function(covs, treat, sw, tols, balanced, n) {
-  #Balancing constraints for all covariates
-  out <- make_list(c("A", "L", "U"))
-
-  if (any(balanced)) {
-    # Note: denom of (n - n / length(sw)) is necessary to accord with col_w_corr()
-    out$A <- t(covs[, balanced, drop = FALSE] * treat * sw / (n - n / length(sw)))
-    out$L <- -tols[balanced]
-    out$U <- tols[balanced]
-
-    out$treat <- rep.int(NA, sum(balanced))
-    out$covs <- colnames(covs)[balanced]
-  }
-
-  out
-}
-
-constraint_target_cat <- function(covs, treat, sw, targets, tols, targeted, unique.treats, n, focal = NULL) {
-  #Targeting constraints
-  #Note: need 2 * in order to simulate tols/2 but using original tols.
-  #This makes dual variables work as expected.
-  out <- make_list(c("A", "L", "U"))
-
-  if (any(targeted)) {
-    covs_targeted_sw <- covs[, targeted, drop = FALSE] * sw
-
-    out$A <- do.call("rbind", lapply(unique.treats, function(i) {
-      if (is_null(focal) || i != focal) t(covs_targeted_sw * (treat == i) / n[i])
+    out$U <- unlist(lapply(combos, function(comb) {
+      targets[targeted] + target.tols[targeted]
     }))
 
-    out$L <- unlist(lapply(unique.treats, function(i) {
-      if (is_null(focal)) targets[targeted] - tols[targeted] / 2
-      else if (i != focal) targets[targeted] - tols[targeted]
-    }))
-
-    out$U <- unlist(lapply(unique.treats, function(i) {
-      if (is_null(focal)) targets[targeted] + tols[targeted] / 2
-      else if (i != focal) targets[targeted] + tols[targeted]
-    }))
-
-    out$treat <- unlist(lapply(unique.treats, function(i) {
-      if (is_null(focal) || i != focal) rep.int(i, sum(targeted))
-    }))
-
-    out$covs <- unlist(lapply(unique.treats, function(i) {
-      if (is_null(focal) || i != focal) names(tols[targeted])
-    }))
+    out$covs <- rep(names(target.tols[targeted]), length(combos))
   }
 
   out
@@ -137,11 +128,11 @@ constraint_target_cont <- function(covs, treat, sw, n, treat.name) {
 
   out$A <- rbind(treat * sw / n,
                  t(covs * sw / n))
-  out$L <- c(0, rep.int(0, ncol(covs)))
-  out$U <- c(0, rep.int(0, ncol(covs)))
+  out$L <- alloc(0, 1L + ncol(covs))
+  out$U <- alloc(0, 1L + ncol(covs))
 
-  out$treat <- c(treat.name, rep.int(NA, ncol(covs)))
-  out$covs <- c(NA, colnames(covs))
+  out$treat <- c(treat.name, alloc(NA_character_, ncol(covs)))
+  out$covs <- c(NA_character_, colnames(covs))
 
   out
 }
@@ -150,7 +141,7 @@ constraint_target_svy <- function(covs, sw, targets, targeted, tols, n) {
   out <- make_list(c("A", "L", "U"))
 
   if (any(targeted)) {
-    out$A <- t(covs[, targeted, drop = FALSE] * sw / n)
+    out$A <- t(ss(covs, j = targeted) * sw / n)
     out$L <- targets[targeted] - tols[targeted]
     out$U <- targets[targeted] + tols[targeted]
 
@@ -190,7 +181,7 @@ objective_L1 <- function(bw, sw) {
   #        sw / N)
 
   P <- NULL
-  q <- c(rep.int(0, N),
+  q <- c(alloc(0, N),
          sw / N)
 
   list(P = P, q = q)
@@ -198,7 +189,7 @@ objective_L1 <- function(bw, sw) {
 modify_constraints_L1 <- function(constraint_df, bw) {
   N <- length(bw)
 
-  for (i in which(constraint_df[["type"]] != "conversion")) {
+  for (i in whichv(constraint_df[["type"]], "conversion", invert = TRUE)) {
     if (is_not_null(constraint_df[["constraint"]][[i]][["A"]])) {
       constraint_df[["constraint"]][[i]][["A"]] <- cbind(
         constraint_df[["constraint"]][[i]][["A"]],
@@ -219,10 +210,10 @@ constraint_conversion_L1 <- function(bw, sw) {
       A = Matrix::sparseMatrix(seq_len(N), N + seq_len(N),
                                x = 1,
                                dims = c(N, 2 * N)),
-      L = rep.int(0, N),
-      U = rep.int(Inf, N),
-      treat = rep.int(NA, N),
-      covs = rep.int(NA, N)
+      L = alloc(0, N),
+      U = alloc(Inf, N),
+      treat = alloc(NA, N),
+      covs = alloc(NA, N)
     ),
 
     # Bounding weights by slack variables
@@ -232,20 +223,20 @@ constraint_conversion_L1 <- function(bw, sw) {
                                x = 1,
                                dims = c(N, 2 * N)),
       L = bw,
-      U = rep.int(Inf, N),
-      treat = rep.int(NA, N),
-      covs = rep.int(NA, N)
+      U = alloc(Inf, N),
+      treat = alloc(NA, N),
+      covs = alloc(NA, N)
     ),
 
     list(
       A = Matrix::sparseMatrix(c(seq_len(N), seq_len(N)),
                                c(seq_len(N), N + seq_len(N)),
-                               x = c(rep.int(1, N), rep.int(-1, N)),
+                               x = c(alloc(1, N), alloc(-1, N)),
                                dims = c(N, 2 * N)),
-      L = rep.int(-Inf, N),
+      L = alloc(-Inf, N),
       U = bw,
-      treat = rep.int(NA, N),
-      covs = rep.int(NA, N)
+      treat = alloc(NA, N),
+      covs = alloc(NA, N)
     )
   )
 
@@ -260,25 +251,25 @@ objective_Linf <- function(bw, sw) {
 
   #Minimizing Linf norm of w - bw
   # P <- Matrix::sparseMatrix(seq_len(N), seq_len(N),
-  #                           x = eps * 2 * sw / N,
+  #                           x = 2 * sw / N,
   #                           dims = c(N + 1, N + 1))
   #
-  # q <- c(eps * -2 * bw * sw / N,
-  #        1)
+  # q <- c( -2 * bw * sw / N,
+  #        1 / eps)
 
   P <- NULL
-  q <- c(rep.int(0, N),
+  q <- c(alloc(0, N),
          1)
 
   list(P = P, q = q)
 }
 modify_constraints_Linf <- function(constraint_df, bw) {
-  for (i in which(constraint_df[["type"]] != "conversion")) {
+  for (i in whichv(constraint_df[["type"]], "conversion", invert = TRUE)) {
     if (is_not_null(constraint_df[["constraint"]][[i]][["A"]])) {
       constraint_df[["constraint"]][[i]][["A"]] <- cbind(
         constraint_df[["constraint"]][[i]][["A"]],
         Matrix::sparseMatrix(integer(), integer(),
-                             dims = c(nrow(constraint_df[["constraint"]][[i]][["A"]]), 1))
+                             dims = c(nrow(constraint_df[["constraint"]][[i]][["A"]]), 1L))
       )
     }
   }
@@ -292,7 +283,7 @@ constraint_conversion_Linf <- function(bw, sw) {
     list(
       A = Matrix::sparseMatrix(1, N + 1,
                                x = 1,
-                               dims = c(1, N + 1)),
+                               dims = c(1L, N + 1L)),
       L = 0,
       U = Inf,
       treat = NA,
@@ -302,23 +293,23 @@ constraint_conversion_Linf <- function(bw, sw) {
     # Bounding weights by slack variables
     list(
       A = Matrix::sparseMatrix(c(seq_len(N), seq_len(N)),
-                               c(seq_len(N), rep.int(N + 1L, N)),
-                               x = c(sw, rep.int(1L, N)),
+                               c(seq_len(N), alloc(N + 1L, N)),
+                               x = c(sw, alloc(1L, N)),
                                dims = c(N, N + 1L)),
       L = sw * bw,
-      U = rep.int(Inf, N),
-      treat = rep.int(NA, N),
-      covs = rep.int(NA, N)
+      U = alloc(Inf, N),
+      treat = alloc(NA, N),
+      covs = alloc(NA, N)
     ),
     list(
       A = Matrix::sparseMatrix(c(seq_len(N), seq_len(N)),
-                               c(seq_len(N), rep.int(N + 1L, N)),
-                               x = c(sw, rep.int(-1L, N)),
+                               c(seq_len(N), alloc(N + 1L, N)),
+                               x = c(sw, alloc(-1L, N)),
                                dims = c(N, N + 1L)),
-      L = rep.int(-Inf, N),
+      L = alloc(-Inf, N),
       U = sw * bw,
-      treat = rep.int(NA, N),
-      covs = rep.int(NA, N)
+      treat = alloc(NA, N),
+      covs = alloc(NA, N)
     )
   )
 
@@ -333,14 +324,14 @@ objective_entropy <- function(bw, sw) {
 
   P <- NULL
 
-  q <- c(rep(0, N), sw / N)
+  q <- c(alloc(0, N), sw / N)
 
   list(P = P, q = q)
 }
 modify_constraints_entropy <- function(constraint_df, bw) {
   N <- length(bw)
 
-  for (i in which(constraint_df[["type"]] != "conversion")) {
+  for (i in whichv(constraint_df[["type"]], "conversion", invert = TRUE)) {
     if (is_not_null(constraint_df[["constraint"]][[i]][["A"]])) {
       #Add exponential variables
       constraint_df[["constraint"]][[i]][["A"]] <- cbind(
@@ -356,17 +347,17 @@ modify_constraints_entropy <- function(constraint_df, bw) {
 }
 constraint_conversion_entropy <- function(bw, sw) {
   N <- length(bw)
-  ind <- seq(1, 3 * N, by = 3)
-  hexp <- rep.int(0, 3 * N)
-  hexp[ind + 2] <- bw
+  ind <- seq(1L, 3L * N, by = 3L)
+  hexp <- alloc(0, 3 * N)
+  hexp[ind + 2L] <- bw
 
   out <- list(
     list(
-      A = Matrix::sparseMatrix(c(ind, ind + 1),
+      A = Matrix::sparseMatrix(c(ind, ind + 1L),
                                c(N + seq_len(N), seq_len(N)),
-                               x = c(rep.int(1, N), rep.int(-1, N)),
+                               x = c(alloc(1, N), alloc(-1, N)),
                                dims = c(3 * N, 2 * N)),
-      L = rep.int(-Inf, 3 * N),
+      L = alloc(-Inf, 3 * N),
       U = hexp
     )
   )
@@ -381,14 +372,14 @@ objective_log <- function(bw, sw) {
 
   P <- NULL
 
-  q <- c(rep(0, N), -sw / N)
+  q <- c(alloc(0, N), -sw / N)
 
   list(P = P, q = q)
 }
 modify_constraints_log <- function(constraint_df, bw) {
   N <- length(bw)
 
-  for (i in which(constraint_df[["type"]] != "conversion")) {
+  for (i in whichv(constraint_df[["type"]], "conversion", invert = TRUE)) {
     if (is_not_null(constraint_df[["constraint"]][[i]][["A"]])) {
       #Add exponential variables
       constraint_df[["constraint"]][[i]][["A"]] <- cbind(
@@ -404,9 +395,9 @@ modify_constraints_log <- function(constraint_df, bw) {
 }
 constraint_conversion_log <- function(bw, sw) {
   N <- length(bw)
-  ind <- seq(1, 3 * N, by = 3)
-  hexp <- rep.int(0, 3 * N)
-  hexp[ind + 1] <- 1
+  ind <- seq(1L, 3L * N, by = 3L)
+  hexp <- alloc(0, 3 * N)
+  hexp[ind + 1L] <- 1
 
   out <- list(
     list(
@@ -414,7 +405,7 @@ constraint_conversion_log <- function(bw, sw) {
                                c(N + seq_len(N), seq_len(N)),
                                x = -1,
                                dims = c(3 * N, 2 * N)),
-      L = rep.int(-Inf, 3 * N),
+      L = alloc(-Inf, 3 * N),
       U = hexp
     )
   )
@@ -463,7 +454,7 @@ prep_constraint_df <- function(constraint_df, norm, bw, sw) {
 prep_constraint_df_for_solver <- function(constraint_df, solver = "osqp") {
 
   if (solver %in% c("scs", "clarabel")) {
-    for (i in which(constraint_df[["type"]] != "conversion")) {
+    for (i in whichv(constraint_df[["type"]], "conversion", invert = TRUE)) {
       # If no upper bound, set A = -A, U = - L, L = -Inf
       l_only <- constraint_df[["constraint"]][[i]][["L"]] > -Inf & constraint_df[["constraint"]][[i]][["U"]] == Inf
 
@@ -485,7 +476,7 @@ prep_constraint_df_for_solver <- function(constraint_df, solver = "osqp") {
 
         constraint_df[["constraint"]][[i]][["L"]][box] <- -Inf
         constraint_df[["constraint"]][[i]][["L"]] <- c(constraint_df[["constraint"]][[i]][["L"]],
-                                                       rep(-Inf, sum(box)))
+                                                       alloc(-Inf, sum(box)))
 
         for (j in setdiff(names(constraint_df[["constraint"]][[i]]), c("A", "U", "L"))) {
           constraint_df[["constraint"]][[i]][[j]] <- c(constraint_df[["constraint"]][[i]][[j]],
@@ -497,31 +488,29 @@ prep_constraint_df_for_solver <- function(constraint_df, solver = "osqp") {
       no_bound <- constraint_df[["constraint"]][[i]][["L"]] == -Inf & constraint_df[["constraint"]][[i]][["U"]] == Inf
 
       if (any(no_bound)) {
-        constraint_df[["constraint"]][[i]][["A"]] <- constraint_df[["constraint"]][[i]][["A"]][!no_bound, , drop = FALSE]
-
-        for (j in setdiff(names(constraint_df[["constraint"]][[i]]), "A")) {
-          constraint_df[["constraint"]][[i]][[j]] <- constraint_df[["constraint"]][[i]][[j]][!no_bound]
+        for (j in names(constraint_df[["constraint"]][[i]])) {
+          constraint_df[["constraint"]][[i]][[j]] <- ss(constraint_df[["constraint"]][[i]][[j]], !no_bound)
         }
       }
     }
   }
   else if (solver == "lpsolve") {
-    for (i in which(constraint_df[["type"]] != "conversion")) {
+    for (i in whichv(constraint_df[["type"]], "conversion", invert = TRUE)) {
       # If unequal box constraints, append -A with U = -L and L = -Inf
       box <- constraint_df[["constraint"]][[i]][["L"]] > -Inf & constraint_df[["constraint"]][[i]][["U"]] < Inf &
         constraint_df[["constraint"]][[i]][["L"]] != constraint_df[["constraint"]][[i]][["U"]]
 
       if (any(box)) {
-        constraint_df[["constraint"]][[i]][["A"]] <- rbind(constraint_df[["constraint"]][[i]][["A"]][!box, , drop = FALSE],
-                                                           constraint_df[["constraint"]][[i]][["A"]][box, , drop = FALSE],
-                                                           constraint_df[["constraint"]][[i]][["A"]][box, , drop = FALSE])
+        constraint_df[["constraint"]][[i]][["A"]] <- rbind(ss(constraint_df[["constraint"]][[i]][["A"]], !box),
+                                                           ss(constraint_df[["constraint"]][[i]][["A"]], box),
+                                                           ss(constraint_df[["constraint"]][[i]][["A"]], box))
 
         constraint_df[["constraint"]][[i]][["U"]] <- c(constraint_df[["constraint"]][[i]][["U"]][!box],
                                                        constraint_df[["constraint"]][[i]][["U"]][box],
-                                                       rep.int(Inf, sum(box)))
+                                                       alloc(Inf, sum(box)))
 
         constraint_df[["constraint"]][[i]][["L"]] <- c(constraint_df[["constraint"]][[i]][["L"]][!box],
-                                                       rep.int(-Inf, sum(box)),
+                                                       alloc(-Inf, sum(box)),
                                                        constraint_df[["constraint"]][[i]][["L"]][box])
 
         for (j in setdiff(names(constraint_df[["constraint"]][[i]]), c("A", "U", "L"))) {
@@ -535,10 +524,8 @@ prep_constraint_df_for_solver <- function(constraint_df, solver = "osqp") {
       no_bound <- constraint_df[["constraint"]][[i]][["L"]] == -Inf & constraint_df[["constraint"]][[i]][["U"]] == Inf
 
       if (any(no_bound)) {
-        constraint_df[["constraint"]][[i]][["A"]] <- constraint_df[["constraint"]][[i]][["A"]][!no_bound, , drop = FALSE]
-
-        for (j in setdiff(names(constraint_df[["constraint"]][[i]]), "A")) {
-          constraint_df[["constraint"]][[i]][[j]] <- constraint_df[["constraint"]][[i]][[j]][!no_bound]
+        for (j in names(constraint_df[["constraint"]][[i]])) {
+          constraint_df[["constraint"]][[i]][[j]] <- ss(constraint_df[["constraint"]][[i]][[j]], !no_bound)
         }
       }
     }
@@ -567,7 +554,7 @@ make_process_opt_args <- function(solver) {
 
       chk::chk_flag(verbose)
 
-      args <- ...mget(names(formals(clarabel::clarabel_control)))
+      args <- ...mget(rlang::fn_fmls_names(clarabel::clarabel_control))
       eps <- ...get("eps", 1e-9)
 
       args[["max_iter"]] <- as.integer(...get("max_iter", 2e5))
@@ -583,7 +570,7 @@ make_process_opt_args <- function(solver) {
 
       chk::chk_flag(verbose)
 
-      args <- ...mget(names(formals(scs::scs_control)))
+      args <- ...mget(rlang::fn_fmls_names(scs::scs_control))
       eps <- ...get("eps", 1e-6)
 
       args[["eps_rel"]] <- ...get("eps_rel", eps)
@@ -603,7 +590,7 @@ make_process_opt_args <- function(solver) {
 
       chk::chk_flag(verbose)
 
-      args <- ...mget(names(formals(osqp::osqpSettings)))
+      args <- ...mget(rlang::fn_fmls_names(osqp::osqpSettings))
       eps <- ...get("eps", 1e-6)
 
       args[["eps_rel"]] <- ...get("eps_rel", ...get("reltol", eps))
@@ -625,8 +612,10 @@ make_process_opt_args <- function(solver) {
       chk::chk_flag(verbose)
 
       args <- ...mget(highs::highs_available_solver_options()[["option"]])
-      eps <- ...get("eps", 1e-5)
+      eps <- ...get("eps", 1e-7)
 
+      args[["small_matrix_value"]] <- ...get("small_matrix_value", 1e-12)
+      args[["kkt_tolerance"]] <- ...get("kkt_tolerance", eps)
       args[["output_flag"]] <- ...get("output_flag", verbose)
       args[["log_to_console"]] <- ...get("log_to_console", verbose)
 
@@ -641,7 +630,7 @@ make_process_opt_args <- function(solver) {
     }
   }
   else {
-    .err("bad `solver`")
+    .err("invalid {.arg solver}")
   }
 
   f
@@ -659,7 +648,7 @@ opt_fit <- function(constraint_df, objective, args, N, solver = "osqp") {
 
     if (any(eq)) {
       ord <- c(which(eq), which(!eq))
-      A <- A[ord, , drop = FALSE]
+      A <- ss(A, ord)
       ub <- ub[ord]
       lb <- lb[ord]
       types <- types[ord]
@@ -688,8 +677,7 @@ opt_fit <- function(constraint_df, objective, args, N, solver = "osqp") {
     status_val <- info_out$status
     if (is_not_null(status_val) && chk::vld_number(status_val)) {
       if (status_val == 8) {
-        .wrn(sprintf("the optimization failed to find a solution after %s iterations. The problem may be infeasible or more iterations may be required. Check the dual variables to see which constraints are likely causing this issue",
-                     info_out$iterations), immediate = FALSE)
+        .wrn("the optimization failed to find a solution after {info_out$iterations} iterations. The problem may be infeasible or more iterations may be required. Check the dual variables to see which constraints are likely causing this issue", immediate = FALSE)
       }
       else if (status_val != 2) {
         .wrn("the optimization failed to find a stable solution", immediate = FALSE)
@@ -707,7 +695,7 @@ opt_fit <- function(constraint_df, objective, args, N, solver = "osqp") {
 
     if (any(eq)) {
       ord <- c(which(eq), which(!eq))
-      A <- A[ord, , drop = FALSE]
+      A <- ss(A, ord)
       ub <- ub[ord]
       lb <- lb[ord]
       types <- types[ord]
@@ -736,8 +724,7 @@ opt_fit <- function(constraint_df, objective, args, N, solver = "osqp") {
     status_val <- info_out$status_val
     if (is_not_null(status_val) && chk::vld_number(status_val)) {
       if (status_val == 2) {
-        .wrn(sprintf("the optimization failed to find a solution after %s iterations. The problem may be infeasible or more iterations may be required. Check the dual variables to see which constraints are likely causing this issue",
-                     info_out$iter), immediate = FALSE)
+        .wrn("the optimization failed to find a solution after {info_out$iter} iterations. The problem may be infeasible or more iterations may be required. Check the dual variables to see which constraints are likely causing this issue", immediate = FALSE)
       }
       else if (status_val != 1) {
         .wrn("the optimization failed to find a stable solution", immediate = FALSE)
@@ -755,11 +742,14 @@ opt_fit <- function(constraint_df, objective, args, N, solver = "osqp") {
     dual_out <- out$y
     info_out <- out$info
 
+    info_out[["A"]] <- combine_constraints("A", constraint_df[["constraint"]])
+    info_out[["L"]] <- combine_constraints("L", constraint_df[["constraint"]])
+    info_out[["U"]] <- combine_constraints("U", constraint_df[["constraint"]])
+
     status_val <- info_out$status_val
     if (is_not_null(status_val) && chk::vld_number(status_val)) {
       if (status_val == -2) {
-        .wrn(sprintf("the optimization failed to find a solution after %s iterations. The problem may be infeasible or more iterations may be required. Check the dual variables to see which constraints are likely causing this issue",
-                     info_out$iter), immediate = FALSE)
+        .wrn("the optimization failed to find a solution after {info_out$iter} iterations. The problem may be infeasible or more iterations may be required. Check the dual variables to see which constraints are likely causing this issue", immediate = FALSE)
       }
       else if (status_val != 1) {
         .wrn("the optimization failed to find a stable solution", immediate = FALSE)
@@ -775,8 +765,8 @@ opt_fit <- function(constraint_df, objective, args, N, solver = "osqp") {
     types <- rep(constraint_df$type, constraint_df[["nc"]])
     range_const <- types == "range_w"
 
-    lower <- rep(-Inf, ncol(A))
-    upper <- rep(Inf, ncol(A))
+    lower <- alloc(-Inf, ncol(A))
+    upper <- alloc(Inf, ncol(A))
 
     if (any(range_const)) {
       lower[seq_len(N)] <- L[range_const]
@@ -787,7 +777,7 @@ opt_fit <- function(constraint_df, objective, args, N, solver = "osqp") {
                               L = objective$q,
                               lower = lower,
                               upper = upper,
-                              A = A[!range_const, , drop = FALSE],
+                              A = ss(A, !range_const),
                               lhs = L[!range_const],
                               rhs = U[!range_const],
                               control = do.call(highs::highs_control, args))
@@ -829,7 +819,7 @@ opt_fit <- function(constraint_df, objective, args, N, solver = "osqp") {
 
     par_out <- out$solution
     dual_out <- out$duals[seq_len(out$const.count)]
-    info_out <- out[-c(5, 9)]
+    info_out <- out[-c(5L, 9L)]
 
     status_val <- info_out$status
     if (is_not_null(status_val) && chk::vld_number(status_val)) {
@@ -854,58 +844,75 @@ extract_weights <- function(opt_out, N, min.w, range_cons) {
   }
 
   # Adjust for imprecision
-  w[w < range_cons$L[seq_len(N)]] <- range_cons$L[w < range_cons$L[seq_len(N)]]
-  w[w > range_cons$U[seq_len(N)]] <- range_cons$U[w > range_cons$U[seq_len(N)]]
+  wl <- which(w < range_cons$L[seq_len(N)])
+  w[wl] <- range_cons$L[wl]
+  wu <- which(w > range_cons$U[seq_len(N)])
+  w[wu] <- range_cons$U[wu]
 
   w
 }
-extract_duals <- function(constraint_df, dual_out, times = 1L) {
-  #Get dual vars for balance and target constraints
+extract_duals <- function(constraint_df, dual_out) {
+  #Get dual vars for range, balance, and target constraints
+  times <- funique(constraint_df[["time"]], sort = TRUE)
 
-  duals <- make_list(length(times))
+  duals <- make_list(as.character(times))
 
   if (is_null(dual_out)) {
-    return(duals)
+    return(NULL)
   }
 
-  for (i in times) {
-    td <- bd <- NULL
+  for (i in seq_along(times)) {
+    rd <- td <- bd <- NULL
 
-    ti <- which(constraint_df[["time"]] == i & constraint_df[["type"]] == "target" & constraint_df[["nc"]] > 0)
+    ri <- which(constraint_df[["time"]] == times[i] & constraint_df[["type"]] == "range_w" & constraint_df[["nc"]] > 0)
+    if (is_not_null(ri)) {
+      rd <- do.call("rbind", lapply(ri, function(rii) {
+        ind <- seq(constraint_df$nc_cum[rii] - constraint_df$nc[rii],
+                   constraint_df$nc_cum[rii])[-1L]
+
+        data.frame(component = times[i],
+                   constraint = "weight range",
+                   cov = NA_character_,
+                   treat = NA_character_,
+                   dual = sum(abs(dual_out[ind])),
+                   stringsAsFactors = FALSE)
+      }))
+    }
+
+    ti <- which(constraint_df[["time"]] == times[i] & constraint_df[["type"]] == "target" & constraint_df[["nc"]] > 0)
     if (is_not_null(ti)) {
       td <- do.call("rbind", lapply(ti, function(tii) {
-        cons <- constraint_df[["constraint"]][[tii]][-(1:3)]
         ind <- seq(constraint_df$nc_cum[tii] - constraint_df$nc[tii],
                    constraint_df$nc_cum[tii])[-1L]
 
-        data.frame(constraint = "target",
-                   cov = if_null_then(cons$covs, NA_character_),
-                   treat = if_null_then(cons$treat, NA_character_),
+        data.frame(component = times[i],
+                   constraint = "target",
+                   cov = constraint_df[["constraint"]][[tii]]$covs %or% NA_character_,
+                   treat = constraint_df[["constraint"]][[tii]]$treat %or% NA_character_,
                    dual = abs(dual_out[ind]),
                    stringsAsFactors = FALSE)
       }))
     }
 
-    bi <- which(constraint_df[["time"]] == i & constraint_df[["type"]] == "balance" & constraint_df[["nc"]] > 0)
-
+    bi <- which(constraint_df[["time"]] == times[i] & constraint_df[["type"]] == "balance" & constraint_df[["nc"]] > 0)
     if (is_not_null(bi)) {
       bd <- do.call("rbind", lapply(bi, function(bii) {
-        cons <- constraint_df[["constraint"]][[bii]][-(1:3)]
         ind <- seq(constraint_df$nc_cum[bii] - constraint_df$nc[bii],
                    constraint_df$nc_cum[bii])[-1L]
 
-        data.frame(constraint = "balance",
-                   cov = if_null_then(cons$covs, NA_character_),
-                   treat = if_null_then(cons$treat.comb, NA_character_),
+        data.frame(component = times[i],
+                   constraint = "balance",
+                   cov = constraint_df[["constraint"]][[bii]]$covs %or% NA_character_,
+                   treat = constraint_df[["constraint"]][[bii]]$treat.comb %or% NA_character_,
                    dual = abs(dual_out[ind]),
                    stringsAsFactors = FALSE)
       }))
     }
 
-    if (is_not_null(td) || is_not_null(bd)) {
-      duals[[i]] <- rbind(td, bd)
+    if (is_not_null(rd) || is_not_null(td) || is_not_null(bd)) {
+      duals[[i]] <- rbind(rd, td, bd)
     }
   }
 
-  duals
+  do.call("rbind", duals)
 }

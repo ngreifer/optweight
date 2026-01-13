@@ -98,7 +98,7 @@ optweight.svy <- function(formula, data = NULL, tols = 0, targets = NULL, s.weig
     formula.present <- TRUE
   }
   else {
-    .err("the argument to `formula` must a single formula with the covariates on the right side")
+    .err("the argument to {.arg formula} must a single formula with the covariates on the right side")
   }
 
   #Process treat and covs from formula and data
@@ -124,7 +124,8 @@ optweight.svy <- function(formula, data = NULL, tols = 0, targets = NULL, s.weig
 
   #Process tols
   tols <- .process_tols_internal(covs, tols, reported.covs,
-                                 if (formula.present) "formula" else "data")
+                                 if (formula.present) "formula" else "data",
+                                 tols_arg = "tols")
 
   #Process targets
   targets <- .process_targets_internal(covs, targets, sw, reported.covs,
@@ -187,7 +188,7 @@ optweight.svy.fit <- function(covs, targets, tols = 0, s.weights = NULL, b.weigh
   N <- nrow(covs)
 
   if (is_null(s.weights)) {
-    sw <- rep.int(1, N)
+    sw <- alloc(1, N)
   }
   else {
     chk::chk_numeric(s.weights)
@@ -197,7 +198,7 @@ optweight.svy.fit <- function(covs, targets, tols = 0, s.weights = NULL, b.weigh
   }
 
   if (is_null(b.weights)) {
-    bw <- rep.int(1, N)
+    bw <- alloc(1, N)
   }
   else {
     chk::chk_numeric(b.weights)
@@ -214,7 +215,8 @@ optweight.svy.fit <- function(covs, targets, tols = 0, s.weights = NULL, b.weigh
 
   #Process tols
   if (!inherits(tols, "optweight.tols") || is_null(attr(tols, "internal.tols"))) {
-    tols <- .process_tols_internal(covs, tols, tols_found_in = "covs")
+    tols <- .process_tols_internal(covs, tols, tols_found_in = "covs",
+                                   tols_arg = "tols")
   }
 
   tols <- tols |>
@@ -233,19 +235,24 @@ optweight.svy.fit <- function(covs, targets, tols = 0, s.weights = NULL, b.weigh
   #Process args
   args <- make_process_opt_args(solver)(..., verbose = verbose)
 
-  constraint_df <- expand.grid(time = 1L,
-                               type = c("range_w", "mean_w", "target"),
-                               constraint = list(NULL),
-                               stringsAsFactors = FALSE,
-                               KEEP.OUT.ATTRS = FALSE)
-
   range_cons <- constraint_range_w(sw, min.w)
+
+  constraint_df <- expand.grid(time = 0L,
+                               type = "range_w",
+                               constraint = list(range_cons),
+                               stringsAsFactors = FALSE,
+                               KEEP.OUT.ATTRS = FALSE) |>
+    rbind(expand.grid(time = 1L,
+                      type = c("mean_w", "target"),
+                      constraint = list(NULL),
+                      stringsAsFactors = FALSE,
+                      KEEP.OUT.ATTRS = FALSE))
 
   bin.covs <- is_binary_col(covs)
 
   n <- sum(sw * bw)
 
-  sds <- sqrt(col.w.v(covs, w = sw, bin.vars = bin.covs))
+  sds <- col.w.sd(covs, w = sw, bin.vars = bin.covs)
 
   targeted <- !is.na(targets)
 
@@ -256,12 +263,11 @@ optweight.svy.fit <- function(covs, targets, tols = 0, s.weights = NULL, b.weigh
   to_std <- which(vars.to.standardize & targeted & !is.na(sds) & !check_if_zero(sds))
 
   if (is_not_null(to_std)) {
-    covs[, to_std] <- mat_div(covs[, to_std, drop = FALSE], sds[to_std])
+    covs[, to_std] <- ss(covs, j = to_std) %r/% sds[to_std]
     targets[to_std] <- targets[to_std] / sds[to_std]
   }
 
-  constraint_df[["constraint"]] <- list(
-    range_w = range_cons,
+  constraint_df[["constraint"]][constraint_df[["time"]] == 1L] <- list(
     mean_w = constraint_mean_w_svy(sw, n),
     target = constraint_target_svy(covs, sw, targets, targeted, tols, n)
   )
@@ -280,7 +286,7 @@ optweight.svy.fit <- function(covs, targets, tols = 0, s.weights = NULL, b.weigh
   duals <- extract_duals(constraint_df, opt_out$dual_out)
 
   out <- list(w = w,
-              duals = duals[[1L]],
+              duals = duals,
               info = opt_out$info_out,
               out = opt_out$out,
               norm = norm,

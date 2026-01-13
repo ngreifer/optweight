@@ -8,6 +8,7 @@
 #' @param tols.list a list of vectors of balance tolerance values for each covariate for each treatment. The resulting weighted balance statistics will be at least as small as these values. If only one value is supplied, it will be applied to all covariates. See Details. Default is 0 for all covariates.
 #' @param estimand the desired estimand, which determines the target population. Only "ATE" or `NULL` are supported. `estimand` is ignored when `targets` is non-`NULL`. If both `estimand` and `targets` are `NULL`, no targeting will take place.
 #' @param targets an optional vector of target population mean values for each covariate. The resulting weights will yield sample means within `tols`/2 units of the target values for each covariate. If `NULL` or all `NA`, `estimand` will be used to determine targets. Otherwise, `estimand` is ignored. If any target values are `NA`, the corresponding variable will not be targeted and its weighted mean will be wherever the weights yield the smallest variance; this is only allowed if all treatments are binary or multi-category. Can also be the output of a call to [process_targets()]. See Details.
+#' @param target.tols.list a list of vectors of target balance tolerance values for each covariate for each treatment. For binary and multi-category treatments, the average of each pair of means will be at most as far from the target means as these values. Can also be the output of a call to [process_tols()]. See Details. Default is 0 for all covariates. Ignored with continuous treatments.
 #' @param s.weights a vector of sampling weights. For `optweightMV()`, can also be the name of a variable in `data` that contains sampling weights.
 #' @param b.weights a vector of base weights. If supplied, the desired norm of the distance between the estimated weights and the base weights is minimized. For `optweightMV()`, can also the name of a variable in `data` that contains base weights.
 #' @param covs.list a list containing one numeric matrix of covariates to be balanced for each treatment.
@@ -66,8 +67,9 @@
 #' bal.tab(ow1)
 
 #' @export
-optweightMV <- function(formula.list, data = NULL, tols.list = list(0), estimand = "ATE",
-                        targets = NULL, s.weights = NULL, b.weights = NULL,
+optweightMV <- function(formula.list, data = NULL, tols.list = list(0),
+                        estimand = "ATE", targets = NULL, target.tols.list = list(0),
+                        s.weights = NULL, b.weights = NULL,
                         norm = "l2", min.w = 1e-8, verbose = FALSE, ...) {
 
   mcall <- match.call()
@@ -106,19 +108,17 @@ optweightMV <- function(formula.list, data = NULL, tols.list = list(0), estimand
     treat.list[[i]] <- assign_treat_type(treat.list[[i]])
 
     if (is_null(covs.list[[i]])) {
-      .err(sprintf("no covariates were specified in the %s formula", ordinal(i)))
+      .err("no covariates were specified in the {ordinal(i)} formula")
     }
 
     if (is_null(treat.list[[i]])) {
-      .err(sprintf("no treatment variable was specified in the %s formula", ordinal(i)))
+      .err("no treatment variable was specified in the {ordinal(i)} formula")
     }
 
-    treat.names[i] <- if_null_then(attr(treat.list[[i]], "treat.name"),
-                                   sprintf("treatment %s", i))
+    treat.names[i] <- attr(treat.list[[i]], "treat.name") %or% sprintf("treatment %s", i)
 
     if (anyNA(treat.list[[i]]) || !all(is.finite(treat.list[[i]]))) {
-      .err(sprintf("no missing or non-finite values are allowed in the treatment variable. Missing or non-finite values were found in %s",
-                   treat.names[i]))
+      .err("no missing or non-finite values are allowed in the treatment variable. Missing or non-finite values were found in {.var treat.names[i]}")
     }
 
     check_missing_covs(reported.covs.list[[i]])
@@ -136,26 +136,37 @@ optweightMV <- function(formula.list, data = NULL, tols.list = list(0), estimand
   #Process b.weights
   bw <- process_b.weights(b.weights, data)
 
-  #Process tols
-  tols.list <- {
-    if (is.list(tols.list)) tols.list
-    else list(tols.list)
+  #Process tols.list and target.tols.list
+  if (!is.list(tols.list)) {
+    tols.list <- list(tols.list)
   }
 
   if (length(tols.list) == 1L) {
     tols.list <- tols.list[rep_with(1L, times)]
   }
 
+  if (!is.list(target.tols.list)) {
+    target.tols.list <- list(target.tols.list)
+  }
+
+  if (length(target.tols.list) == 1L) {
+    target.tols.list <- target.tols.list[rep_with(1L, times)]
+  }
+
   for (i in times) {
-    tryCatch({
+    withCallingHandlers({
       tols.list[[i]] <- .process_tols_internal(covs.list[[i]], tols.list[[i]],
                                                reported.covs.list[[i]],
-                                               tols_found_in = "formula.list")
+                                               tols_found_in = "formula.list",
+                                               tols_arg = "tols.list")
+
+      target.tols.list[[i]] <- .process_tols_internal(covs.list[[i]], target.tols.list[[i]],
+                                                      reported.covs.list[[i]],
+                                                      tols_found_in = "formula.list",
+                                                      tols_arg = "target.tols.list")
     },
     error = function(e) {
-      .err(sprintf("For %s, %s",
-                   treat.names[i], conditionMessage(e)),
-           tidy = FALSE)
+      .err("For {.var treat.names[i]}, {conditionMessage(e)}", tidy = FALSE)
     })
   }
 
@@ -165,7 +176,7 @@ optweightMV <- function(formula.list, data = NULL, tols.list = list(0), estimand
       targets <- NA_real_
     }
     else if (is_not_null(estimand) && is_not_null(targets)) {
-      .wrn("`targets` are not `NULL`; ignoring `estimand`")
+      .wrn("{.arg targets} are not {.val NULL}; ignoring {.arg estimand}")
       estimand <- NULL
     }
     else {
@@ -173,8 +184,7 @@ optweightMV <- function(formula.list, data = NULL, tols.list = list(0), estimand
       estimand <- toupper(estimand)
 
       if (estimand != "ATE") {
-        .err(sprintf("`estimand` cannot be %s with multivariate treatments",
-                     add_quotes(estimand)))
+        .err('{.arg estimand} cannot be "{estimand}" with multivariate treatments')
       }
     }
 
@@ -190,6 +200,7 @@ optweightMV <- function(formula.list, data = NULL, tols.list = list(0), estimand
                              estimand = estimand,
                              focal = focal,
                              targets = targets,
+                             target.tols.list = target.tols.list,
                              s.weights = sw,
                              b.weights = bw,
                              norm = norm,
@@ -207,7 +218,7 @@ optweightMV <- function(formula.list, data = NULL, tols.list = list(0), estimand
   }
 
   #Process duals
-  duals <- lapply(times, function(i) process_duals(fit_out$duals[[i]], tols.list[[i]]))
+  duals <- process_duals(fit_out$duals, tols.list)
 
   out <- list(weights = fit_out$w,
               treat.list = treat.list,
@@ -217,6 +228,7 @@ optweightMV <- function(formula.list, data = NULL, tols.list = list(0), estimand
               norm = fit_out$norm,
               call = mcall,
               tols = tols.list,
+              target.tols = target.tols.list,
               duals = duals,
               info = fit_out$info,
               solver = fit_out$solver)
@@ -228,10 +240,11 @@ optweightMV <- function(formula.list, data = NULL, tols.list = list(0), estimand
 
 #' @export
 #' @rdname optweightMV
-optweightMV.fit <- function(covs.list, treat.list, tols.list = list(0), estimand = "ATE",
-                            targets = NULL, s.weights = NULL, b.weights = NULL,
-                            norm = "l2", std.binary = FALSE, std.cont = TRUE, min.w = 1e-8, verbose = FALSE,
-                            solver = NULL, ...) {
+optweightMV.fit <- function(covs.list, treat.list, tols.list = list(0),
+                            estimand = "ATE", targets = NULL, target.tols.list = list(0),
+                            s.weights = NULL, b.weights = NULL,
+                            norm = "l2", std.binary = FALSE, std.cont = TRUE,
+                            min.w = 1e-8, verbose = FALSE, solver = NULL, ...) {
 
   chk::chk_not_missing(treat.list, "`treat.list`")
   chk::chk_not_missing(covs.list, "`covs.list`")
@@ -255,15 +268,15 @@ optweightMV.fit <- function(covs.list, treat.list, tols.list = list(0), estimand
       else "cont"
     }
 
-    treat.names[i] <- if_null_then(attr(treat.list[[i]], "treat.name"),
-                                   names(treat.list)[i],
-                                   sprintf("treatment %s", i))
+    treat.names[i] <- attr(treat.list[[i]], "treat.name") %or%
+      names(treat.list)[i] %or%
+      sprintf("treatment %s", i)
   }
 
   N <- length(treat.list[[1L]])
 
   if (is_null(s.weights)) {
-    sw <- rep.int(1, N)
+    sw <- alloc(1, N)
   }
   else {
     chk::chk_numeric(s.weights)
@@ -273,7 +286,7 @@ optweightMV.fit <- function(covs.list, treat.list, tols.list = list(0), estimand
   }
 
   if (is_null(b.weights)) {
-    bw <- rep.int(1, N)
+    bw <- alloc(1, N)
   }
   else {
     chk::chk_numeric(b.weights)
@@ -282,20 +295,41 @@ optweightMV.fit <- function(covs.list, treat.list, tols.list = list(0), estimand
     bw <- b.weights
   }
 
-  #Process tols
+  #Process tols and target.tols
   chk::chk_not_missing(tols.list, "`tols.list`")
   chk::chk_list(tols.list)
+
+  chk::chk_not_missing(target.tols.list, "`target.tols.list`")
+  chk::chk_list(target.tols.list)
 
   if (length(tols.list) == 1L) {
     tols.list <- tols.list[rep_with(1, times)]
   }
 
+  if (length(target.tols.list) == 1L) {
+    target.tols.list <- target.tols.list[rep_with(1, times)]
+  }
+
   for (i in times) {
-    if (!inherits(tols.list[[i]], "optweight.tols") || is_null(attr(tols.list[[i]], "internal.tols"))) {
-      tols.list[[i]] <- .process_tols_internal(covs.list[[i]], tols.list[[i]], tols_found_in = "covs.list")
+    if (!inherits(tols.list[[i]], "optweight.tols") ||
+        is_null(attr(tols.list[[i]], "internal.tols"))) {
+      tols.list[[i]] <- .process_tols_internal(covs.list[[i]], tols = tols.list[[i]],
+                                               tols_found_in = "covs.list",
+                                               tols_arg = "tols.list")
     }
 
     tols.list[[i]] <- tols.list[[i]] |>
+      attr("internal.tols") |>
+      abs()
+
+    if (!inherits(target.tols.list[[i]], "optweight.tols") ||
+        is_null(attr(target.tols.list[[i]], "internal.tols"))) {
+      target.tols.list[[i]] <- .process_tols_internal(covs.list[[i]], tols = target.tols.list[[i]],
+                                                      tols_found_in = "covs.list",
+                                                      tols_arg = "target.tols.list")
+    }
+
+    target.tols.list[[i]] <- target.tols.list[[i]] |>
       attr("internal.tols") |>
       abs()
   }
@@ -307,7 +341,7 @@ optweightMV.fit <- function(covs.list, treat.list, tols.list = list(0), estimand
     }
   }
   else if (is_not_null(targets)) {
-    .wrn("`targets` are not `NULL`; ignoring `estimand`")
+    .wrn("{.arg targets} are not {.val NULL}; ignoring {.arg estimand}")
     estimand <- NULL
   }
   else {
@@ -315,8 +349,7 @@ optweightMV.fit <- function(covs.list, treat.list, tols.list = list(0), estimand
     estimand <- toupper(estimand)
 
     if (estimand != "ATE") {
-      .err(sprintf("`estimand` cannot be %s with multivariate treatments",
-                   add_quotes(estimand)))
+      .err('{.arg estimand} cannot be "{estimand}" with multivariate treatments')
     }
 
     targets <- NULL # calculated automatically for ATE
@@ -327,10 +360,19 @@ optweightMV.fit <- function(covs.list, treat.list, tols.list = list(0), estimand
                                          targets_found_in = "covs.list")
   }
 
-  if (any_apply(times, function(i) {
-    treat.types[i] == "cont" && anyNA(targets[colnames(covs.list[[i]])])
+  if (any_apply(whichv(treat.types, "cont"), function(i) {
+    anyNA(targets[colnames(covs.list[[i]])])
   })) {
     .err("all covariates associated with a continuous treatment must have a target")
+  }
+
+  if (any_apply(whichv(treat.types, "cont"), function(i) {
+    !all(target.tols.list[[i]] == 0)
+  })) {
+    .wrn("nonzero values of {.arg target.tols.list} are ignored for continuous treatments. Setting all such values of {.arg target.tols.list} to 0")
+    for (i in whichv(treat.types, "cont")) {
+      target.tols.list[[i]][] <- 0
+    }
   }
 
   #Process norm
@@ -345,16 +387,20 @@ optweightMV.fit <- function(covs.list, treat.list, tols.list = list(0), estimand
   #Process args
   args <- make_process_opt_args(solver)(..., verbose = verbose)
 
-  constraint_df <- expand.grid(time = times,
-                               type = c("range_w", "mean_w", "balance", "target"),
-                               constraint = list(NULL),
-                               stringsAsFactors = FALSE,
-                               KEEP.OUT.ATTRS = FALSE)
-
   range_cons <- constraint_range_w(sw, min.w)
 
-  unique.treats <- n <- bin.covs.list <- sds <- targets.list <- targeted <-
-    balanced <- treat.sds <- treat.means <- make_list(length(times))
+  constraint_df <- expand.grid(time = 0,
+                               type = "range_w",
+                               constraint = list(range_cons),
+                               stringsAsFactors = FALSE,
+                               KEEP.OUT.ATTRS = FALSE) |>
+    rbind(expand.grid(time = times,
+                      type = c("mean_w", "balance", "target"),
+                      constraint = list(NULL),
+                      stringsAsFactors = FALSE,
+                      KEEP.OUT.ATTRS = FALSE))
+
+  n <- bin.covs.list <- sds <- targets.list <- targeted <- make_list(length(times))
 
   for (i in times) {
     bin.covs.list[[i]] <- is_binary_col(covs.list[[i]])
@@ -364,25 +410,12 @@ optweightMV.fit <- function(covs.list, treat.list, tols.list = list(0), estimand
     targeted[[i]] <- !is.na(targets.list[[i]])
 
     if (treat.types[i] == "cat") {
-      treat.list[[i]] <- as.character(treat.list[[i]])
+      treat.list[[i]] <- qF(treat.list[[i]])
 
-      unique.treats[[i]] <- sort(unique(treat.list[[i]]))
+      n[[i]] <- fsum(sw * bw, g = treat.list[[i]])
 
-      n[[i]] <- vapply(unique.treats[[i]],
-                       function(t) sum(sw[treat.list[[i]] == t] * bw[treat.list[[i]] == t]),
-                       numeric(1L))
-
-      sds[[i]] <- sqrt(colMeans(do.call("rbind", lapply(unique.treats[[i]], function(t) {
-        in_treat <- which(treat.list[[i]] == t)
-
-        col.w.v(covs.list[[i]][in_treat, , drop = FALSE],
-                w = sw[in_treat], bin.vars = bin.covs.list[[i]])
-      }))))
-
-      balanced[[i]] <- !targeted[[i]]
-
-      treat.sds[[i]] <- NA_real_
-      treat.means[[i]] <- NA_real_
+      sds[[i]] <- sqrt(colMeans(col.w.v(covs.list[[i]], g = treat.list[[i]], w = sw,
+                                        bin.vars = bin.covs.list[[i]])))
 
       vars.to.standardize <- rep_with(FALSE, tols.list[[i]])
       if (std.binary) vars.to.standardize[bin.covs.list[[i]]] <- TRUE
@@ -391,17 +424,15 @@ optweightMV.fit <- function(covs.list, treat.list, tols.list = list(0), estimand
       to_std <- which(vars.to.standardize & !check_if_zero(sds[[i]]))
 
       if (is_not_null(to_std)) {
-        covs.list[[i]][, to_std] <- mat_div(covs.list[[i]][, to_std, drop = FALSE], sds[[i]][to_std])
+        covs.list[[i]][, to_std] <- ss(covs.list[[i]], j = to_std) %r/% sds[[i]][to_std]
         targets.list[[i]][to_std] <- targets.list[[i]][to_std] / sds[[i]][to_std]
       }
 
       constraint_df[["constraint"]][constraint_df[["time"]] == i] <- list(
-        range_w = if (i == 1L) range_cons,
-        mean_w = constraint_mean_w_cat(treat.list[[i]], unique.treats[[i]], sw, n[[i]]),
-        balance = constraint_balance_cat(covs.list[[i]], treat.list[[i]], sw, tols.list[[i]],
-                                         balanced[[i]], unique.treats[[i]], n[[i]]),
+        mean_w = constraint_mean_w_cat(treat.list[[i]], sw, n[[i]]),
+        balance = constraint_balance_cat(covs.list[[i]], treat.list[[i]], sw, tols.list[[i]], n[[i]]),
         target = constraint_target_cat(covs.list[[i]], treat.list[[i]], sw, targets.list[[i]],
-                                       tols.list[[i]], targeted[[i]], unique.treats[[i]], n[[i]])
+                                       target.tols.list[[i]], targeted[[i]], n[[i]])
       )
     }
     else {
@@ -409,30 +440,23 @@ optweightMV.fit <- function(covs.list, treat.list, tols.list = list(0), estimand
 
       n[[i]] <- sum(sw * bw)
 
-      sds[[i]] <- sqrt(col.w.v(covs.list[[i]], w = sw,
-                               bin.vars = bin.covs.list[[i]]))
+      sds[[i]] <- col.w.sd(covs.list[[i]], w = sw,
+                           bin.vars = bin.covs.list[[i]])
 
-      balanced[[i]] <- rep_with(TRUE, targeted[[i]])
+      covs.list[[i]][] <- covs.list[[i]] %r-% targets.list[[i]] #center covs at targets (which will be eventual means)
 
-      covs.list[[i]][] <- center(covs.list[[i]], at = targets.list[[i]]) #center covs at targets (which will be eventual means)
-
-      treat.sds[[i]] <- sqrt(col.w.v(treat.list[[i]], w = sw))
-      treat.means[[i]] <- w.m(treat.list[[i]], w = sw)
-
-      treat.list[[i]][] <- (treat.list[[i]] - treat.means[[i]]) / treat.sds[[i]]
+      treat.list[[i]][] <- fscale(treat.list[[i]], w = sw)
 
       to_std <- which(!check_if_zero(sds[[i]]))
 
       if (is_not_null(to_std)) {
-        covs.list[[i]][, to_std] <- mat_div(covs.list[[i]][, to_std, drop = FALSE], sds[[i]][to_std])
+        covs.list[[i]][, to_std] <- ss(covs.list[[i]], j = to_std) %r/% sds[[i]][to_std]
         targets.list[[i]][to_std] <- targets.list[[i]][to_std] / sds[[i]][to_std]
       }
 
       constraint_df[["constraint"]][constraint_df[["time"]] == i] <- list(
-        range_w = if (i == 1L) range_cons,
         mean_w = constraint_mean_w_cont(sw, n[[i]]),
-        balance = constraint_balance_cont(covs.list[[i]], treat.list[[i]], sw, tols.list[[i]],
-                                          balanced[[i]], n[[i]]),
+        balance = constraint_balance_cont(covs.list[[i]], treat.list[[i]], sw, tols.list[[i]], n[[i]]),
         target = constraint_target_cont(covs.list[[i]], treat.list[[i]], sw, n[[i]],
                                         treat.names[i])
       )
@@ -450,7 +474,7 @@ optweightMV.fit <- function(covs.list, treat.list, tols.list = list(0), estimand
 
   w <- extract_weights(opt_out, N, min.w, range_cons)
 
-  duals <- extract_duals(constraint_df, opt_out$dual_out, times)
+  duals <- extract_duals(constraint_df, opt_out$dual_out)
 
   out <- list(w = w,
               duals = duals,
@@ -494,7 +518,7 @@ print.optweightMV <- function(x, ...) {
                                continuous = "continuous",
                                binary = "2-category",
                                sprintf("%s-category (%s)",
-                                       nunique(x[["treat.list"]][[i]]),
+                                       fnunique(x[["treat.list"]][[i]]),
                                        toString(levels(x[["treat.list"]][[i]])))))
               }))))
 
