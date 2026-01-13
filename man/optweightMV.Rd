@@ -11,6 +11,7 @@ optweightMV(
   tols.list = list(0),
   estimand = "ATE",
   targets = NULL,
+  target.tols.list = list(0),
   s.weights = NULL,
   b.weights = NULL,
   norm = "l2",
@@ -25,6 +26,7 @@ optweightMV.fit(
   tols.list = list(0),
   estimand = "ATE",
   targets = NULL,
+  target.tols.list = list(0),
   s.weights = NULL,
   b.weights = NULL,
   norm = "l2",
@@ -46,6 +48,8 @@ optweightMV.fit(
 \item{estimand}{the desired estimand, which determines the target population. Only "ATE" or \code{NULL} are supported. \code{estimand} is ignored when \code{targets} is non-\code{NULL}. If both \code{estimand} and \code{targets} are \code{NULL}, no targeting will take place.}
 
 \item{targets}{an optional vector of target population mean values for each covariate. The resulting weights will yield sample means within \code{tols}/2 units of the target values for each covariate. If \code{NULL} or all \code{NA}, \code{estimand} will be used to determine targets. Otherwise, \code{estimand} is ignored. If any target values are \code{NA}, the corresponding variable will not be targeted and its weighted mean will be wherever the weights yield the smallest variance; this is only allowed if all treatments are binary or multi-category. Can also be the output of a call to \code{\link[=process_targets]{process_targets()}}. See Details.}
+
+\item{target.tols.list}{a list of vectors of target balance tolerance values for each covariate for each treatment. For binary and multi-category treatments, the average of each pair of means will be at most as far from the target means as these values. Can also be the output of a call to \code{\link[=process_tols]{process_tols()}}. See Details. Default is 0 for all covariates. Ignored with continuous treatments.}
 
 \item{s.weights}{a vector of sampling weights. For \code{optweightMV()}, can also be the name of a variable in \code{data} that contains sampling weights.}
 

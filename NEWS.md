@@ -1,13 +1,21 @@
-optweight News and Updates
+*optweight* News and Updates
 ======
 
 # optweight (development version)
+
+* Specifying tolerances works slightly differently for binary and multi-category treatments with `optweight()`. `tols` controls only how similar each pair of groups are to each other, and a new argument, `target.tols`, controls how similar the average of the group means are to the target mean. This means that group balance is separate from target balance. See `?optweight` for more information. Previously, `tols` only controlled target balance, and group balance came along for free. This slightly changes the weights estimated when setting `tols` to a value greater than 0 when `target.tols` is set to 0 (its default): now, the group means must be equidistant from the target means, whereas previously, it was only required that the group means each be with `tols/2` of the target mean.
+
+* The `duals` output is slightly different: for multivariate treatments with `optweightMV()`, the `duals` component of the output object is a single data frame with a new column, `component`, corresponding to the treatment each dual variable refers to. For all weighting functions, the dual variable corresponding to the constraint on the minimum of the weights (controlled by `min.w`) is now included in the output with `component` equal to 0.
+
+* In `plot.optweight()`, a new argument, `type`, can be specified to select between two types of dual variable plots: `"variables"`, the default, displays a dual variable for each covariate; `"constraints"` displays a dual variable for each constraint type (weight range, balance, and target), computed as the sum of the dual variables for that constraint type.
 
 * Moved some documentation around; `optweight()` and `optweight.fit()` are now documented on the same page, `optweightMV()` and `optweightMV.fit()` are now documented on the same page, and `optweight.svy()` and `optweight.svy.fit()` are now documented on the same page.
 
 * `min.w` is now a visible argument to `optweight()`, `optweightMV()`, and `optweight.svy()`.
 
-* Messages are now a little prettier thanks to *crayon*, which is a new dependency.
+* *collapse* is now a dependency.
+
+* Messages are now a little prettier thanks to *cli*, which is a new dependency.
 
 * Documentation and vignette updates.
 

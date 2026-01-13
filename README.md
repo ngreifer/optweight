@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# optweight: Optimization-Based Stable Balancing Weights <img src="man/figures/logo.png" align="right" width="150"/>
+# *optweight*: Optimization-Based Stable Balancing Weights <img src="man/figures/logo.png" align="right" width="150"/>
 
 [![CRAN_Status_Badge](http://r-pkg.org/badges/version-last-release/optweight?color=737373)](https://cran.r-project.org/package=optweight)
 [![CRAN_Downloads_Badge](http://cranlogs.r-pkg.org/badges/optweight?color=737373)](https://cran.r-project.org/package=optweight)
@@ -64,7 +64,6 @@ summary(ow)
 ```
 
     #>                   Summary of weights
-    #> 
     #> - Weight ranges:
     #> 
     #>         Min                                 Max
@@ -101,7 +100,7 @@ bal.tab(ow)
     #> age         Contin.     0.01
     #> educ        Contin.     0.01
     #> race_black   Binary     0.01
-    #> race_hispan  Binary     0.00
+    #> race_hispan  Binary    -0.00
     #> race_white   Binary    -0.01
     #> nodegree     Binary     0.01
     #> married      Binary    -0.01
@@ -175,7 +174,7 @@ of Entropy Balancing Estimators of Average Causal Effects.”
 
 <div id="ref-wangMinimalDispersionApproximately2020" class="csl-entry">
 
-Wang, Yixin, and Jose R. Zubizarreta. 2020. “Minimal Dispersion
+Wang, Yixin, and José R. Zubizarreta. 2020. “Minimal Dispersion
 Approximately Balancing Weights: Asymptotic Properties and Practical
 Considerations.” *Biometrika* 107 (1): 93–105.
 <https://doi.org/10.1093/biomet/asz050>.

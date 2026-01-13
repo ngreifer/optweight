@@ -69,7 +69,7 @@ test_that("optweight works, binary", {
     ow <- optweight(A ~ X1 + X2 + X3 + X4 + X5 + X6,
                     data = test_data,
                     norm = "linf",
-                    eps = 1e-5)
+                    eps = 1e-4)
   })
 
   expect_true(all(abs(cobalt::col_w_smd(ow$covs, ow$treat, ow$weights)) <= eps))
@@ -1128,7 +1128,7 @@ test_that("optweight works, binary, b.weights, solver: lpsolve", {
                      norm = "linf",
                      tols = tols,
                      std.binary = TRUE,
-                     eps = 1e-5)
+                     eps = 1e-4)
   })
 
   expect_true(all(abs(cobalt::col_w_smd(ow2$covs, ow2$treat, ow2$weights)) <= attr(tols, "internal.tols") + eps))

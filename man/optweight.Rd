@@ -11,6 +11,7 @@ optweight(
   tols = 0,
   estimand = "ATE",
   targets = NULL,
+  target.tols = 0,
   s.weights = NULL,
   b.weights = NULL,
   focal = NULL,
@@ -26,6 +27,7 @@ optweight.fit(
   tols = 0,
   estimand = "ATE",
   targets = NULL,
+  target.tols = 0,
   s.weights = NULL,
   b.weights = NULL,
   focal = NULL,
@@ -48,6 +50,8 @@ optweight.fit(
 \item{estimand}{a string containing the desired estimand, which determines the target population. For binary treatments, can be "ATE", "ATT", "ATC", or \code{NULL}. For multi-category treatments, can be "ATE", "ATT", or \code{NULL}. For continuous treatments, can be "ATE" or \code{NULL}. The default for both is "ATE". \code{estimand} is ignored when \code{targets} is non-\code{NULL}. If both \code{estimand} and \code{targets} are \code{NULL}, no targeting will take place. See Details.}
 
 \item{targets}{an optional vector of target population mean values for each covariate. The resulting weights will yield sample means within \code{tols}/2 units of the target values for each covariate. If \code{NULL} or all \code{NA}, \code{estimand} will be used to determine targets. Otherwise, \code{estimand} is ignored. If any target values are \code{NA}, the corresponding variable will not be targeted and its weighted mean will be wherever the weights yield the smallest variance; this is only allowed for binary and multi-category treatments. Can also be the output of a call to \code{\link[=process_targets]{process_targets()}}. See Details.}
+
+\item{target.tols}{a vector of target balance tolerance values for each covariate. For binary and multi-category treatments, the average of each pair of means will be at most as far from the target means as these values. Can also be the output of a call to \code{\link[=process_tols]{process_tols()}}. See Details. Default is 0 for all covariates. Ignored with continuous treatments and when \code{estimand} is \code{"ATT"} or \code{"ATC"}.}
 
 \item{s.weights}{a vector of sampling weights. For \code{optweight()}, can also be the name of a variable in \code{data} that contains sampling weights.}
 
@@ -81,7 +85,8 @@ For \code{optweight()}, an \code{optweight} object with the following elements:
 \item{estimand}{The estimand requested.}
 \item{focal}{The focal variable if the ATT was requested with a multi-category treatment.}
 \item{call}{The function call.}
-\item{tols}{The tolerance values for each covariate.}
+\item{tols}{The balance tolerance values for each covariate.}
+\item{target.tols}{The target tolerance values for each covariate.}
 \item{duals}{A data.frame containing the dual variables for each covariate. See Details for interpretation of these values.}
 \item{info}{A list containing information about the performance of the optimization at termination.}
 \item{norm}{The \code{norm} used.}
@@ -100,11 +105,16 @@ Estimates stable balancing weights for the supplied treatments and covariates. T
 \details{
 \code{optweight()} is the primary user-facing function for estimating stable balancing weights. The optimization is performed by the lower-level function \code{optweight.fit()}, which transforms the inputs into the required inputs for the optimization functions and then supplies the outputs (the weights, dual variables, and convergence information) back to \code{optweight()}. Little processing of inputs is performed by \code{optweight.fit()}, as this is normally handled by \code{optweight()}.
 
-For binary and multi-category treatments, weights are estimated so that the weighted mean differences of the covariates are within the given tolerance thresholds (unless \code{std.binary} or \code{std.cont} are \code{TRUE}, in which case standardized mean differences are considered for binary and continuous variables, respectively). For a covariate \eqn{x} with specified tolerance \eqn{\delta}, the weighted means of each each group will be within \eqn{\delta} of each other. Additionally, when the ATE is specified as the estimand or a target population is specified, the weighted means of each group will each be within \eqn{\delta/2} of the target means; this ensures generalizability to the same population from which the original sample was drawn.
+For binary and multi-category treatments, weights are estimated so that the weighted mean differences of the covariates are within the given tolerance thresholds controlled by \code{tols} and \code{target.tols} (unless \code{std.binary} or \code{std.cont} are \code{TRUE}, in which case standardized mean differences are considered for binary and continuous variables, respectively). For a covariate \eqn{x} with specified balance tolerance \eqn{\delta} and target tolerance \eqn{\varepsilon}, the weighted means of each each group will be within \eqn{\delta} of each other, and the midpoint between the weighted group means will be with \eqn{\varepsilon} of the target means. More specifically, the constraints are specified as follows:
+\deqn{
+\left| \bar{x}^w_1 - \bar{x}^w_0 \right| \le \delta \\
+\left| \frac{\bar{x}^w_1 + \bar{x}^w_0}{2} - \bar{x}^* \right| \le \varepsilon
+}
+where \eqn{\bar{x}^w_1} and \eqn{\bar{x}^w_0} are the weighted means of covariate \eqn{x} for treatment groups 1 and 0, respectively, and \eqn{\bar{x}^*} is the target mean for that covariate. \eqn{\delta} corresponds to \code{tols}, and \eqn{\varepsilon} corresponds to \code{target.tols}. Setting a covariate's value of \code{target.tols} to \code{Inf} or its \code{target} to \code{NA} both serve to remove the second constraint, as is done in Barnard et al. (2025).
 
 If standardized tolerance values are requested, the standardization factor corresponds to the estimand requested: when the ATE is requested or a target population specified, the standardization factor is the square root of the average variance for that covariate across treatment groups, and when the ATT or ATC are requested, the standardization factor is the standard deviation of the covariate in the focal group. The standardization factor is computed accounting for \code{s.weights}.
 
-For continuous treatments, weights are estimated so that the weighted correlation between the treatment and each covariate is within the specified tolerance threshold. The means of the weighted covariates and treatment are restricted to be exactly equal to those of the target population to ensure generalizability to the desired target population, regardless of \code{tols}. The weighted correlation is computed as the weighted covariance divided by the product of the \emph{unweighted} standard deviations. The means used to center the variables in computing the covariance are those specified in the target population.
+For continuous treatments, weights are estimated so that the weighted correlation between the treatment and each covariate is within the specified tolerance threshold. The means of the weighted covariates and treatment are restricted to be exactly equal to those of the target population to ensure generalizability to the desired target population, regardless of \code{tols} or \code{target.tols}. The weighted correlation is computed as the weighted covariance divided by the product of the \emph{unweighted} standard deviations. The means used to center the variables in computing the covariance are those specified in the target population.
 
 Target and balance constraints are applied to the product of the estimated weights and the sampling weights. In addition, the sum of the product of the estimated weights and the sampling weights is constrained to be equal to the sum of the product of the base weights and sampling weights. For binary and multi-category treatments, these constraints apply within each treatment group.
 \subsection{\code{norm}}{
@@ -125,11 +135,11 @@ When \code{norm = "l2"} and both \code{s.weights} and \code{b.weights} are \code
 
 \subsection{Dual Variables}{
 
-Two types of constraints may be associated with each covariate: target constraints and balance constraints. Target constraints require the mean of the covariate to be at (or near) a specific target value in each treatment group (or for the whole group when treatment is continuous). Balance constraints require the means of the covariate in pairs of treatments to be near each other. For binary and multi-category treatments, balance constraints are redundant if target constraints are provided for a variable. For continuous variables, balance constraints refer to the correlation between treatment and the covariate and are not redundant with target constraints. In the \code{duals} component of the output, each covariate has a dual variable for each nonredundant constraint placed on it.
-
-The dual variable for each constraint is the instantaneous rate of change of the objective function at the optimum corresponding to a change in the constraint. Because this relationship is not linear, large changes in the constraint will not exactly map onto corresponding changes in the objective function at the optimum, but will be close for small changes in the constraint. For example, for a covariate with a balance constraint of .01 and a corresponding dual variable of 40, increasing (i.e., relaxing) the constraint to .025 will decrease the value of the objective function at the optimum by approximately \eqn{(.025 - .01) * 40 = .6}.
+Two types of constraints may be associated with each covariate: target constraints and balance constraints, controlled by \code{target.tols} and \code{tols}, respectively. In the \code{duals} component of the output, each covariate has a dual variable for each constraint placed on it. The dual variable for each constraint is the instantaneous rate of change of the objective function at the optimum corresponding to a change in the constraint. Because this relationship is not linear, large changes in the constraint will not exactly map onto corresponding changes in the objective function at the optimum, but will be close for small changes in the constraint. For example, for a covariate with a balance constraint of .01 and a corresponding dual variable of 40, increasing (i.e., relaxing) the constraint to .025 will decrease the value of the objective function at the optimum by approximately \eqn{(.025 - .01) * 40 = .6}.
 
 For factor variables, \code{optweight()} takes the sum of the absolute dual variables for the constraints for all levels and reports it as the the single dual variable for the variable itself. This summed dual variable works the same way as dual variables for continuous variables do.
+
+An addition dual variable is computed for the constraint on the range of the weights, controlled by \code{min.w}. A high dual variable for this constraint implies that decreasing \code{min.w} will decrease the value of the objective function at the optimum.
 }
 
 \subsection{\code{solver}}{
@@ -156,7 +166,7 @@ The default \code{solver} for each \code{norm} is as follows:\tabular{ll}{
 }
 
 
-If the package corresponding to a default \code{solver} is not installed but the package for a different eligible solver is, that will be used. Otherwise, you will be asked to install the required package. \pkg{osqp} is required for \pkg{optweight}, and so will be the default for the \code{"l1"} and \code{"linf"} norms if \pkg{highs} is not installed. The default package is the one has shown good performance for the given norm; generally, all eligible solvers perform about equally well in terms of accuracy but differ in time taken.
+If the package corresponding to a default \code{solver} is not installed but the package for a different eligible solver is, that will be used. Otherwise, you will be asked to install the required package. \pkg{osqp} is required for \pkg{optweight}, and so will be the default for the \code{"l1"} and \code{"linf"} norms if \pkg{highs} is not installed. The default package is the one has shown good performance for the given norm in informal testing; generally, all eligible solvers perform about equally well in terms of accuracy but differ in time taken.
 }
 
 \subsection{Solving Convergence Failure}{
@@ -165,7 +175,7 @@ Sometimes the optimization will fail to converge at a solution. There are a vari
 
 Rarely is the problem too few iterations, though this is possible. Most problems can be solved in the default 200,000 iterations, but sometimes it can help to increase this number with the \code{max_iter} argument. Usually, though, this just ends up taking more time without a solution found.
 
-If the problem is that the constraints are too tight, it can be helpful to loosen the constraints. Sometimes examining the dual variables of a solution that has failed to converge can reveal which constraints are causing the problem.
+If the problem is that the constraints are too tight, it can be helpful to loosen the constraints. Sometimes examining the dual variables of a solution that has failed to converge can reveal which constraints are causing the problem. An extreme value of a dual variable typically suggests that its corresponding constraint is one cause of the failure to converge.
 
 Sometimes a suboptimal solution is possible; such a solution does not satisfy the constraints exactly but will come pretty close. To allow these solutions, the argument \code{eps} can be increased to larger values. This is more likely to occur when \code{s.weights} are supplied.
 
@@ -246,6 +256,8 @@ ow.fit <- optweight.fit(covs,
 \dontshow{\}) # examplesIf}
 }
 \references{
+Barnard, M., Huling, J. D., & Wolfson, J. (2025). Partially Retargeted Balancing Weights for Causal Effect Estimation Under Positivity Violations (No. arXiv:2510.22072). arXiv. \doi{10.48550/arXiv.2510.22072}
+
 Chattopadhyay, A., Cohn, E. R., & Zubizarreta, J. R. (2024). One-Step Weighting to Generalize and Transport Treatment Effect Estimates to a Target Population. \emph{The American Statistician}, 78(3), 280–289. \doi{10.1080/00031305.2023.2267598}
 
 de los Angeles Resa, M., & Zubizarreta, J. R. (2020). Direct and Stable Weight Adjustment in Non-Experimental Studies With Multivalued Treatments: Analysis of the Effect of an Earthquake on Post-Traumatic Stress. \emph{Journal of the Royal Statistical Society Series A: Statistics in Society}, 183(4), 1387–1410. \doi{10.1111/rssa.12561}

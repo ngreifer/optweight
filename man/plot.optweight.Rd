@@ -6,14 +6,16 @@
 \alias{plot.optweight.svy}
 \title{Plot Dual Variables for Covariate Constraints}
 \usage{
-\method{plot}{optweight}(x, ...)
+\method{plot}{optweight}(x, type = "variables", ...)
 
-\method{plot}{optweightMV}(x, which.treat = 1L, ...)
+\method{plot}{optweightMV}(x, which.treat = 1L, type = "variables", ...)
 
-\method{plot}{optweight.svy}(x, ...)
+\method{plot}{optweight.svy}(x, type = "variables", ...)
 }
 \arguments{
 \item{x}{an \code{optweight}, \code{optweightMV}, or \code{optweight.svy} object; the output of a call to \code{\link[=optweight]{optweight()}}, \code{\link[=optweightMV]{optweightMV()}}, or \code{\link[=optweight.svy]{optweight.svy()}}.}
+
+\item{type}{the type of plot to display; allowable options include \code{"variables"} (the default), which produces a row for each covariates, and \code{"constraints"}, which produces a row for each type of constraint (computed as the sum of the absolute dual variables for each constraint type).}
 
 \item{\dots}{ignored.}
 
