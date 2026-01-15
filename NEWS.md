@@ -1,7 +1,7 @@
 *optweight* News and Updates
 ======
 
-# optweight (development version)
+# *optweight* (development version)
 
 * Specifying tolerances works slightly differently for binary and multi-category treatments with `optweight()`. `tols` controls only how similar each pair of groups are to each other, and a new argument, `target.tols`, controls how similar the average of the group means are to the target mean. This means that group balance is separate from target balance. See `?optweight` for more information. Previously, `tols` only controlled target balance, and group balance came along for free. This slightly changes the weights estimated when setting `tols` to a value greater than 0 when `target.tols` is set to 0 (its default): now, the group means must be equidistant from the target means, whereas previously, it was only required that the group means each be with `tols/2` of the target mean.
 
@@ -19,7 +19,7 @@
 
 * Documentation and vignette updates.
 
-# optweight 1.0.0
+# *optweight* 1.0.0
 
 The version involved a full rewrite and may not be backward compatible with prior versions. Basic functionality has not changed, but some of the more advanced functionality has changed.
 
@@ -43,9 +43,9 @@ The version involved a full rewrite and may not be backward compatible with prio
 
 * Added `b.weights` argument to supply base weights. When supplied, rather than minimizing the variance of the weights, the squared distance from each base weight is minimized, mirroring the functionality of the `base.weights` argument in *ebalance* for entropy balancing. All norms now support base weights. Omitting base weights is equivalent to setting them equal to 1.
 
-* Optimization proceeds differently with `s.weights` supplied. First, the L$\infinity$ cannot be used with sampling weights. Second, the norm minimized is the weighted norm of the difference between the estimated weights and base weights, with the estimated weights not incorporating the sampling weights. That is, the L2 norm minimizes $\sum_i s_i(w_i-b_i)^2$, and the L1 norm minimizes $\sum_i s_i|w_i-b_i|$, where $s_i$ is the sampling weight for unit $i$, $b_i$ is the base weight (1 by default), and $w_i$ are the weights to be estimated. The weights used in the balance constraints (and ultimately in effect estimation) are $w^*_i=s_i w_i$. An implication of this is that the ESS of the $w^*_i$ is not maximized with the L2 norm. This also ensures that the weighted bootstrap correctly accounts for estimation of the weights.
+* Optimization proceeds differently with `s.weights` supplied. First, the $L_\infty$ cannot be used with sampling weights. Second, the norm minimized is the weighted norm of the difference between the estimated weights and base weights, with the estimated weights not incorporating the sampling weights. That is, the $L_2$ norm minimizes $\sum_i s_i(w_i-b_i)^2$, and the $L_1$ norm minimizes $\sum_i s_i|w_i-b_i|$, where $s_i$ is the sampling weight for unit $i$, $b_i$ is the base weight (1 by default), and $w_i$ are the weights to be estimated. The weights used in the balance constraints (and ultimately in effect estimation) are $w^*_i=s_i w_i$. An implication of this is that the ESS of the $w^*_i$ is not maximized with the $L_2$ norm. This also ensures that the weighted bootstrap correctly accounts for estimation of the weights.
 
-* `summary()` now displays the L2, L1, and L$\infinity$ norms and the relative entropy between the estimated weights and the base weights, and the number of weights estimated to be 0. The L2 and L1 norms and relative entropy are weighted by the `s.weights` if present.
+* `summary()` now displays the $L_2$, $L_1$, and $L_\infty$ norms and the relative entropy between the estimated weights and the base weights, and the number of weights estimated to be 0. The $L_2$ and $L_1$ norms and relative entropy are weighted by the `s.weights` if present.
 
 * `polish` is now `TRUE` by default for norms other than `"entropy"`; this slightly improves estimation.
 
@@ -59,15 +59,15 @@ The version involved a full rewrite and may not be backward compatible with prio
 
 * Added a new logo.
 
-# optweight 0.2.5
+# *optweight* 0.2.5
 
 * Reverting back to using *osqp* instead of *rosqp* now that *osqp* works. *cobalt* is back.
 
-# optweight 0.2.4
+# *optweight* 0.2.4
 
 * Reverting back to using *rosqp* instead of *osqp* due to package failure. Also removed reliance on *cobalt* in favor of *MatchIt* for data. Both changes are temporary. 
 
-# optweight 0.2.3
+# *optweight* 0.2.3
 
 * The *rosqp* package is now *osqp*, and is faster with fewer bugs.
 
@@ -77,11 +77,11 @@ The version involved a full rewrite and may not be backward compatible with prio
 
 * Other bugs fixes and small changes.
 
-# optweight 0.2.2
+# *optweight* 0.2.2
 
 * Fixed bug with duals displaying improperly when factor variables are present.
 
-# optweight 0.2.1
+# *optweight* 0.2.1
 
 * Changed default `min.w` in `optweight.fit()` and `optweight.svy.fit()` to 1E-8 from 0. This ensures all weights are nonzero, which can reduce bugs in other functions that require nonzero weights (e.g, `jtools::summ()` and `survey::svyglm()`).
 
@@ -89,7 +89,7 @@ The version involved a full rewrite and may not be backward compatible with prio
 
 * Stable balancing weights have been discovered to be invalid for longitudinal treatments, so attempting to use `optweight()`or `optweight.fit()` with longitudinal treatments will now produce an error. This can be overridden by setting `force = TRUE`, though this is not recommended until further research is done.
 
-# optweight 0.2.0
+# *optweight* 0.2.0
 
 * Added `optweight.svy()` and associated methods and functions for estimating survey weights using optimization. These weights when applied to the sample will yield a sample whose covariate means are equal (within a specified tolerance) to given target values.
 
@@ -97,6 +97,6 @@ The version involved a full rewrite and may not be backward compatible with prio
 
 * Changes to how dual variables are processed and displayed. Now, each dual variable coming from `optweight()` represents the change in the objective function corresponding to a 1-unit change in `tols`. The reported duals are the sum of all the duals affected by the constraint, so you can now reliably predict the change in the objective function from a change in `tols` (it was obscured and error-prone previously). The distinction between targeting duals and balance duals is maintained.
 
-# optweight 0.1.0
+# *optweight* 0.1.0
 
 * First version!

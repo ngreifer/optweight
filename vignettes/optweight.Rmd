@@ -11,8 +11,6 @@ vignette: >
   %\VignetteEngine{knitr::rmarkdown_notangle}
 bibliography: references.bib
 link-citations: true
-pkgdown: 
-  as_is: true
 editor_options: 
   chunk_output_type: console
 ---

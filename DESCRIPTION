@@ -1,7 +1,7 @@
 Package: optweight
 Type: Package
 Title: Optimization-Based Stable Balancing Weights
-Version: 1.0.0.9003
+Version: 1.0.0.9004
 Authors@R: c(
     person("Noah", "Greifer", role = c("aut", "cre"), 
            email = "noah.greifer@gmail.com",
@@ -17,7 +17,7 @@ Imports:
     cli (>= 3.6.5),
     Matrix (>= 1.2-13),
     collapse (>= 2.1.5),
-    ggplot2 (>= 3.5.0),
+    ggplot2 (>= 4.0.0),
     graphics,
     stats,
     utils
