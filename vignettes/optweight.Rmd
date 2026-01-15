@@ -208,7 +208,7 @@ We can see that for all covariates other than `race`, the mean differences are a
 The `norm` argument controls which objective function is used. See the table below for the allowable values of `norm`, their names, and their formulas:
 
 | `norm` | Name | $f\left(\mathbf{w}, \mathbf{b},\mathbf{s}\right)$ |
-|------------------|---------------------------|---------------------------|
+|:--------:|:------------:|:---------------------------|
 | `"l2"` | $L_2$ norm | $\frac{1}{n}\sum_i{s_i(w_i-b_i)^2}$ |
 | `"l1"` | $L_1$ norm | $\frac{1}{n} \sum_i {s_i \vert w_i - b_i \vert}$ |
 | `"linf"` | $L_\infty$ norm | $\max_i {\vert w_i - b_i \vert}$ |
@@ -273,7 +273,8 @@ m <- cbind(m, RE = .get_stats(ow_re))
 Below is a table of the statistics (rows) for the control group for each norm minimized (columns).
 
 ```{r, echo = FALSE}
-as.data.frame(m)
+as.data.frame(m) |>
+  knitr::kable()
 ```
 
 We can see that minimizing the $L_2$ norm yields weights that have the lowest $L_2$ divergence, minimizing the $L_1$ norm yields weights that have the lowest $L_1$ divergence, minimizing the $L_\infty$ norm yields weights that have the lowest $L_\infty$ divergence, and minimizing the relative entropy yields weights that have the lowest relative entropy. The $L_2$ divergence has the closest correspondence to the ESS (they have a 1:1 relationship), but there are some theoretical reasons to prefer other norms, especially when they correspond to certain assumptions about the true propensity score model. See @kallbergLargeSampleProperties2023 for more information on these assumptions.
@@ -445,7 +446,7 @@ Base weights are a set of initial weights that have some properties that the use
 
 First, we'll estimate propensity score weights using generalized boosted modeling through *WeightIt*. This is a flexible machine learning model, and we can request that features beyond the covariate means be balanced by minimizing the largest Kolmogorov-Smirnov (KS) statistic in the weighted sample.
 
-```{r, eval = gbm_ok, warn=F}
+```{r, eval = gbm_ok}
 # GBM IPW weights
 W_gbm <- WeightIt::weightit(treat ~ age + educ + race + married +
                               nodegree + re74 + re75,
