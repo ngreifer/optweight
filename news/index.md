@@ -1,6 +1,6 @@
 # Changelog
 
-## optweight (development version)
+## *optweight* (development version)
 
 - Specifying tolerances works slightly differently for binary and
   multi-category treatments with
@@ -63,7 +63,7 @@
 
 - Documentation and vignette updates.
 
-## optweight 1.0.0
+## *optweight* 1.0.0
 
 CRAN release: 2025-09-09
 
@@ -138,24 +138,24 @@ the more advanced functionality has changed.
   is equivalent to setting them equal to 1.
 
 - Optimization proceeds differently with `s.weights` supplied. First,
-  the L\\\infinity\\ cannot be used with sampling weights. Second, the
+  the \\L\_\infty\\ cannot be used with sampling weights. Second, the
   norm minimized is the weighted norm of the difference between the
   estimated weights and base weights, with the estimated weights not
-  incorporating the sampling weights. That is, the L2 norm minimizes
-  \\\sum_i s_i(w_i-b_i)^2\\, and the L1 norm minimizes \\\sum_i
-  s_i\|w_i-b_i\|\\, where \\s_i\\ is the sampling weight for unit \\i\\,
-  \\b_i\\ is the base weight (1 by default), and \\w_i\\ are the weights
-  to be estimated. The weights used in the balance constraints (and
-  ultimately in effect estimation) are \\w^\*\_i=s_i w_i\\. An
-  implication of this is that the ESS of the \\w^\*\_i\\ is not
-  maximized with the L2 norm. This also ensures that the weighted
-  bootstrap correctly accounts for estimation of the weights.
+  incorporating the sampling weights. That is, the \\L_2\\ norm
+  minimizes \\\sum_i s_i(w_i-b_i)^2\\, and the \\L_1\\ norm minimizes
+  \\\sum_i s_i\|w_i-b_i\|\\, where \\s_i\\ is the sampling weight for
+  unit \\i\\, \\b_i\\ is the base weight (1 by default), and \\w_i\\ are
+  the weights to be estimated. The weights used in the balance
+  constraints (and ultimately in effect estimation) are \\w^\*\_i=s_i
+  w_i\\. An implication of this is that the ESS of the \\w^\*\_i\\ is
+  not maximized with the \\L_2\\ norm. This also ensures that the
+  weighted bootstrap correctly accounts for estimation of the weights.
 
 - [`summary()`](https://rdrr.io/r/base/summary.html) now displays the
-  L2, L1, and L\\\infinity\\ norms and the relative entropy between the
-  estimated weights and the base weights, and the number of weights
-  estimated to be 0. The L2 and L1 norms and relative entropy are
-  weighted by the `s.weights` if present.
+  \\L_2\\, \\L_1\\, and \\L\_\infty\\ norms and the relative entropy
+  between the estimated weights and the base weights, and the number of
+  weights estimated to be 0. The \\L_2\\ and \\L_1\\ norms and relative
+  entropy are weighted by the `s.weights` if present.
 
 - `polish` is now `TRUE` by default for norms other than `"entropy"`;
   this slightly improves estimation.
@@ -176,14 +176,14 @@ the more advanced functionality has changed.
 
 - Added a new logo.
 
-## optweight 0.2.5
+## *optweight* 0.2.5
 
 CRAN release: 2019-09-16
 
 - Reverting back to using *osqp* instead of *rosqp* now that *osqp*
   works. *cobalt* is back.
 
-## optweight 0.2.4
+## *optweight* 0.2.4
 
 CRAN release: 2019-09-03
 
@@ -191,7 +191,7 @@ CRAN release: 2019-09-03
   failure. Also removed reliance on *cobalt* in favor of *MatchIt* for
   data. Both changes are temporary.
 
-## optweight 0.2.3
+## *optweight* 0.2.3
 
 CRAN release: 2019-08-25
 
@@ -207,14 +207,14 @@ CRAN release: 2019-08-25
 
 - Other bugs fixes and small changes.
 
-## optweight 0.2.2
+## *optweight* 0.2.2
 
 CRAN release: 2019-03-04
 
 - Fixed bug with duals displaying improperly when factor variables are
   present.
 
-## optweight 0.2.1
+## *optweight* 0.2.1
 
 CRAN release: 2019-01-16
 
@@ -238,7 +238,7 @@ CRAN release: 2019-01-16
   overridden by setting `force = TRUE`, though this is not recommended
   until further research is done.
 
-## optweight 0.2.0
+## *optweight* 0.2.0
 
 CRAN release: 2018-10-17
 
@@ -265,7 +265,7 @@ CRAN release: 2018-10-17
   obscured and error-prone previously). The distinction between
   targeting duals and balance duals is maintained.
 
-## optweight 0.1.0
+## *optweight* 0.1.0
 
 CRAN release: 2018-09-21
 

@@ -31,7 +31,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">optweight</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0.9003</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0.9004</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -55,6 +55,8 @@
 
   </div>
 </nav><div class="container template-article">
+
+
 
 
 <div class="row">
@@ -236,89 +238,13 @@ balance.</p>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="st">"lalonde"</span>, package <span class="op">=</span> <span class="st">"cobalt"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">lalonde</span><span class="op">)</span></span></code></pre></div>
-<div class="kable-table">
-<table class="table">
-<thead><tr class="header">
-<th align="right">treat</th>
-<th align="right">age</th>
-<th align="right">educ</th>
-<th align="left">race</th>
-<th align="right">married</th>
-<th align="right">nodegree</th>
-<th align="right">re74</th>
-<th align="right">re75</th>
-<th align="right">re78</th>
-</tr></thead>
-<tbody>
-<tr class="odd">
-<td align="right">1</td>
-<td align="right">37</td>
-<td align="right">11</td>
-<td align="left">black</td>
-<td align="right">1</td>
-<td align="right">1</td>
-<td align="right">0</td>
-<td align="right">0</td>
-<td align="right">9930.0</td>
-</tr>
-<tr class="even">
-<td align="right">1</td>
-<td align="right">22</td>
-<td align="right">9</td>
-<td align="left">hispan</td>
-<td align="right">0</td>
-<td align="right">1</td>
-<td align="right">0</td>
-<td align="right">0</td>
-<td align="right">3595.9</td>
-</tr>
-<tr class="odd">
-<td align="right">1</td>
-<td align="right">30</td>
-<td align="right">12</td>
-<td align="left">black</td>
-<td align="right">0</td>
-<td align="right">0</td>
-<td align="right">0</td>
-<td align="right">0</td>
-<td align="right">24909.5</td>
-</tr>
-<tr class="even">
-<td align="right">1</td>
-<td align="right">27</td>
-<td align="right">11</td>
-<td align="left">black</td>
-<td align="right">0</td>
-<td align="right">1</td>
-<td align="right">0</td>
-<td align="right">0</td>
-<td align="right">7506.1</td>
-</tr>
-<tr class="odd">
-<td align="right">1</td>
-<td align="right">33</td>
-<td align="right">8</td>
-<td align="left">black</td>
-<td align="right">0</td>
-<td align="right">1</td>
-<td align="right">0</td>
-<td align="right">0</td>
-<td align="right">289.8</td>
-</tr>
-<tr class="even">
-<td align="right">1</td>
-<td align="right">22</td>
-<td align="right">9</td>
-<td align="left">black</td>
-<td align="right">0</td>
-<td align="right">1</td>
-<td align="right">0</td>
-<td align="right">0</td>
-<td align="right">4056.5</td>
-</tr>
-</tbody>
-</table>
-</div>
+<pre><code><span><span class="co">##   treat age educ   race married nodegree re74 re75    re78</span></span>
+<span><span class="co">## 1     1  37   11  black       1        1    0    0  9930.0</span></span>
+<span><span class="co">## 2     1  22    9 hispan       0        1    0    0  3595.9</span></span>
+<span><span class="co">## 3     1  30   12  black       0        0    0    0 24909.5</span></span>
+<span><span class="co">## 4     1  27   11  black       0        1    0    0  7506.1</span></span>
+<span><span class="co">## 5     1  33    8  black       0        1    0    0   289.8</span></span>
+<span><span class="co">## 6     1  22    9  black       0        1    0    0  4056.5</span></span></code></pre>
 <p><code><a href="../reference/optweight.html">optweight()</a></code> can be used simply by supplying the
 treatment and covariates to the <code>formula</code> argument, the
 dataset to the <code>data</code> argument, and the estimand to the
@@ -327,7 +253,7 @@ dataset to the <code>data</code> argument, and the estimand to the
 the covariates (i.e., <span class="math inline">\(\delta_k=0\)</span>),
 requires exact mean target balance on the covariates (i.e., <span class="math inline">\(\varepsilon_k=0\)</span>), and requires all
 weights to be greater than <span class="math inline">\(w_\text{min}=10^{-8}\)</span>.</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ow</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/optweight.html">optweight</a></span><span class="op">(</span><span class="va">treat</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">educ</span> <span class="op">+</span> <span class="va">race</span> <span class="op">+</span> <span class="va">married</span> <span class="op">+</span></span>
 <span>                  <span class="va">nodegree</span> <span class="op">+</span> <span class="va">re74</span> <span class="op">+</span> <span class="va">re75</span>,</span>
 <span>                data <span class="op">=</span> <span class="va">lalonde</span>,</span>
@@ -347,7 +273,7 @@ weighted balance statistics; in particular, it produce weighted
 effective sample size (ESS), which represents the approximate size of an
 unweighted sample that produces the same precision as the weighted
 sample.</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">cobalt</span><span class="fu">::</span><span class="fu"><a href="https://ngreifer.github.io/cobalt/reference/bal.tab.html" class="external-link">bal.tab</a></span><span class="op">(</span><span class="va">ow</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## <span style="text-decoration: underline;">Balance Measures</span></span></span>
 <span><span class="co">##                Type Diff.Adj</span></span>
@@ -368,7 +294,7 @@ sample.</p>
 <p>As expected, all mean differences are exactly 0 in the weighted
 sample. We can use <code><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary()</a></code> to examine some properties of
 the weights:</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">ow</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##                   <span style="text-decoration: underline;">Summary of weights</span></span></span>
 <span><span class="co">## - <span style="font-style: italic;">Weight ranges</span>:</span></span>
@@ -408,9 +334,9 @@ statistics. Lastly, <code><a href="https://rdrr.io/r/base/summary.html" class="e
 original (effective) samples sizes.</p>
 <p>We can use <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> on the <code><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary()</a></code> output
 to visualize the distribution of the weights:</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">ow</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><img src="optweight_files/figure-html/unnamed-chunk-4-1.png"><!-- --></p>
+<p><img src="optweight_files/figure-html/unnamed-chunk-4-1.png" class="r-plt" alt="" width="576"></p>
 <p>Because we targeted the ATT, only the weights for the control group
 are displayed (the treated group weights are all 1).</p>
 <p>Below, we’ll adjust a few arguments to see what affects they have on
@@ -423,7 +349,7 @@ argument. This can either be a single value applied to all covariates or
 a vector with a value for each covariate. By default,
 <code>tols = 0</code>. Let’s see what happens when we increase
 <code>tols</code> to .02.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ow2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/optweight.html">optweight</a></span><span class="op">(</span><span class="va">treat</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">educ</span> <span class="op">+</span> <span class="va">race</span> <span class="op">+</span> <span class="va">married</span> <span class="op">+</span></span>
 <span>                   <span class="va">nodegree</span> <span class="op">+</span> <span class="va">re74</span> <span class="op">+</span> <span class="va">re75</span>,</span>
 <span>                 data <span class="op">=</span> <span class="va">lalonde</span>,</span>
@@ -460,7 +386,7 @@ variables should be in standardized units or not, see the
 the hood.&lt;/p&gt;'><sup>1</sup></a>.</p>
 <p>Allowing for more relaxed imbalance also increases the ESS. The <span class="math inline">\(L_2\)</span> statistic has shrunk
 correspondingly:</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">ow2</span>, weight.range <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##                   <span style="text-decoration: underline;">Summary of weights</span></span></span>
 <span><span class="co">## </span></span>
@@ -482,7 +408,7 @@ this. Give <code><a href="../reference/process_tols.html">process_tols()</a></co
 optionally, an initial tolerance value or vector thereof), and it will
 return a modifiable vector of balance tolerances that can be supplied to
 <code><a href="../reference/optweight.html">optweight()</a></code>.</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">tols</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/process_tols.html">process_tols</a></span><span class="op">(</span><span class="va">treat</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">educ</span> <span class="op">+</span> <span class="va">race</span> <span class="op">+</span> <span class="va">married</span> <span class="op">+</span></span>
 <span>                       <span class="va">nodegree</span> <span class="op">+</span> <span class="va">re74</span> <span class="op">+</span> <span class="va">re75</span>,</span>
 <span>                     data <span class="op">=</span> <span class="va">lalonde</span>,</span>
@@ -493,14 +419,14 @@ return a modifiable vector of balance tolerances that can be supplied to
 <span><span class="co">##     0.02     0.02     0.02     0.02     0.02     0.02     0.02</span></span></code></pre>
 <p>Here, we’ll relax the constraint on <code>race</code> by setting its
 group balance tolerance to .07 and then re-estimate the weights.</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">tols</span><span class="op">[</span><span class="st">"race"</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fl">.07</span></span>
 <span></span>
 <span><span class="va">tols</span></span></code></pre></div>
 <pre><code><span><span class="co">##  - <span style="font-style: italic;">tols</span>:</span></span>
 <span><span class="co">##      age     educ     race  married nodegree     re74     re75 </span></span>
 <span><span class="co">##     0.02     0.02     0.07     0.02     0.02     0.02     0.02</span></span></code></pre>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ow3</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/optweight.html">optweight</a></span><span class="op">(</span><span class="va">treat</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">educ</span> <span class="op">+</span> <span class="va">race</span> <span class="op">+</span> <span class="va">married</span> <span class="op">+</span></span>
 <span>                   <span class="va">nodegree</span> <span class="op">+</span> <span class="va">re74</span> <span class="op">+</span> <span class="va">re75</span>,</span>
 <span>                 data <span class="op">=</span> <span class="va">lalonde</span>,</span>
@@ -606,7 +532,7 @@ estimands.</p>
 <p>Below, we’ll minimize the <span class="math inline">\(L_2\)</span>
 norm, <span class="math inline">\(L_1\)</span> norm, <span class="math inline">\(L_\infty\)</span> norm, and relative entropy and
 see how those choices affect the properties of the weights.</p>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># L2 norm</span></span>
 <span><span class="va">ow_l2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/optweight.html">optweight</a></span><span class="op">(</span><span class="va">treat</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">educ</span> <span class="op">+</span> <span class="va">race</span> <span class="op">+</span> <span class="va">married</span> <span class="op">+</span></span>
 <span>                     <span class="va">nodegree</span> <span class="op">+</span> <span class="va">re74</span> <span class="op">+</span> <span class="va">re75</span>,</span>
@@ -636,47 +562,11 @@ see how those choices affect the properties of the weights.</p>
 <span>                   norm <span class="op">=</span> <span class="st">"entropy"</span><span class="op">)</span></span></code></pre></div>
 <p>Below is a table of the statistics (rows) for the control group for
 each norm minimized (columns).</p>
-<div class="kable-table">
-<table class="table">
-<thead><tr class="header">
-<th align="left"></th>
-<th align="right">l2</th>
-<th align="right">l1</th>
-<th align="right">linf</th>
-<th align="right">RE</th>
-</tr></thead>
-<tbody>
-<tr class="odd">
-<td align="left">L2</td>
-<td align="right">1.717</td>
-<td align="right">2.017</td>
-<td align="right">1.877</td>
-<td align="right">1.832</td>
-</tr>
-<tr class="even">
-<td align="left">L1</td>
-<td align="right">1.339</td>
-<td align="right">1.281</td>
-<td align="right">1.548</td>
-<td align="right">1.287</td>
-</tr>
-<tr class="odd">
-<td align="left">L∞</td>
-<td align="right">5.002</td>
-<td align="right">9.924</td>
-<td align="right">3.577</td>
-<td align="right">8.421</td>
-</tr>
-<tr class="even">
-<td align="left">Rel Ent</td>
-<td align="right">1.230</td>
-<td align="right">1.227</td>
-<td align="right">1.500</td>
-<td align="right">1.101</td>
-</tr>
-</tbody>
-</table>
-</div>
+<pre><code><span><span class="co">##            l2    l1  linf    RE</span></span>
+<span><span class="co">## L2      1.717 2.017 1.877 1.832</span></span>
+<span><span class="co">## L1      1.339 1.281 1.548 1.287</span></span>
+<span><span class="co">## L∞      5.002 9.924 3.577 8.420</span></span>
+<span><span class="co">## Rel Ent 1.230 1.227 1.500 1.101</span></span></code></pre>
 <p>We can see that minimizing the <span class="math inline">\(L_2\)</span> norm yields weights that have the
 lowest <span class="math inline">\(L_2\)</span> divergence, minimizing
 the <span class="math inline">\(L_1\)</span> norm yields weights that
@@ -713,7 +603,7 @@ groups be weighted so that the covariate means are equal to the
 covariate means in the full sample, as demonstrated below.</p>
 <p>The covariate means in the full sample can be computed using
 <code><a href="https://ngreifer.github.io/cobalt/reference/balance-summary.html" class="external-link">cobalt::col_w_mean()</a></code>:</p>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">covs</span> <span class="op">&lt;-</span> <span class="va">lalonde</span><span class="op">[</span><span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">9</span><span class="op">)</span><span class="op">]</span></span>
 <span></span>
 <span><span class="fu">cobalt</span><span class="fu">::</span><span class="fu"><a href="https://ngreifer.github.io/cobalt/reference/balance-summary.html" class="external-link">col_w_mean</a></span><span class="op">(</span><span class="va">covs</span><span class="op">)</span></span></code></pre></div>
@@ -724,7 +614,7 @@ covariate means in the full sample, as demonstrated below.</p>
 <p>After estimating weights that target the ATE, we will see that the
 weighted covariate means in each group are equal to those in the full
 sample:</p>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ow_ate</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/optweight.html">optweight</a></span><span class="op">(</span><span class="va">treat</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">educ</span> <span class="op">+</span> <span class="va">race</span> <span class="op">+</span> <span class="va">married</span> <span class="op">+</span></span>
 <span>                      <span class="va">nodegree</span> <span class="op">+</span> <span class="va">re74</span> <span class="op">+</span> <span class="va">re75</span>,</span>
 <span>                    data <span class="op">=</span> <span class="va">lalonde</span>,</span>
@@ -762,7 +652,7 @@ described by <span class="citation">Chattopadhyay, Cohn, and Zubizarreta
 To request a different target population, <code><a href="../reference/process_targets.html">process_targets()</a></code>
 can be used to create a vector of target means, which are supplied to
 the <code>targets</code> argument of <code><a href="../reference/optweight.html">optweight()</a></code>.</p>
-<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">targets1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/process_targets.html">process_targets</a></span><span class="op">(</span><span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">educ</span> <span class="op">+</span> <span class="va">race</span> <span class="op">+</span> <span class="va">married</span> <span class="op">+</span></span>
 <span>                              <span class="va">nodegree</span> <span class="op">+</span> <span class="va">re74</span> <span class="op">+</span> <span class="va">re75</span>,</span>
 <span>                            data <span class="op">=</span> <span class="va">lalonde</span><span class="op">)</span></span>
@@ -777,7 +667,7 @@ the <code>targets</code> argument of <code><a href="../reference/optweight.html"
 covariate in the full sample. These can be modified similarly to
 <code>tols</code> to specify target means. Note that for categorical
 covariates, the proportions in the groups must sum to 1.</p>
-<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">targets1</span><span class="op">[</span><span class="st">"age"</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fl">35</span></span>
 <span><span class="va">targets1</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"race_black"</span>, <span class="st">"race_hispan"</span>, <span class="st">"race_white"</span><span class="op">)</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">.5</span>, <span class="fl">.3</span>, <span class="fl">.2</span><span class="op">)</span></span>
 <span></span>
@@ -792,7 +682,7 @@ covariate means in the weighted sample are equal to these target means.
 We need to set <code>estimand = NULL</code> to ensure the
 <code>targets</code> are obeyed. Failing to do this will produce a
 warning.</p>
-<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ow_target1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/optweight.html">optweight</a></span><span class="op">(</span><span class="va">treat</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">educ</span> <span class="op">+</span> <span class="va">race</span> <span class="op">+</span> <span class="va">married</span> <span class="op">+</span></span>
 <span>                          <span class="va">nodegree</span> <span class="op">+</span> <span class="va">re74</span> <span class="op">+</span> <span class="va">re75</span>,</span>
 <span>                        data <span class="op">=</span> <span class="va">lalonde</span>,</span>
@@ -829,7 +719,7 @@ This can be especially helpful in cases of low overlap, as described by
 <span class="citation">Barnard, Huling, and Wolfson (<a href="#ref-barnardPartiallyRetargetedBalancing2025">2025</a>)</span>. We
 do this below, setting the targets for the <code>race</code> categories
 to <code>NA</code>:</p>
-<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">targets2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/process_targets.html">process_targets</a></span><span class="op">(</span><span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">educ</span> <span class="op">+</span> <span class="va">race</span> <span class="op">+</span> <span class="va">married</span> <span class="op">+</span></span>
 <span>                              <span class="va">nodegree</span> <span class="op">+</span> <span class="va">re74</span> <span class="op">+</span> <span class="va">re75</span>,</span>
 <span>                            data <span class="op">=</span> <span class="va">lalonde</span><span class="op">)</span></span>
@@ -865,7 +755,7 @@ supplied <code>tols</code>), but the resulting weighted means for the
 untargeted variables are those that happened to optimize the norm of the
 weights. We can even relax all target constraints to solely prioritize
 between-group balance by setting <code>targets = NA</code>.</p>
-<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ow_target3</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/optweight.html">optweight</a></span><span class="op">(</span><span class="va">treat</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">educ</span> <span class="op">+</span> <span class="va">race</span> <span class="op">+</span> <span class="va">married</span> <span class="op">+</span></span>
 <span>                          <span class="va">nodegree</span> <span class="op">+</span> <span class="va">re74</span> <span class="op">+</span> <span class="va">re75</span>,</span>
 <span>                        data <span class="op">=</span> <span class="va">lalonde</span>,</span>
@@ -912,7 +802,7 @@ by relaxing the target balance constraint on <code>race</code>. To do
 this, we create a new vector of target balance tolerances using
 <code><a href="../reference/process_tols.html">process_tols()</a></code> and modify the value for
 <code>race</code>.</p>
-<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">target.tols1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/process_tols.html">process_tols</a></span><span class="op">(</span><span class="va">treat</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">educ</span> <span class="op">+</span> <span class="va">race</span> <span class="op">+</span> <span class="va">married</span> <span class="op">+</span></span>
 <span>                               <span class="va">nodegree</span> <span class="op">+</span> <span class="va">re74</span> <span class="op">+</span> <span class="va">re75</span>,</span>
 <span>                             data <span class="op">=</span> <span class="va">lalonde</span><span class="op">)</span></span>
@@ -926,7 +816,7 @@ this, we create a new vector of target balance tolerances using
 <p>We can supply this vector of target balance tolerances to the
 <code>target.tols</code> argument of <code><a href="../reference/optweight.html">optweight()</a></code> to relax
 the target balance constraint without eliminating it entirely.</p>
-<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ow_target1b</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/optweight.html">optweight</a></span><span class="op">(</span><span class="va">treat</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">educ</span> <span class="op">+</span> <span class="va">race</span> <span class="op">+</span> <span class="va">married</span> <span class="op">+</span></span>
 <span>                           <span class="va">nodegree</span> <span class="op">+</span> <span class="va">re74</span> <span class="op">+</span> <span class="va">re75</span>,</span>
 <span>                         data <span class="op">=</span> <span class="va">lalonde</span>,</span>
@@ -959,14 +849,14 @@ target values.</p>
 entirely, we could set its target value to <code>NA</code>, as we did
 previously, or we can set its target balance tolerance to
 <code>Inf</code>, which we do below for <code>age</code>:</p>
-<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">target.tols1</span><span class="op">[</span><span class="st">"age"</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="cn">Inf</span></span>
 <span></span>
 <span><span class="va">target.tols1</span></span></code></pre></div>
 <pre><code><span><span class="co">##  - <span style="font-style: italic;">tols</span>:</span></span>
 <span><span class="co">##      age     educ     race  married nodegree     re74     re75 </span></span>
 <span><span class="co">##      Inf     0.00     0.07     0.00     0.00     0.00     0.00</span></span></code></pre>
-<div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ow_target1c</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/optweight.html">optweight</a></span><span class="op">(</span><span class="va">treat</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">educ</span> <span class="op">+</span> <span class="va">race</span> <span class="op">+</span> <span class="va">married</span> <span class="op">+</span></span>
 <span>                           <span class="va">nodegree</span> <span class="op">+</span> <span class="va">re74</span> <span class="op">+</span> <span class="va">re75</span>,</span>
 <span>                         data <span class="op">=</span> <span class="va">lalonde</span>,</span>
@@ -1049,7 +939,7 @@ boosted modeling through <em>WeightIt</em>. This is a flexible machine
 learning model, and we can request that features beyond the covariate
 means be balanced by minimizing the largest Kolmogorov-Smirnov (KS)
 statistic in the weighted sample.</p>
-<div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb44"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># GBM IPW weights</span></span>
 <span><span class="va">W_gbm</span> <span class="op">&lt;-</span> <span class="fu">WeightIt</span><span class="fu">::</span><span class="fu"><a href="https://ngreifer.github.io/WeightIt/reference/weightit.html" class="external-link">weightit</a></span><span class="op">(</span><span class="va">treat</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">educ</span> <span class="op">+</span> <span class="va">race</span> <span class="op">+</span> <span class="va">married</span> <span class="op">+</span></span>
 <span>                              <span class="va">nodegree</span> <span class="op">+</span> <span class="va">re74</span> <span class="op">+</span> <span class="va">re75</span>,</span>
@@ -1060,7 +950,7 @@ statistic in the weighted sample.</p>
 <p>Next we’ll use <code><a href="../reference/optweight.html">optweight()</a></code> to estimate a set of weights
 that differ as little as possible from these estimated weights while
 enforcing exact balance on the covariate means.</p>
-<div class="sourceCode" id="cb43"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb45"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># SBW with GBM base weights</span></span>
 <span><span class="va">ow_bw</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/optweight.html">optweight</a></span><span class="op">(</span><span class="va">treat</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">educ</span> <span class="op">+</span> <span class="va">race</span> <span class="op">+</span> <span class="va">married</span> <span class="op">+</span></span>
 <span>                     <span class="va">nodegree</span> <span class="op">+</span> <span class="va">re74</span> <span class="op">+</span> <span class="va">re75</span>,</span>
@@ -1069,7 +959,7 @@ enforcing exact balance on the covariate means.</p>
 <span>                   b.weights <span class="op">=</span> <span class="va">W_gbm</span><span class="op">$</span><span class="va">weights</span><span class="op">)</span></span></code></pre></div>
 <p>We’ll also estimate SBW weights with uniform base weights to see the
 difference in the properties of the weights.</p>
-<div class="sourceCode" id="cb44"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb46"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># SBW without base weights</span></span>
 <span><span class="va">ow</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/optweight.html">optweight</a></span><span class="op">(</span><span class="va">treat</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">educ</span> <span class="op">+</span> <span class="va">race</span> <span class="op">+</span> <span class="va">married</span> <span class="op">+</span></span>
 <span>                  <span class="va">nodegree</span> <span class="op">+</span> <span class="va">re74</span> <span class="op">+</span> <span class="va">re75</span>,</span>
@@ -1077,7 +967,7 @@ difference in the properties of the weights.</p>
 <span>                estimand <span class="op">=</span> <span class="st">"ATT"</span><span class="op">)</span></span></code></pre></div>
 <p>Finally, we can look at balance on all three sets of weights on the
 means and KS statistics.</p>
-<div class="sourceCode" id="cb45"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb47"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Mean diferences</span></span>
 <span><span class="fu">cobalt</span><span class="fu">::</span><span class="fu"><a href="https://ngreifer.github.io/cobalt/reference/bal.tab.html" class="external-link">bal.tab</a></span><span class="op">(</span><span class="va">W_gbm</span>, stats <span class="op">=</span> <span class="st">"m"</span>,</span>
 <span>                weights <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>ow_bw <span class="op">=</span> <span class="va">ow_bw</span><span class="op">$</span><span class="va">weights</span>,</span>
@@ -1101,7 +991,7 @@ means and KS statistics.</p>
 <span><span class="co">## weightit   24.71     185</span></span>
 <span><span class="co">## ow_bw      24.54     185</span></span>
 <span><span class="co">## ow        108.64     185</span></span></code></pre>
-<div class="sourceCode" id="cb47"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb49"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># KS statistics</span></span>
 <span><span class="fu">cobalt</span><span class="fu">::</span><span class="fu"><a href="https://ngreifer.github.io/cobalt/reference/bal.tab.html" class="external-link">bal.tab</a></span><span class="op">(</span><span class="va">W_gbm</span>, stats <span class="op">=</span> <span class="st">"ks"</span>,</span>
 <span>                weights <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>ow_bw <span class="op">=</span> <span class="va">ow_bw</span><span class="op">$</span><span class="va">weights</span>,</span>
@@ -1179,7 +1069,7 @@ be found.</p>
 to modify constraints to try to take advantage of the bias-variance
 trade-off. First we’ll estimate SBW weights with balance tolerances of
 .02 for all covariates.</p>
-<div class="sourceCode" id="cb49"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb51"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">tols</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/process_tols.html">process_tols</a></span><span class="op">(</span><span class="va">treat</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">educ</span> <span class="op">+</span> <span class="va">race</span> <span class="op">+</span> <span class="va">married</span> <span class="op">+</span></span>
 <span>                       <span class="va">nodegree</span> <span class="op">+</span> <span class="va">re74</span> <span class="op">+</span> <span class="va">re75</span>,</span>
 <span>                     data <span class="op">=</span> <span class="va">lalonde</span>,</span>
@@ -1207,78 +1097,27 @@ trade-off. First we’ll estimate SBW weights with balance tolerances of
 <span><span class="co">## Weighted     118.8     185</span></span></code></pre>
 <p>We can print the dual variables in the <code>duals</code> component
 of the output object and plot them with <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code>:</p>
-<div class="sourceCode" id="cb51"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb53"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ow</span><span class="op">$</span><span class="va">duals</span></span></code></pre></div>
-<div class="kable-table">
-<table class="table">
-<thead><tr class="header">
-<th align="right">component</th>
-<th align="left">constraint</th>
-<th align="left">cov</th>
-<th align="right">dual</th>
-</tr></thead>
-<tbody>
-<tr class="odd">
-<td align="right">0</td>
-<td align="left">weight range</td>
-<td align="left">NA</td>
-<td align="right">2.4615</td>
-</tr>
-<tr class="even">
-<td align="right">1</td>
-<td align="left">balance</td>
-<td align="left">age</td>
-<td align="right">0.2449</td>
-</tr>
-<tr class="odd">
-<td align="right">1</td>
-<td align="left">balance</td>
-<td align="left">educ</td>
-<td align="right">0.6267</td>
-</tr>
-<tr class="even">
-<td align="right">1</td>
-<td align="left">balance</td>
-<td align="left">race</td>
-<td align="right">5.6655</td>
-</tr>
-<tr class="odd">
-<td align="right">1</td>
-<td align="left">balance</td>
-<td align="left">married</td>
-<td align="right">1.0527</td>
-</tr>
-<tr class="even">
-<td align="right">1</td>
-<td align="left">balance</td>
-<td align="left">nodegree</td>
-<td align="right">1.6113</td>
-</tr>
-<tr class="odd">
-<td align="right">1</td>
-<td align="left">balance</td>
-<td align="left">re74</td>
-<td align="right">0.7150</td>
-</tr>
-<tr class="even">
-<td align="right">1</td>
-<td align="left">balance</td>
-<td align="left">re75</td>
-<td align="right">0.0437</td>
-</tr>
-</tbody>
-</table>
-</div>
-<div class="sourceCode" id="cb52"><pre class="downlit sourceCode r">
+<pre><code><span><span class="co">##   component   constraint      cov    dual</span></span>
+<span><span class="co">## 1         0 weight range     &lt;NA&gt; 2.46151</span></span>
+<span><span class="co">## 2         1      balance      age 0.24485</span></span>
+<span><span class="co">## 3         1      balance     educ 0.62674</span></span>
+<span><span class="co">## 4         1      balance     race 5.66548</span></span>
+<span><span class="co">## 5         1      balance  married 1.05266</span></span>
+<span><span class="co">## 6         1      balance nodegree 1.61135</span></span>
+<span><span class="co">## 7         1      balance     re74 0.71501</span></span>
+<span><span class="co">## 8         1      balance     re75 0.04373</span></span></code></pre>
+<div class="sourceCode" id="cb55"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">ow</span><span class="op">)</span></span></code></pre></div>
-<p><img src="optweight_files/figure-html/unnamed-chunk-28-1.png"><!-- --></p>
+<p><img src="optweight_files/figure-html/unnamed-chunk-28-1.png" class="r-plt" alt="" width="576"></p>
 <p>From this, it’s clear that <code>race</code> has the largest dual
 variable, and <code>re75</code> has the smallest. That means we can
 likely get the biggest gains in ESS by relaxing the balance constraint
 for <code>race</code>, whereas tightening the balance constraint for
 <code>re75</code> will have little effect on the ESS. Below, we relax
 the balance constraint for <code>race</code> to .1.</p>
-<div class="sourceCode" id="cb53"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb56"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">tols</span><span class="op">[</span><span class="st">"race"</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fl">.1</span></span>
 <span></span>
 <span><span class="va">ow2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/optweight.html">optweight</a></span><span class="op">(</span><span class="va">treat</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">educ</span> <span class="op">+</span> <span class="va">race</span> <span class="op">+</span> <span class="va">married</span> <span class="op">+</span></span>
@@ -1306,7 +1145,7 @@ quite a bit. We would not see the same increase had we instead relaxed
 the constraint on a covariate with a smaller dual variable, like
 <code>re75</code>. Below, we restore all balance constraints to .02 and
 then set the balance constraint for <code>re75</code> to .1.</p>
-<div class="sourceCode" id="cb55"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb58"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">tols</span><span class="op">[</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fl">.02</span></span>
 <span><span class="va">tols</span><span class="op">[</span><span class="st">"re75"</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fl">.1</span></span>
 <span></span>
@@ -1334,7 +1173,7 @@ then set the balance constraint for <code>re75</code> to .1.</p>
 tolerances being equal to .02). However, this also suggests we can
 tighten the constraint on <code>re75</code> without much loss in ESS.
 Below, we decrease the tolerance on <code>re75</code> to 0:</p>
-<div class="sourceCode" id="cb57"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb60"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">tols</span><span class="op">[</span><span class="st">"re75"</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fl">0</span></span>
 <span></span>
 <span><span class="va">ow4</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/optweight.html">optweight</a></span><span class="op">(</span><span class="va">treat</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">educ</span> <span class="op">+</span> <span class="va">race</span> <span class="op">+</span> <span class="va">married</span> <span class="op">+</span></span>
@@ -1360,7 +1199,7 @@ Below, we decrease the tolerance on <code>re75</code> to 0:</p>
 <p>We see that despite the tighter tolerance, the ESS remains about the
 same. For reference, below are the balance statistics and ESSs for all
 four sets of weights:</p>
-<div class="sourceCode" id="cb59"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb62"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">cobalt</span><span class="fu">::</span><span class="fu"><a href="https://ngreifer.github.io/cobalt/reference/bal.tab.html" class="external-link">bal.tab</a></span><span class="op">(</span><span class="va">treat</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">educ</span> <span class="op">+</span> <span class="va">race</span> <span class="op">+</span> <span class="va">married</span> <span class="op">+</span></span>
 <span>                  <span class="va">nodegree</span> <span class="op">+</span> <span class="va">re74</span> <span class="op">+</span> <span class="va">re75</span>,</span>
 <span>                data <span class="op">=</span> <span class="va">lalonde</span>,</span>
@@ -1397,16 +1236,16 @@ target balance constraints, and the constraint on the minimum of the
 weights may be active as well (i.e., indicating that requiring the
 weights to be positive limits the precision of the resulting weights).
 Below, we demonstrate how these might differ by targeting the ATE:</p>
-<div class="sourceCode" id="cb61"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb64"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ow</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/optweight.html">optweight</a></span><span class="op">(</span><span class="va">treat</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">educ</span> <span class="op">+</span> <span class="va">race</span> <span class="op">+</span> <span class="va">married</span> <span class="op">+</span></span>
 <span>                   <span class="va">nodegree</span> <span class="op">+</span> <span class="va">re74</span> <span class="op">+</span> <span class="va">re75</span>,</span>
 <span>                 data <span class="op">=</span> <span class="va">lalonde</span>,</span>
 <span>                 estimand <span class="op">=</span> <span class="st">"ATE"</span><span class="op">)</span></span></code></pre></div>
 <p>Plotting the dual variables reveals separate dual variables for the
 target and balance constraints:</p>
-<div class="sourceCode" id="cb62"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb65"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">ow</span><span class="op">)</span></span></code></pre></div>
-<p><img src="optweight_files/figure-html/unnamed-chunk-34-1.png"><!-- --></p>
+<p><img src="optweight_files/figure-html/unnamed-chunk-34-1.png" class="r-plt" alt="" width="576"></p>
 <p>The group and target balance constraints can be modified
 independently of each other using <code>tols</code> and
 <code>target.tols</code>, respectively. In this case, if we believed
@@ -1416,9 +1255,9 @@ group balance constraint.</p>
 <p>We can also plot the sum of the dual variables for each type of
 constraint to examine which set is most active by setting
 <code>type = "constraints"</code> in <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code>:</p>
-<div class="sourceCode" id="cb63"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb66"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">ow</span>, type <span class="op">=</span> <span class="st">"constraints"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="optweight_files/figure-html/unnamed-chunk-35-1.png"><!-- --></p>
+<p><img src="optweight_files/figure-html/unnamed-chunk-35-1.png" class="r-plt" alt="" width="576"></p>
 <p>From this we can see that group balance and target constraints have
 similar limiting effects on the optimization, whereas the weight range
 (controlled by <code>min_w</code>) has little effect in this
@@ -1448,7 +1287,7 @@ However, <code>targets</code> should be a vector with a value for each
 unique covariate since one cannot specify multiple targets for the same
 covariate. Below is example (not run) of how to specify a call to
 <code><a href="../reference/optweightMV.html">optweightMV()</a></code>:</p>
-<div class="sourceCode" id="cb64"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb67"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">owmv</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/optweightMV.html">optweightMV</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">t1</span> <span class="op">~</span> <span class="va">x1</span> <span class="op">+</span> <span class="va">x2</span> <span class="op">+</span> <span class="va">x3</span>,</span>
 <span>                         <span class="va">t2</span> <span class="op">~</span> <span class="va">x1</span> <span class="op">+</span> <span class="va">x2</span> <span class="op">+</span> <span class="va">x3</span>,</span>
 <span>                         <span class="va">t3</span> <span class="op">~</span> <span class="va">x1</span> <span class="op">+</span> <span class="va">x2</span> <span class="op">+</span> <span class="va">x3</span><span class="op">)</span>,</span>
@@ -1508,7 +1347,7 @@ MAIC as originally described is equivalent to entropy balancing <span class="cit
 covariates means. If all variables in the dataset are to be specified,
 the formula can be omitted (for both <code><a href="../reference/process_targets.html">process_targets()</a></code> and
 <code><a href="../reference/optweight.svy.html">optweight.svy()</a></code>).</p>
-<div class="sourceCode" id="cb65"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb68"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">lalonde_c</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">lalonde</span>, <span class="va">treat</span> <span class="op">==</span> <span class="fl">0</span>,</span>
 <span>                    select <span class="op">=</span> <span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">treat</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
@@ -1527,7 +1366,7 @@ the calls to <code><a href="../reference/process_targets.html">process_targets()
 We’ll do that for <code>re78</code>, and set specific targets for the
 other variables except <code>re75</code>, which we’ll leave at its
 mean.</p>
-<div class="sourceCode" id="cb67"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb70"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">targets</span><span class="op">[</span><span class="st">"age"</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fl">40</span></span>
 <span><span class="va">targets</span><span class="op">[</span><span class="st">"educ"</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fl">9</span></span>
 <span><span class="va">targets</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"race_black"</span>, <span class="st">"race_hispan"</span>, <span class="st">"race_white"</span><span class="op">)</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">.2</span>, <span class="fl">.2</span>, <span class="fl">.6</span><span class="op">)</span></span>
@@ -1545,7 +1384,7 @@ mean.</p>
 <p>We can supply these to <code><a href="../reference/optweight.svy.html">optweight.svy()</a></code>. This time we’ll
 set <code>min.w</code> to 0 to allow those with weights of 0 to be
 effectively dropped from the sample.</p>
-<div class="sourceCode" id="cb69"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb72"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ow_s</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/optweight.svy.html">optweight.svy</a></span><span class="op">(</span><span class="va">lalonde_c</span>,</span>
 <span>                      targets <span class="op">=</span> <span class="va">targets</span>,</span>
 <span>                      min.w <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span>
@@ -1557,7 +1396,7 @@ effectively dropped from the sample.</p>
 <span><span class="co">##  - sampling weights: present</span></span>
 <span><span class="co">##  - base weights: present</span></span>
 <span><span class="co">##  - covariates: age, educ, race, married, nodegree, re74, re75, re78</span></span></code></pre>
-<div class="sourceCode" id="cb71"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb74"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">ow_s</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##                   <span style="text-decoration: underline;">Summary of weights</span></span></span>
 <span><span class="co">## - <span style="font-style: italic;">Weight ranges</span>:</span></span>
@@ -1588,7 +1427,7 @@ data needs to be collected since those with weights of 0 are not
 necessary for subsequent analysis. We can examine the weighted covariate
 means using <code>cobalt::col_w_means()</code> as before, with the
 estimated weights supplied to <code>s.weights</code>:</p>
-<div class="sourceCode" id="cb73"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb76"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">cobalt</span><span class="fu">::</span><span class="fu"><a href="https://ngreifer.github.io/cobalt/reference/balance-summary.html" class="external-link">col_w_mean</a></span><span class="op">(</span><span class="va">lalonde_c</span>, s.weights <span class="op">=</span> <span class="va">ow_s</span><span class="op">$</span><span class="va">weights</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##         age        educ  race_black race_hispan  race_white     married </span></span>
 <span><span class="co">##        40.0         9.0         0.2         0.2         0.6         0.6 </span></span>
@@ -1600,9 +1439,9 @@ weights since no constraint was placed on it. As with
 <code><a href="../reference/optweight.html">optweight()</a></code>, we can see how much each constraint
 contributed to the increase in variability by examining the dual
 variables:</p>
-<div class="sourceCode" id="cb75"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb78"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">ow_s</span><span class="op">)</span></span></code></pre></div>
-<p><img src="optweight_files/figure-html/unnamed-chunk-41-1.png"><!-- --></p>
+<p><img src="optweight_files/figure-html/unnamed-chunk-41-1.png" class="r-plt" alt="" width="576"></p>
 <p>Here it’s clear that the constraint on <code>re74</code> is
 contributing the most, and that relaxing the constraint would have the
 greatest impact on ESS. The constraint can be relaxed either by changing
@@ -1610,7 +1449,7 @@ the target to one closer to that of the original data (or closer to
 where it would be if no constraint was placed on <code>re74</code>) or
 by setting a more relaxed tolerance for <code>re74</code> using
 <code>tols</code>. We’ll use the latter option below:</p>
-<div class="sourceCode" id="cb76"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb79"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">tols</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/process_tols.html">process_tols</a></span><span class="op">(</span><span class="va">lalonde_c</span>, tols <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">tols</span><span class="op">[</span><span class="st">"re74"</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fl">300</span></span>
@@ -1625,7 +1464,7 @@ that the tolerance for continuous variables should be in raw units, not
 standardized units. Now we can interpret our constraint as allowing the
 weighted mean for <code>re74</code> to be within 300 of its specified
 target of 1000.</p>
-<div class="sourceCode" id="cb78"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb81"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ow_s2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/optweight.svy.html">optweight.svy</a></span><span class="op">(</span><span class="va">lalonde_c</span>,</span>
 <span>                       targets <span class="op">=</span> <span class="va">targets</span>,</span>
 <span>                       min.w <span class="op">=</span> <span class="fl">0</span>,</span>
@@ -1648,7 +1487,7 @@ target of 1000.</p>
 <p>This increased the ESS of the weights, and below we can see that the
 weighted mean for <code>re74</code> is at most 300 away from 1000, while
 the other variables are at their specified targets.</p>
-<div class="sourceCode" id="cb80"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb83"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">cobalt</span><span class="fu">::</span><span class="fu"><a href="https://ngreifer.github.io/cobalt/reference/balance-summary.html" class="external-link">col_w_mean</a></span><span class="op">(</span><span class="va">lalonde_c</span>, s.weights <span class="op">=</span> <span class="va">ow_s2</span><span class="op">$</span><span class="va">weights</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##         age        educ  race_black race_hispan  race_white     married </span></span>
 <span><span class="co">##        40.0         9.0         0.2         0.2         0.6         0.6 </span></span>
@@ -1685,7 +1524,7 @@ be an acceptable alternative.</p>
 <p>Below, we demonstrate both approaches with the <code>lalonde</code>
 data. First, we estimate the weights for the ATT and fit the outcome
 model.</p>
-<div class="sourceCode" id="cb82"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb85"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ow</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/optweight.html">optweight</a></span><span class="op">(</span><span class="va">treat</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">educ</span> <span class="op">+</span> <span class="va">race</span> <span class="op">+</span> <span class="va">married</span> <span class="op">+</span></span>
 <span>                  <span class="va">nodegree</span> <span class="op">+</span> <span class="va">re74</span> <span class="op">+</span> <span class="va">re75</span>,</span>
 <span>                data <span class="op">=</span> <span class="va">lalonde</span>,</span>
@@ -1712,7 +1551,7 @@ multiplied by the returned weights before being used in
 bootstrap weights.&lt;/p&gt;'><sup>4</sup></a>. We can use <code><a href="https://rdrr.io/r/stats/update.html" class="external-link">update()</a></code> to
 re-estimate the SBW weights and weighted regression model in each
 bootstrap replication.</p>
-<div class="sourceCode" id="cb84"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb87"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ngreifer.github.io/fwb/" class="external-link">fwb</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">bootfun</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">data</span>, <span class="va">w</span><span class="op">)</span> <span class="op">{</span></span>
@@ -1740,7 +1579,7 @@ package. Supply the output of <code><a href="https://rdrr.io/r/stats/lm.html" cl
 <code><a href="https://marginaleffects.com/man/r/comparisons.html" class="external-link">marginaleffects::avg_comparisons()</a></code> with
 <code>vcov = "HC3"</code> to request a robust standard error for the
 treatment effect estimate.</p>
-<div class="sourceCode" id="cb86"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb89"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://marginaleffects.com/" class="external-link">marginaleffects</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://marginaleffects.com/man/r/comparisons.html" class="external-link">avg_comparisons</a></span><span class="op">(</span><span class="va">fit</span>,</span>

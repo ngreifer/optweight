@@ -13,7 +13,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">optweight</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0.9003</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0.9004</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -39,7 +39,8 @@
     </div>
 
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="development version" id="optweight-development-version">optweight (development version)<a class="anchor" aria-label="anchor" href="#optweight-development-version"></a></h2>
+<h2 class="pkg-version" data-toc-text="development version" id="optweight-development-version">
+<em>optweight</em> (development version)<a class="anchor" aria-label="anchor" href="#optweight-development-version"></a></h2>
 <ul><li><p>Specifying tolerances works slightly differently for binary and multi-category treatments with <code><a href="../reference/optweight.html">optweight()</a></code>. <code>tols</code> controls only how similar each pair of groups are to each other, and a new argument, <code>target.tols</code>, controls how similar the average of the group means are to the target mean. This means that group balance is separate from target balance. See <code><a href="../reference/optweight.html">?optweight</a></code> for more information. Previously, <code>tols</code> only controlled target balance, and group balance came along for free. This slightly changes the weights estimated when setting <code>tols</code> to a value greater than 0 when <code>target.tols</code> is set to 0 (its default): now, the group means must be equidistant from the target means, whereas previously, it was only required that the group means each be with <code>tols/2</code> of the target mean.</p></li>
 <li><p>The <code>duals</code> output is slightly different: for multivariate treatments with <code><a href="../reference/optweightMV.html">optweightMV()</a></code>, the <code>duals</code> component of the output object is a single data frame with a new column, <code>component</code>, corresponding to the treatment each dual variable refers to. For all weighting functions, the dual variable corresponding to the constraint on the minimum of the weights (controlled by <code>min.w</code>) is now included in the output with <code>component</code> equal to 0.</p></li>
 <li><p>In <code><a href="../reference/plot.optweight.html">plot.optweight()</a></code>, a new argument, <code>type</code>, can be specified to select between two types of dual variable plots: <code>"variables"</code>, the default, displays a dual variable for each covariate; <code>"constraints"</code> displays a dual variable for each constraint type (weight range, balance, and target), computed as the sum of the dual variables for that constraint type.</p></li>
@@ -50,7 +51,8 @@
 <li><p>Documentation and vignette updates.</p></li>
 </ul></div>
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="1.0.0" id="optweight-100">optweight 1.0.0<a class="anchor" aria-label="anchor" href="#optweight-100"></a></h2><p class="text-muted">CRAN release: 2025-09-09</p>
+<h2 class="pkg-version" data-toc-text="1.0.0" id="optweight-100">
+<em>optweight</em> 1.0.0<a class="anchor" aria-label="anchor" href="#optweight-100"></a></h2><p class="text-muted">CRAN release: 2025-09-09</p>
 <p>The version involved a full rewrite and may not be backward compatible with prior versions. Basic functionality has not changed, but some of the more advanced functionality has changed.</p>
 <ul><li><p>Added a new function, <code><a href="../reference/optweightMV.html">optweightMV()</a></code>, for performing weighting for multivariate treatments. This takes the place of the old functionality of <code><a href="../reference/optweight.html">optweight()</a></code> to take in a list of formulas. Documentation and other supporting text has been updated to emphasize that the purpose of this function is for multivariate treatments, not longitudinal treatments as previously documented. Note that <code><a href="../reference/optweight.html">optweight()</a></code> now throws an error if a list of formulas is supplied. A lower-level version, <code><a href="../reference/optweightMV.html">optweightMV.fit()</a></code>, is also available.</p></li>
 <li><p><code><a href="../reference/process_tols.html">check.tols()</a></code> and <code><a href="../reference/process_targets.html">check.targets()</a></code> have been renamed <code><a href="../reference/process_tols.html">process_tols()</a></code> and <code><a href="../reference/process_targets.html">process_targets()</a></code>, respectively, and have some new functionality. The <code>stop</code> argument has been removed. <code><a href="../reference/process_targets.html">process_targets()</a></code> now accepts <code>s.weights</code> to compute sampling-weighted target means.</p></li>
@@ -62,8 +64,8 @@
 <li><p>Documentation is now in <em>roxygen2</em>.</p></li>
 <li><p>Added a new vignette (<code><a href="../articles/optweight.html">vignette("optweight")</a></code>).</p></li>
 <li><p>Added <code>b.weights</code> argument to supply base weights. When supplied, rather than minimizing the variance of the weights, the squared distance from each base weight is minimized, mirroring the functionality of the <code>base.weights</code> argument in <em>ebalance</em> for entropy balancing. All norms now support base weights. Omitting base weights is equivalent to setting them equal to 1.</p></li>
-<li><p>Optimization proceeds differently with <code>s.weights</code> supplied. First, the L<span class="math inline">\(\infinity\)</span> cannot be used with sampling weights. Second, the norm minimized is the weighted norm of the difference between the estimated weights and base weights, with the estimated weights not incorporating the sampling weights. That is, the L2 norm minimizes <span class="math inline">\(\sum_i s_i(w_i-b_i)^2\)</span>, and the L1 norm minimizes <span class="math inline">\(\sum_i s_i|w_i-b_i|\)</span>, where <span class="math inline">\(s_i\)</span> is the sampling weight for unit <span class="math inline">\(i\)</span>, <span class="math inline">\(b_i\)</span> is the base weight (1 by default), and <span class="math inline">\(w_i\)</span> are the weights to be estimated. The weights used in the balance constraints (and ultimately in effect estimation) are <span class="math inline">\(w^*_i=s_i w_i\)</span>. An implication of this is that the ESS of the <span class="math inline">\(w^*_i\)</span> is not maximized with the L2 norm. This also ensures that the weighted bootstrap correctly accounts for estimation of the weights.</p></li>
-<li><p><code><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary()</a></code> now displays the L2, L1, and L<span class="math inline">\(\infinity\)</span> norms and the relative entropy between the estimated weights and the base weights, and the number of weights estimated to be 0. The L2 and L1 norms and relative entropy are weighted by the <code>s.weights</code> if present.</p></li>
+<li><p>Optimization proceeds differently with <code>s.weights</code> supplied. First, the <span class="math inline">\(L_\infty\)</span> cannot be used with sampling weights. Second, the norm minimized is the weighted norm of the difference between the estimated weights and base weights, with the estimated weights not incorporating the sampling weights. That is, the <span class="math inline">\(L_2\)</span> norm minimizes <span class="math inline">\(\sum_i s_i(w_i-b_i)^2\)</span>, and the <span class="math inline">\(L_1\)</span> norm minimizes <span class="math inline">\(\sum_i s_i|w_i-b_i|\)</span>, where <span class="math inline">\(s_i\)</span> is the sampling weight for unit <span class="math inline">\(i\)</span>, <span class="math inline">\(b_i\)</span> is the base weight (1 by default), and <span class="math inline">\(w_i\)</span> are the weights to be estimated. The weights used in the balance constraints (and ultimately in effect estimation) are <span class="math inline">\(w^*_i=s_i w_i\)</span>. An implication of this is that the ESS of the <span class="math inline">\(w^*_i\)</span> is not maximized with the <span class="math inline">\(L_2\)</span> norm. This also ensures that the weighted bootstrap correctly accounts for estimation of the weights.</p></li>
+<li><p><code><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary()</a></code> now displays the <span class="math inline">\(L_2\)</span>, <span class="math inline">\(L_1\)</span>, and <span class="math inline">\(L_\infty\)</span> norms and the relative entropy between the estimated weights and the base weights, and the number of weights estimated to be 0. The <span class="math inline">\(L_2\)</span> and <span class="math inline">\(L_1\)</span> norms and relative entropy are weighted by the <code>s.weights</code> if present.</p></li>
 <li><p><code>polish</code> is now <code>TRUE</code> by default for norms other than <code>"entropy"</code>; this slightly improves estimation.</p></li>
 <li><p>Some default arguments to the solvers have changed.</p></li>
 <li><p>Formula interfaces now accept <code>poly(x, .)</code> and other matrix-generating functions of variables, including the <code>rms</code>-class-generating functions from the <em>rms</em> package (e.g., <code>pol()</code>, <code>rcs()</code>, etc.) (the <em>rms</em> package must be loaded to use these latter ones) and the <code>basis</code>-class-generating functions from the <em>splines</em> package (i.e., <code>bs()</code> and <code>ns()</code>). A bug in an early version of this was found by <a href="https://github.com/ahinton-mmc" class="external-link">@ahinton-mmc</a>.</p></li>
@@ -72,38 +74,45 @@
 <li><p>Added a new logo.</p></li>
 </ul></div>
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.2.5" id="optweight-025">optweight 0.2.5<a class="anchor" aria-label="anchor" href="#optweight-025"></a></h2><p class="text-muted">CRAN release: 2019-09-16</p>
+<h2 class="pkg-version" data-toc-text="0.2.5" id="optweight-025">
+<em>optweight</em> 0.2.5<a class="anchor" aria-label="anchor" href="#optweight-025"></a></h2><p class="text-muted">CRAN release: 2019-09-16</p>
 <ul><li>Reverting back to using <em>osqp</em> instead of <em>rosqp</em> now that <em>osqp</em> works. <em>cobalt</em> is back.</li>
 </ul></div>
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.2.4" id="optweight-024">optweight 0.2.4<a class="anchor" aria-label="anchor" href="#optweight-024"></a></h2><p class="text-muted">CRAN release: 2019-09-03</p>
+<h2 class="pkg-version" data-toc-text="0.2.4" id="optweight-024">
+<em>optweight</em> 0.2.4<a class="anchor" aria-label="anchor" href="#optweight-024"></a></h2><p class="text-muted">CRAN release: 2019-09-03</p>
 <ul><li>Reverting back to using <em>rosqp</em> instead of <em>osqp</em> due to package failure. Also removed reliance on <em>cobalt</em> in favor of <em>MatchIt</em> for data. Both changes are temporary.</li>
 </ul></div>
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.2.3" id="optweight-023">optweight 0.2.3<a class="anchor" aria-label="anchor" href="#optweight-023"></a></h2><p class="text-muted">CRAN release: 2019-08-25</p>
+<h2 class="pkg-version" data-toc-text="0.2.3" id="optweight-023">
+<em>optweight</em> 0.2.3<a class="anchor" aria-label="anchor" href="#optweight-023"></a></h2><p class="text-muted">CRAN release: 2019-08-25</p>
 <ul><li><p>The <em>rosqp</em> package is now <em>osqp</em>, and is faster with fewer bugs.</p></li>
 <li><p>If <code>focal</code> is set, the estimand is automatically changed to <code>"ATT"</code>. In the past, <code>focal</code> would be ignored unless <code>estimand = "ATT"</code>.</p></li>
 <li><p>Fixed some bugs with processing formula inputs. In particular, functions can be used inside <code><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply()</a></code> loops and nested functions more gracefully.</p></li>
 <li><p>Other bugs fixes and small changes.</p></li>
 </ul></div>
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.2.2" id="optweight-022">optweight 0.2.2<a class="anchor" aria-label="anchor" href="#optweight-022"></a></h2><p class="text-muted">CRAN release: 2019-03-04</p>
+<h2 class="pkg-version" data-toc-text="0.2.2" id="optweight-022">
+<em>optweight</em> 0.2.2<a class="anchor" aria-label="anchor" href="#optweight-022"></a></h2><p class="text-muted">CRAN release: 2019-03-04</p>
 <ul><li>Fixed bug with duals displaying improperly when factor variables are present.</li>
 </ul></div>
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.2.1" id="optweight-021">optweight 0.2.1<a class="anchor" aria-label="anchor" href="#optweight-021"></a></h2><p class="text-muted">CRAN release: 2019-01-16</p>
+<h2 class="pkg-version" data-toc-text="0.2.1" id="optweight-021">
+<em>optweight</em> 0.2.1<a class="anchor" aria-label="anchor" href="#optweight-021"></a></h2><p class="text-muted">CRAN release: 2019-01-16</p>
 <ul><li><p>Changed default <code>min.w</code> in <code><a href="../reference/optweight.html">optweight.fit()</a></code> and <code><a href="../reference/optweight.svy.html">optweight.svy.fit()</a></code> to 1E-8 from 0. This ensures all weights are nonzero, which can reduce bugs in other functions that require nonzero weights (e.g, <code>jtools::summ()</code> and <code>survey::svyglm()</code>).</p></li>
 <li><p>Fixed warning that would occur when interactions were present in the model formula in <code><a href="../reference/optweight.html">optweight()</a></code>.</p></li>
 <li><p>Stable balancing weights have been discovered to be invalid for longitudinal treatments, so attempting to use <code><a href="../reference/optweight.html">optweight()</a></code>or <code><a href="../reference/optweight.html">optweight.fit()</a></code> with longitudinal treatments will now produce an error. This can be overridden by setting <code>force = TRUE</code>, though this is not recommended until further research is done.</p></li>
 </ul></div>
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.2.0" id="optweight-020">optweight 0.2.0<a class="anchor" aria-label="anchor" href="#optweight-020"></a></h2><p class="text-muted">CRAN release: 2018-10-17</p>
+<h2 class="pkg-version" data-toc-text="0.2.0" id="optweight-020">
+<em>optweight</em> 0.2.0<a class="anchor" aria-label="anchor" href="#optweight-020"></a></h2><p class="text-muted">CRAN release: 2018-10-17</p>
 <ul><li><p>Added <code><a href="../reference/optweight.svy.html">optweight.svy()</a></code> and associated methods and functions for estimating survey weights using optimization. These weights when applied to the sample will yield a sample whose covariate means are equal (within a specified tolerance) to given target values.</p></li>
 <li><p>Minor changes to <code><a href="../reference/process_targets.html">check.targets()</a></code>. It will now produce the covariate means when the <code>targets</code> argument is empty and will produce the previous empty output, a named vector of <code>NA</code>s, when <code>targets = NULL</code>.</p></li>
 <li><p>Changes to how dual variables are processed and displayed. Now, each dual variable coming from <code><a href="../reference/optweight.html">optweight()</a></code> represents the change in the objective function corresponding to a 1-unit change in <code>tols</code>. The reported duals are the sum of all the duals affected by the constraint, so you can now reliably predict the change in the objective function from a change in <code>tols</code> (it was obscured and error-prone previously). The distinction between targeting duals and balance duals is maintained.</p></li>
 </ul></div>
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.1.0" id="optweight-010">optweight 0.1.0<a class="anchor" aria-label="anchor" href="#optweight-010"></a></h2><p class="text-muted">CRAN release: 2018-09-21</p>
+<h2 class="pkg-version" data-toc-text="0.1.0" id="optweight-010">
+<em>optweight</em> 0.1.0<a class="anchor" aria-label="anchor" href="#optweight-010"></a></h2><p class="text-muted">CRAN release: 2018-09-21</p>
 <ul><li>First version!</li>
 </ul></div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
