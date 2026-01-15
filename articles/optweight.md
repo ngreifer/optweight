@@ -1,4 +1,4 @@
-# Using optweight to Estimate Stable Balancing Weights
+# Using \*optweight\* to Estimate Stable Balancing Weights
 
 ## Introduction
 
@@ -23,8 +23,8 @@ detail by Chattopadhyay, Hase, and Zubizarreta
 
 SBW involves solving the following optimization problem:
 
-\\\begin{array}{crcll} \min\limits\_{\mathbf{w}} f(\mathbf{w},
-\mathbf{b},\mathbf{s}) & & & & \\ \text{s.t.} & \left\|
+\\\begin{array}{crcll} \min\limits\_{\mathbf{w}} f\left(\mathbf{w},
+\mathbf{b},\mathbf{s}\right) & & & & \\ \text{s.t.} & \left\|
 \bar{x}^{sw}\_{k,a} - \bar{x}^{sw}\_{k, a'} \right\| & \le & \delta_k &
 \forall \\a, a'\\ \in \mathcal{A},\\ \forall k \in \\1, \dots, K\\ \\ &
 \left\| \frac{1}{2} \left( \bar{x}^{sw}\_{k,a} + \bar{x}^{sw}\_{k, a'}
@@ -33,21 +33,26 @@ a'\\ \in \mathcal{A},\\ \forall k \in \\1, \dots, K\\ \\ & w_i & \ge &
 w\_\text{min} & \forall i \\ & \sum\limits\_{i:A_i=a}s_i w_i & = &
 \sum\limits\_{i:A_i=a}s_i b_i & \forall a \in \mathcal{A} \end{array}\\
 
-where \* \\\mathbf{w}=\\w_1, \dots, w_N\\\\ are the estimated weights \*
-\\\mathbf{s}=\\s_1, \dots, s_N\\\\ are sampling weights \*
-\\\mathbf{b}=\\b_1, \dots, b_N\\\\ are “base” weights \* \\f(\mathbf{w},
-\mathbf{b}, \mathbf{s})\\ is the objective function to minimize–a
-function of the estimated weights, base weights, and sampling weights \*
-\\A_i\\ is a categorical treatment taking on values \\a \in
-\mathcal{A}\\ \* \\\bar{x}^{sw}\_{k,a}\\ is the weighted mean of
-covariate \\x_k\\ in treatment group \\a\\, weighted using the product
-of \\\mathbf{s}\\ and \\\mathbf{w}\\ (i.e., \\\bar{x}^{sw}\_{k,a} =
-\frac{\sum\_{i:A_i=a} s_i w_i x\_{ki}}{\sum\_{i:A_i=a} s_i w_i}\\,
-where\\x\_{ki}\\ is the value of covariate \\\mathbf{x}\_k\\ for unit
-\\i\\) \* \\\delta_k\\ is the group balance tolerance for covariate
-\\k\\ \* \\\varepsilon_k\\ is the target balance tolerance for covariate
-\\k\\ \* \\\bar{x}\_k^\*\\ is the target value for covariate \\k\\ \*
-\\w\_\text{min}\\ is the minimum weight allowed.
+where
+
+- \\\mathbf{w}=\\w_1, \dots, w_n\\\\ are the estimated weights
+- \\\mathbf{s}=\\s_1, \dots, s_n\\\\ are sampling weights
+- \\\mathbf{b}=\\b_1, \dots, b_n\\\\ are “base” weights
+- \\f(\mathbf{w}, \mathbf{b}, \mathbf{s})\\ is the objective function to
+  minimize–a function of the estimated weights, base weights, and
+  sampling weights
+- \\A_i\\ is a categorical treatment taking on values \\a \in
+  \mathcal{A}\\
+- \\\bar{x}^{sw}\_{k,a}\\ is the weighted mean of covariate \\x_k\\ in
+  treatment group \\a\\, weighted using the product of \\\mathbf{s}\\
+  and \\\mathbf{w}\\ (i.e., \\\bar{x}^{sw}\_{k,a} =
+  \frac{\sum\_{i:A_i=a} s_i w_i x\_{ki}}{\sum\_{i:A_i=a} s_i w_i}\\,
+  where\\x\_{ki}\\ is the value of covariate \\\mathbf{x}\_k\\ for unit
+  \\i\\)
+- \\\delta_k\\ is the group balance tolerance for covariate \\k\\
+- \\\varepsilon_k\\ is the target balance tolerance for covariate \\k\\
+- \\\bar{x}\_k^\*\\ is the target value for covariate \\k\\
+- \\w\_\text{min}\\ is the minimum weight allowed.
 
 The interpretation of these constraints is as follows:
 
@@ -64,12 +69,8 @@ For a given dataset including treatment, covariates, sampling weights
 all 1 if none are present), the user chooses \\\delta_k\\,
 \\\bar{x}\_k^\*\\, \\\varepsilon_k\\, \\w\_\text{min}\\, and \\f\\.
 Generally, \\f\\ represents a measure of dispersion from the base
-weights, weighted by the sampling weights. The original formulation of
-SBW used \\f(\mathbf{w}, \mathbf{b},\mathbf{s}) =
-\frac{1}{N}\sum_i{s_i(w_i-b_i)^2}\\, the weighted L2 norm. Entropy
-balancing uses \\f(\mathbf{w}, \mathbf{b},\mathbf{s}) =
-\frac{1}{N}\sum_i{s_i w_i \log\left(\frac{w_i}{b_i}\right)}\\, the
-weighted relative entropy between the estimated and base weights.
+weights, weighted by the sampling weights; see the section on
+[`norm`](#norm) below.
 
 Asymptotic properties of SBW are described in Y. Wang and Zubizarreta
 ([2020](#ref-wangMinimalDispersionApproximately2020)), though the
@@ -88,7 +89,7 @@ model corresponds to the true propensity score model. Different forms of
 Allowing \\w\_\text{min}\\ to be negative allows for the possibility of
 negative weights, which can improve precision but induce extrapolation.
 It turns out that using a linear regression model for the outcome is
-equivalent to using SBW with the L2 norm, \\\delta_k=0\\, and
+equivalent to using SBW with the \\L_2\\ norm, \\\delta_k=0\\, and
 \\\varepsilon_k=0\\, and \\w\_\text{min}=-\infty\\ ([Chattopadhyay and
 Zubizarreta 2023](#ref-chattopadhyayImpliedWeightsLinear2023)).
 
@@ -98,8 +99,8 @@ targeting the ATT. They can also be chosen to generalize the effect
 estimate to an arbitrary target population ([Chattopadhyay, Cohn, and
 Zubizarreta 2024](#ref-chattopadhyayOneStepWeightingGeneralize2024)) or
 removed entirely to prioritize group balance over target balance
-([Barnard, Huling, and Wolfson,
-n.d.](#ref-barnardPartiallyRetargetedBalancing2025)).
+([Barnard, Huling, and Wolfson
+2025](#ref-barnardPartiallyRetargetedBalancing2025)).
 
 SBW can be generalized to continuous treatments, in which case instead
 of balancing the covariate means, the treatment-covariate covariances
@@ -109,9 +110,8 @@ are constrained to be balanced. This was explored in Greifer
 al. ([2021](#ref-vegetabileNonparametricEstimationPopulation2021)). SBW
 can also be used to directly weight a sample to resemble a population,
 without needing to balance two treatment groups. This also known known
-as matching-adjusted indirect comparison \[MAIC; Phillippo et al.
-([2020](#ref-phillippoEquivalenceEntropyBalancing2020)), Signorovitch et
-al. ([2010](#ref-signorovitchComparativeEffectivenessHeadtoHead2010))\].
+as matching-adjusted indirect comparison Signorovitch et al.
+([2010](#ref-signorovitchComparativeEffectivenessHeadtoHead2010)).
 
 *optweight* contains functionality to perform these operations and
 assess their performance. It was designed to be user-friendly,
@@ -121,10 +121,10 @@ compatible with the syntax used with
 at the possible expense of some flexibility. The
 [*sbw*](https://cran.r-project.org/package=sbw) package also implements
 some of these methods, prioritizing different aspects of the estimation.
-Entropy balancing is implemented in *WeightIt*, which also calls
+Entropy balancing is also implemented in *WeightIt*, which can also call
 *optweight* to provide a simpler interface to SBW.
 
-## Using optweight
+## Using *optweight*
 
 The main function in *optweight* is
 [`optweight()`](https://ngreifer.github.io/optweight/reference/optweight.md),
@@ -184,7 +184,11 @@ ow
 
 Using
 [`cobalt::bal.tab()`](https://ngreifer.github.io/cobalt/reference/bal.tab.html)
-on the output computes the weighted balance statistics.
+on the output computes the weighted balance statistics; in particular,
+it produce weighted (standardized) mean differences for all covariates
+as well as the effective sample size (ESS), which represents the
+approximate size of an unweighted sample that produces the same
+precision as the weighted sample.
 
 ``` r
 cobalt::bal.tab(ow)
@@ -248,8 +252,8 @@ measures of the dispersion of the weights, each of which corresponds to
 one of the allowed objective functions to minimize. `L2` is the square
 root of the mean squared deviation of the estimated weights from the
 base weights (i.e., the \\L_2\\ divergence); here, the base weights are
-all 1. See
-[`?summary.optweight`](https://ngreifer.github.io/optweight/reference/summary.optweight.md)
+all 1. See the help page for
+[`summary.optweight()`](https://ngreifer.github.io/optweight/reference/summary.optweight.md)
 for more information about the other statistics. Lastly,
 [`summary()`](https://rdrr.io/r/base/summary.html) produces the weighted
 and original (effective) samples sizes.
@@ -270,7 +274,7 @@ displayed (the treated group weights are all 1).
 Below, we’ll adjust a few arguments to see what affects they have on the
 weights.
 
-### `tols`
+### Balance tolerance: `tols`
 
 The group balance tolerance is controlled by the `tols` argument. This
 can either be a single value applied to all covariates or a vector with
@@ -395,36 +399,43 @@ differences are at or below .02, but for `race`, the mean differences
 are at or below .07. This led to an increase in ESS due to the relaxed
 constraints.
 
-### `norm`
+### Objective function: `norm`
 
-The `norm` argument controls which objective function is used. The
-allowable arguments are `"l2"` for the \\L_2\\ norm (the default),
-`"l1"` for the \\L_1\\ norm, `"linf"` for the \\L\_\infty\\ norm,
-`"entropy"` for the relative entropy, and `"log"` for the sum of the
-negative logs. The most thorough theoretical work has been done on the
-\\L_2\\ norm and relative entropy, and these tend to be the easiest to
-optimize.
+The `norm` argument controls which objective function is used. See the
+table below for the allowable values of `norm`, their names, and their
+formulas:
 
+| `norm`      | Name                 | \\f\left(\mathbf{w}, \mathbf{b},\mathbf{s}\right)\\   |
+|-------------|----------------------|-------------------------------------------------------|
+| `"l2"`      | \\L_2\\ norm         | \\\frac{1}{n}\sum_i{s_i(w_i-b_i)^2}\\                 |
+| `"l1"`      | \\L_1\\ norm         | \\\frac{1}{n} \sum_i {s_i \vert w_i - b_i \vert}\\    |
+| `"linf"`    | \\L\_\infty\\ norm   | \\\max_i {\vert w_i - b_i \vert}\\                    |
+| `"entropy"` | Relative entropy     | \\\frac{1}{n} \sum_i {s_i w_i \log \frac{w_i}{b_i}}\\ |
+| `"log"`     | Sum of negative logs | \\\frac{1}{n} \sum_i {-s_i \log \frac{w_i}{b_i}}\\    |
+
+The \\L_2\\ norm is the default. Of all the objective functions, the
+most thorough theoretical work has been done on the \\L_2\\ norm and
+relative entropy, and these tend to be the easiest to optimize.
 Weighting by minimizing the relative entropy is also known as “entropy
 balancing” ([Hainmueller
 2012](#ref-hainmuellerEntropyBalancingCausal2012); [Källberg and
 Waernbaum 2023](#ref-kallbergLargeSampleProperties2023); [Zhao and
-Percival 2017](#ref-zhaoEntropyBalancingDoubly2017)) and is available in
-*WeightIt*, which uses a more parsimonious representation of the
-problem. Weighting by minimizing the sum of negative logs is equivalent
-to nonparametric covariate balancing propensity score (npCBPS) weighting
-([Fong, Hazlett, and Imai
+Percival 2017](#ref-zhaoEntropyBalancingDoubly2017)) and is also
+available in *WeightIt*, which uses a more parsimonious representation
+of the problem. Weighting by minimizing the sum of negative logs is
+equivalent to nonparametric covariate balancing propensity score
+(npCBPS) weighting ([Fong, Hazlett, and Imai
 2018](#ref-fongCovariateBalancingPropensity2018)), which maximizes the
 empirical likelihood of the data to estimate the weights. A penalized
 version of npCBPS is available in
 [*CBPS*](https://cran.r-project.org/package=CBPS) and in *WeightIt*
-(which calls functions from CBPS), but *optweight* offers additional
+(which calls functions from *CBPS*), but *optweight* offers additional
 options not possible in those packages, such as specifying balance
 tolerances, targets, and different estimands.
 
-Different solvers are available for each norm; see
-[`?optweight.fit`](https://ngreifer.github.io/optweight/reference/optweight.md)
-for details.
+Different solvers are available for each norm; see the
+[`optweight()`](https://ngreifer.github.io/optweight/reference/optweight.md)
+help page for details.
 
 Below, we’ll minimize the \\L_2\\ norm, \\L_1\\ norm, \\L\_\infty\\
 norm, and relative entropy and see how those choices affect the
@@ -452,9 +463,6 @@ ow_linf <- optweight(treat ~ age + educ + race + married +
                      estimand = "ATT",
                      norm = "linf",
                      eps = 1e-5) # to improve convergence
-```
-
-``` r
 # Relative entropy
 ow_re <- optweight(treat ~ age + educ + race + married +
                      nodegree + re74 + re75,
@@ -562,8 +570,8 @@ the `targets` argument of
 
 ``` r
 targets1 <- process_targets(~ age + educ + race + married +
-                             nodegree + re74 + re75,
-                           data = lalonde)
+                              nodegree + re74 + re75,
+                            data = lalonde)
 
 targets1
 ```
@@ -609,8 +617,6 @@ ow_target1 <- optweight(treat ~ age + educ + race + married +
 cobalt::bal.tab(ow_target1, disp = "m")
 ```
 
-    ## Note: `s.d.denom` not specified; assuming "pooled".
-
     ## Balance Measures
     ##                Type  M.0.Adj  M.1.Adj Diff.Adj
     ## age         Contin.   35.000   35.000       -0
@@ -640,7 +646,7 @@ effect modifiers. We can remove constraints on target balance entirely
 for certain variable by setting their target values to `NA`. This can be
 especially helpful in cases of low overlap, as described by Barnard,
 Huling, and Wolfson
-([n.d.](#ref-barnardPartiallyRetargetedBalancing2025)). We do this
+([2025](#ref-barnardPartiallyRetargetedBalancing2025)). We do this
 below, setting the targets for the `race` categories to `NA`:
 
 ``` r
@@ -648,6 +654,7 @@ targets2 <- process_targets(~ age + educ + race + married +
                               nodegree + re74 + re75,
                             data = lalonde)
 
+# Set race targets to NA
 is.na(targets2[startsWith(names(targets2), "race_")]) <- TRUE
 
 ow_target2 <- optweight(treat ~ age + educ + race + married +
@@ -658,8 +665,6 @@ ow_target2 <- optweight(treat ~ age + educ + race + married +
 
 cobalt::bal.tab(ow_target2, disp = "m")
 ```
-
-    ## Note: `s.d.denom` not specified; assuming "pooled".
 
     ## Balance Measures
     ##                Type  M.0.Adj  M.1.Adj Diff.Adj
@@ -694,8 +699,6 @@ ow_target3 <- optweight(treat ~ age + educ + race + married +
 cobalt::bal.tab(ow_target3, disp = "m")
 ```
 
-    ## Note: `s.d.denom` not specified; assuming "pooled".
-
     ## Balance Measures
     ##                Type  M.0.Adj  M.1.Adj Diff.Adj
     ## age         Contin.   25.877   25.877       -0
@@ -714,15 +717,16 @@ cobalt::bal.tab(ow_target3, disp = "m")
     ## Adjusted     283.1   76.99
 
 This yields a kind of “overlap” weights that target whichever population
-optimizes the norm of the weights subject to between-group balance
-alone.
+optimizes the objective function of the weights subject to between-group
+balance alone ([Kallus and Santacatterina
+2019](#ref-kallusOptimalEstimationGeneralized2019)).
 
 #### `target.tols`
 
 Between eschewing target balance altogether and requiring exact target
 balance is allowing for inexact target balance by using `target.tols`,
 which is specified like to `tols` argument. `target.tols` controls
-\\\varepsilon_k\\, i.e., how far the midpoint between groups means can
+\\\varepsilon_k\\, i.e., how far the midpoint between group means can
 vary from the specified target mean. As with `tols`, this can be applied
 to a subset of covariates or to all of them simultaneously.
 
@@ -756,16 +760,14 @@ to relax the target balance constraint without eliminating it entirely.
 
 ``` r
 ow_target1b <- optweight(treat ~ age + educ + race + married +
-                          nodegree + re74 + re75,
-                        data = lalonde,
-                        targets = targets1,
-                        target.tols = target.tols1,
-                        estimand = NULL)
+                           nodegree + re74 + re75,
+                         data = lalonde,
+                         targets = targets1,
+                         target.tols = target.tols1,
+                         estimand = NULL)
 
 cobalt::bal.tab(ow_target1b, disp = "m")
 ```
-
-    ## Note: `s.d.denom` not specified; assuming "pooled".
 
     ## Balance Measures
     ##                Type  M.0.Adj  M.1.Adj Diff.Adj
@@ -804,16 +806,14 @@ target.tols1
 
 ``` r
 ow_target1c <- optweight(treat ~ age + educ + race + married +
-                          nodegree + re74 + re75,
-                        data = lalonde,
-                        targets = targets1,
-                        target.tols = target.tols1,
-                        estimand = NULL)
+                           nodegree + re74 + re75,
+                         data = lalonde,
+                         targets = targets1,
+                         target.tols = target.tols1,
+                         estimand = NULL)
 
 cobalt::bal.tab(ow_target1c, disp = "m")
 ```
-
-    ## Note: `s.d.denom` not specified; assuming "pooled".
 
     ## Balance Measures
     ##                Type  M.0.Adj  M.1.Adj Diff.Adj
@@ -836,8 +836,8 @@ In general, it makes sense to maintain strict target balance constraints
 on all covariates, relaxing them only when the covariate is not
 suspected to be an effect modifier (i.e., so representativeness on that
 covariate is not important) or when substantial precision gains can be
-made by doing so. The section on Dual Variables below describes how to
-determine whether the latter scenario may be in effect.
+made by doing so. The [section on Dual Variables](#dual-variables) below
+describes how to determine whether the latter scenario may be in effect.
 
 ### Sampling weights and base weights
 
@@ -848,21 +848,26 @@ They are used for two different purposes, which we describe below.
 #### Sampling weights: `s.weights`
 
 Sampling weights are used when attempting to generalize the estimates
-from a sample to a specific target population. Some datasets come with
-sampling weights in order for analyses using them to be valid. These
-weights can be supplied to the `s.weights` argument of
+from a sample to a specific target population characterized by the
+sampling weights. Some datasets come with sampling weights in order for
+analyses using them to be valid. These weights can be supplied to the
+`s.weights` argument of
 [`optweight()`](https://ngreifer.github.io/optweight/reference/optweight.md).
-This has three effects: 1) the balance and target constraints correspond
-to the product of the estimated and sampling weights, 2) the target
-values for the covariates are weighted by the sampling weights (if not
-supplied through `targets`), and 3) the contribution of the estimated
-weights to the objective function is weighted by the sampling weights.
+This has three effects:
+
+1.  The balance and target constraints correspond to the product of the
+    estimated and sampling weights
+2.  The target values for the covariates are weighted by the sampling
+    weights (if not supplied through `targets`)
+3.  The contribution of the estimated weights to the objective function
+    is weighted by the sampling weights
+
 Sampling weights are also used when bootstrapping using the fractional
 weighted bootstrap ([Xu et al.
 2020](#ref-xuApplicationsFractionalRandomWeightBootstrap2020a)), e.g.,
 as implemented in the [*fwb*](https://ngreifer.github.io/fwb/) package;
-see section “Estimating effects” below. By default, when `s.weights` is
-not specified, sampling weights are equal to 1.
+see section [Estimating Effects](#est-effects) below. By default, when
+`s.weights` is not specified, sampling weights are equal to 1.
 
 #### Base weights: `b.weights`
 
@@ -878,7 +883,7 @@ estimated using a flexible model that is unable to exactly balance the
 covariates. This strategy was used by one of the winning methods in the
 2016 ACIC data competition ([Dorie et al.
 2019](#ref-dorieAutomatedDoityourselfMethods2019)). We’ll demonstrate
-the use of base weights below.
+this use of base weights below.
 
 First, we’ll estimate propensity score weights using generalized boosted
 modeling through *WeightIt*. This is a flexible machine learning model,
@@ -887,6 +892,7 @@ by minimizing the largest Kolmogorov-Smirnov (KS) statistic in the
 weighted sample.
 
 ``` r
+# GBM IPW weights
 W_gbm <- WeightIt::weightit(treat ~ age + educ + race + married +
                               nodegree + re74 + re75,
                             data = lalonde,
@@ -895,16 +901,14 @@ W_gbm <- WeightIt::weightit(treat ~ age + educ + race + married +
                             criterion = "ks.max")
 ```
 
-    ## Warning: Some extreme weights were generated. Examine them with `summary()` and
-    ## maybe trim them with `trim()`.
-
 Next we’ll use
 [`optweight()`](https://ngreifer.github.io/optweight/reference/optweight.md)
-to estimate a set of weights that differ as little as possible (as
-measured by the root mean squared divergence) from these estimated
-weights while enforcing exact balance on the covariate means.
+to estimate a set of weights that differ as little as possible from
+these estimated weights while enforcing exact balance on the covariate
+means.
 
 ``` r
+# SBW with GBM base weights
 ow_bw <- optweight(treat ~ age + educ + race + married +
                      nodegree + re74 + re75,
                    data = lalonde,
@@ -916,6 +920,7 @@ We’ll also estimate SBW weights with uniform base weights to see the
 difference in the properties of the weights.
 
 ``` r
+# SBW without base weights
 ow <- optweight(treat ~ age + educ + race + married +
                   nodegree + re74 + re75,
                 data = lalonde,
@@ -980,8 +985,8 @@ cobalt::bal.tab(W_gbm, stats = "ks",
     ## ow        108.64     185
 
 Looking at the mean differences (in the columns `Diff.weightit`,
-`Diff.ow_bw`, and `Diff.ow` in the first stable), we can see that the
-GBM weights from *WeightIt* alone did not balance the covariate means,
+`Diff.ow_bw`, and `Diff.ow` in the first table), we can see that the GBM
+weights from *WeightIt* alone did not balance the covariate means,
 whereas both set of SBW weights from *optweight* did. However, in the
 second table, we can see big differences in the KS statistics between
 the SBW weights that incorporated the base weights and those that
@@ -1014,12 +1019,13 @@ is at the optimum ([Zubizarreta
 means that relaxing the constraint will allow the objective function to
 reach a lower value. They are related to the coefficients on covariates
 in a propensity score model, representing how much each covariate is
-contributing to the estimation of the weights. Zubizarreta
-([2015](#ref-zubizarretaStableWeightsThat2015)) describes the utility of
-dual variables after SBW: they can be used to determine which covariates
-can have constraints relaxed to improve precision and which covariates
-can have constraints tightened without affecting precision. The dual
-variables are available in
+contributing to the estimation of the weights.
+
+Zubizarreta ([2015](#ref-zubizarretaStableWeightsThat2015)) describes
+the utility of dual variables after SBW: they can be used to determine
+which covariates have constraints that can be relaxed to improve
+precision and which covariates have constraints that can be tightened
+without affecting precision. The dual variables are available in
 [`optweight()`](https://ngreifer.github.io/optweight/reference/optweight.md)
 output in the `duals` component, but they can also be plotted using
 [`plot()`](https://rdrr.io/r/graphics/plot.default.html). They can also
@@ -1029,8 +1035,8 @@ can be found.
 
 Below, we’ll demonstrate how we can use the dual variables to see how to
 modify constraints to try to take advantage of the bias-variance
-trade-off. First we’ll estimate SBW weights with tolerances of .02 for
-all covariates.
+trade-off. First we’ll estimate SBW weights with balance tolerances of
+.02 for all covariates.
 
 ``` r
 tols <- process_tols(treat ~ age + educ + race + married +
@@ -1083,7 +1089,7 @@ ow$duals
 plot(ow)
 ```
 
-![](optweight_files/figure-html/unnamed-chunk-29-1.png)
+![](optweight_files/figure-html/unnamed-chunk-28-1.png)
 
 From this, it’s clear that `race` has the largest dual variable, and
 `re75` has the smallest. That means we can likely get the biggest gains
@@ -1240,7 +1246,7 @@ target and balance constraints:
 plot(ow)
 ```
 
-![](optweight_files/figure-html/unnamed-chunk-35-1.png)
+![](optweight_files/figure-html/unnamed-chunk-34-1.png)
 
 The group and target balance constraints can be modified independently
 of each other using `tols` and `target.tols`, respectively. In this
@@ -1257,7 +1263,7 @@ constraint to examine which set is most active by setting
 plot(ow, type = "constraints")
 ```
 
-![](optweight_files/figure-html/unnamed-chunk-36-1.png)
+![](optweight_files/figure-html/unnamed-chunk-35-1.png)
 
 From this we can see that group balance and target constraints have
 similar limiting effects on the optimization, whereas the weight range
@@ -1350,9 +1356,9 @@ except that no treatment variable is specified and `targets` should be
 specified.
 
 This is useful in the context of matching-adjusted indirect comparison
-\[MAIC; Signorovitch et al.
-([2010](#ref-signorovitchComparativeEffectivenessHeadtoHead2010))\],
-which involves weighting a given trial sample to resemble the covariate
+(MAIC, [Signorovitch et al.
+2010](#ref-signorovitchComparativeEffectivenessHeadtoHead2010)), which
+involves weighting a given trial sample to resemble the covariate
 distribution of some other trial’s sample. MAIC as originally described
 is equivalent to entropy balancing ([Phillippo et al.
 2020](#ref-phillippoEquivalenceEntropyBalancing2020)), which can be
@@ -1475,8 +1481,9 @@ cobalt::col_w_mean(lalonde_c, s.weights = ow_s$weights)
     ##    nodegree        re74        re75        re78 
     ##         0.6      1000.0      2466.5      4725.6
 
-We can see that the weighted mean of `re78` is whatever minimized the L2
-norm of the weights since no constraint was placed on it. As with
+We can see that the weighted mean of `re78` is whatever minimized the
+\\L_2\\ norm of the weights since no constraint was placed on it. As
+with
 [`optweight()`](https://ngreifer.github.io/optweight/reference/optweight.md),
 we can see how much each constraint contributed to the increase in
 variability by examining the dual variables:
@@ -1485,7 +1492,7 @@ variability by examining the dual variables:
 plot(ow_s)
 ```
 
-![](optweight_files/figure-html/unnamed-chunk-42-1.png)
+![](optweight_files/figure-html/unnamed-chunk-41-1.png)
 
 Here it’s clear that the constraint on `re74` is contributing the most,
 and that relaxing the constraint would have the greatest impact on ESS.
@@ -1625,15 +1632,15 @@ bootfun <- function(data, w) {
 set.seed(123)
 
 boot <- fwb(lalonde, bootfun,
-            R = 250, # more is always better, but slower
+            R = 500, # more is always better, but slower
             verbose = FALSE)
 
 summary(boot, ci.type = "wald", p.value = TRUE)
 ```
 
     ##             Estimate Std. Error CI 2.5 % CI 97.5 % z value Pr(>|z|)    
-    ## (Intercept)     5145        570     4028      6261    9.03   <2e-16 ***
-    ## treat           1204        772     -310      2718    1.56     0.12    
+    ## (Intercept)     5145        571     4026      6263    9.02   <2e-16 ***
+    ## treat           1204        754     -274      2682    1.60     0.11    
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
@@ -1732,7 +1739,7 @@ weights and their uses, properties, and extensions.
 
 ## References
 
-Barnard, Martha, Jared D. Huling, and Julian Wolfson. n.d. “Partially
+Barnard, Martha, Jared D. Huling, and Julian Wolfson. 2025. “Partially
 Retargeted Balancing Weights for Causal Effect Estimation Under
 Positivity Violations.” <https://doi.org/10.48550/arXiv.2510.22072>.
 
@@ -1812,6 +1819,10 @@ Källberg, David, and Ingeborg Waernbaum. 2023. “Large Sample Properties
 of Entropy Balancing Estimators of Average Causal Effects.”
 *Econometrics and Statistics*, November.
 <https://doi.org/10.1016/j.ecosta.2023.11.004>.
+
+Kallus, Nathan, and Michele Santacatterina. 2019. “Optimal Estimation of
+Generalized Average Treatment Effects Using Kernel Optimal Matching.”
+*arXiv:1908.04748 \[Stat\]*, August. <http://arxiv.org/abs/1908.04748>.
 
 Phillippo, David M., Sofia Dias, A. E. Ades, and Nicky J. Welton. 2020.
 “Equivalence of Entropy Balancing and the Method of Moments for

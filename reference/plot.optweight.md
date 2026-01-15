@@ -35,7 +35,7 @@ plot(x, type = "variables", ...)
 - type:
 
   the type of plot to display; allowable options include `"variables"`
-  (the default), which produces a row for each covariates, and
+  (the default), which produces a row for each covariate, and
   `"constraints"`, which produces a row for each type of constraint
   (computed as the sum of the absolute dual variables for each
   constraint type).
@@ -101,21 +101,10 @@ ow1 <- optweight(treat ~ age + educ + married +
                  tols = tols,
                  estimand = "ATT")
 
-summary(ow1) # Note the L2 divergence and effective
+# Note the L2 divergence and effective sample
+# size (ESS)
+summary(ow1, weight.range = FALSE)
 #>                   Summary of weights
-#> - Weight ranges:
-#> 
-#>         Min                                 Max
-#> treated   1                   ||          1.   
-#> control   0 |---------------------------| 1.595
-#> 
-#> - Units with the 5 most extreme weights by group:
-#>                                       
-#>              1     2     3     4     5
-#>  treated     1     1     1     1     1
-#>             79   118   127   156   164
-#>  control 1.595 1.595 1.595 1.595 1.595
-#> 
 #> 
 #> - Weight statistics:
 #> 
@@ -128,9 +117,9 @@ summary(ow1) # Note the L2 divergence and effective
 #>            Control Treated
 #> Unweighted  429.       185
 #> Weighted    334.41     185
-#              sample size (ESS)
 
-plot(ow1) # age has a low value, married is high
+# age has a low value, married is high
+plot(ow1)
 
 
 tols["age"] <- 0
@@ -139,21 +128,11 @@ ow2 <- optweight(treat ~ age + educ + married +
                  tols = tols,
                  estimand = "ATT")
 
-summary(ow2) # Notice that tightening the constraint
+# Notice that tightening the constraint on age has
+# a negligible effect on the variability of the
+# weights and ESS
+summary(ow2, weight.range = FALSE)
 #>                   Summary of weights
-#> - Weight ranges:
-#> 
-#>         Min                                 Max
-#> treated   1                  ||           1.   
-#> control   0 |---------------------------| 1.754
-#> 
-#> - Units with the 5 most extreme weights by group:
-#>                                       
-#>              1     2     3     4     5
-#>  treated     1     1     1     1     1
-#>            419   404   412   387   395
-#>  control 1.734 1.744 1.744 1.754 1.754
-#> 
 #> 
 #> - Weight statistics:
 #> 
@@ -166,8 +145,6 @@ summary(ow2) # Notice that tightening the constraint
 #>            Control Treated
 #> Unweighted  429.       185
 #> Weighted    333.86     185
-#              on age had a negligible effect on the
-#              variability of the weights and ESS
 
 tols["age"] <- .1
 tols["married"] <- 0
@@ -176,21 +153,11 @@ ow3 <- optweight(treat ~ age + educ + married +
                  tols = tols,
                  estimand = "ATT")
 
-summary(ow3) # In contrast, tightening the constraint
+# In contrast, tightening the constraint on married
+# has a large effect on the variability of the
+# weights, shrinking the ESS
+summary(ow3, weight.range = FALSE)
 #>                   Summary of weights
-#> - Weight ranges:
-#> 
-#>         Min                                 Max
-#> treated   1                ||             1.   
-#> control   0 |---------------------------| 1.871
-#> 
-#> - Units with the 5 most extreme weights by group:
-#>                                       
-#>              1     2     3     4     5
-#>  treated     1     1     1     1     1
-#>            419   404   412   387   395
-#>  control 1.857 1.864 1.864 1.871 1.871
-#> 
 #> 
 #> - Weight statistics:
 #> 
@@ -203,7 +170,16 @@ summary(ow3) # In contrast, tightening the constraint
 #>            Control Treated
 #> Unweighted  429.       185
 #> Weighted    294.35     185
-#              on married had a large effect on the
-#              variability of the weights, shrinking
-#              the ESS
+
+# More duals are displayed when targeting other
+# estimands:
+ow4 <- optweight(treat ~ age + educ + married +
+                   nodegree + re74, data = lalonde,
+                 estimand = "ATE")
+
+plot(ow4)
+
+
+# Display duals by constraint type
+plot(ow4, type = "constraints")
 ```

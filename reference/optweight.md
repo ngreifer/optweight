@@ -81,14 +81,14 @@ optweight.fit(
 - targets:
 
   an optional vector of target population mean values for each
-  covariate. The resulting weights will yield sample means within
-  `tols`/2 units of the target values for each covariate. If `NULL` or
-  all `NA`, `estimand` will be used to determine targets. Otherwise,
-  `estimand` is ignored. If any target values are `NA`, the
-  corresponding variable will not be targeted and its weighted mean will
-  be wherever the weights yield the smallest variance; this is only
-  allowed for binary and multi-category treatments. Can also be the
-  output of a call to
+  covariate. The resulting weights ensure the midpoint between group
+  means are within `target.tols` units of the target values for each
+  covariate. If `NULL` or all `NA`, `estimand` will be used to determine
+  targets. Otherwise, `estimand` is ignored. If any target values are
+  `NA`, the corresponding variable will not be targeted and its weighted
+  mean will be wherever the weights yield the smallest value of the
+  objective function; this is only allowed for binary and multi-category
+  treatments. Can also be the output of a call to
   [`process_targets()`](https://ngreifer.github.io/optweight/reference/process_targets.md).
   See Details.
 
@@ -126,9 +126,9 @@ optweight.fit(
 
   `character`; a string containing the name of the norm corresponding to
   the objective function to minimize. Allowable options include `"l1"`
-  for the L1 norm, `"l2"` for the L2 norm (the default), `"linf"` for
-  the L\\\infty\\ norm, `"entropy"` for the negative entropy, and
-  `"log"` for the sum of the logs. See Details.
+  for the \\L_1\\ norm, `"l2"` for the \\L_2\\ norm (the default),
+  `"linf"` for the \\L\_\infty\\ norm, `"entropy"` for the relative
+  entropy, and `"log"` for the sum of the negative logs. See Details.
 
 - min.w:
 
@@ -169,8 +169,7 @@ optweight.fit(
   because raw proportion differences make more sense than standardized
   mean difference for binary variables. These arguments are analogous to
   the `binary` and `continuous` arguments in
-  [`bal.tab()`](https://ngreifer.github.io/cobalt/reference/bal.tab.html)
-  in cobalt.
+  [`cobalt::bal.tab()`](https://ngreifer.github.io/cobalt/reference/bal.tab.html).
 
 - solver:
 
@@ -223,7 +222,7 @@ For `optweight()`, an `optweight` object with the following elements:
 
 - target.tols:
 
-  The target tolerance values for each covariate.
+  The target balance tolerance values for each covariate.
 
 - duals:
 
@@ -305,6 +304,15 @@ groups, and when the ATT or ATC are requested, the standardization
 factor is the standard deviation of the covariate in the focal group.
 The standardization factor is computed accounting for `s.weights`.
 
+Target and balance constraints are applied to the product of the
+estimated weights and the sampling weights. In addition, the sum of the
+product of the estimated weights and the sampling weights is constrained
+to be equal to the sum of the product of the base weights and sampling
+weights. For binary and multi-category treatments, these constraints
+apply within each treatment group.
+
+### Continuous treatments
+
 For continuous treatments, weights are estimated so that the weighted
 correlation between the treatment and each covariate is within the
 specified tolerance threshold. The means of the weighted covariates and
@@ -316,35 +324,31 @@ computed as the weighted covariance divided by the product of the
 in computing the covariance are those specified in the target
 population.
 
-Target and balance constraints are applied to the product of the
-estimated weights and the sampling weights. In addition, the sum of the
-product of the estimated weights and the sampling weights is constrained
-to be equal to the sum of the product of the base weights and sampling
-weights. For binary and multi-category treatments, these constraints
-apply within each treatment group.
-
 ### `norm`
 
-The objective function for the optimization problem is \\f\left(w_i,
-b_i, s_i\right)\\, where \\w_i\\ is the estimated weight for unit \\i\\,
-\\s_i\\ is the sampling weight for unit \\i\\ (supplied by `s.weights`)
-and \\b_i\\ is the base weight for unit \\i\\ (supplied by `b.weights`).
-The `norm` argument determines \\f(.,.,.)\\, as detailed below:
+The objective function for the optimization problem is
+\\f\left(\mathbf{w}, \mathbf{b},\mathbf{s}\right)\\, where
+\\\mathbf{w}=\\w_1, \dots, w_n\\\\ are the estimated weights,
+\\\mathbf{s}=\\s_1, \dots, s_n\\\\ are sampling weights (supplied by
+`s.weights`), and \\\mathbf{b}=\\b_1, \dots, b_n\\\\ are base weights
+(supplied by `b.weights`). The `norm` argument determines \\f(.,.,.)\\,
+as detailed below:
 
-- when `norm = "l2"`, \\f\left(w_i, b_i, s_i\right) = \frac{1}{n} \sum_i
-  {s_i(w_i - b_i)^2}\\
+- when `norm = "l2"`, \\f\left(\mathbf{w}, \mathbf{b},\mathbf{s}\right)
+  = \frac{1}{n} \sum_i {s_i(w_i - b_i)^2}\\
 
-- when `norm = "l1"`, \\f\left(w_i, b_i, s_i\right) = \frac{1}{n} \sum_i
-  {s_i \vert w_i - b_i \vert}\\
+- when `norm = "l1"`, \\f\left(\mathbf{w}, \mathbf{b},\mathbf{s}\right)
+  = \frac{1}{n} \sum_i {s_i \vert w_i - b_i \vert}\\
 
-- when `norm = "linf"`, \\f\left(w_i, b_i, s_i\right) = \max_i {\vert
-  w_i - b_i \vert}\\
+- when `norm = "linf"`, \\f\left(\mathbf{w},
+  \mathbf{b},\mathbf{s}\right) = \max_i {\vert w_i - b_i \vert}\\
 
-- when `norm = "entropy"`, \\f\left(w_i, b_i, s_i\right) = \frac{1}{n}
-  \sum_i {s_i w_i \log \frac{w_i}{b_i}}\\
+- when `norm = "entropy"`, \\f\left(\mathbf{w},
+  \mathbf{b},\mathbf{s}\right) = \frac{1}{n} \sum_i {s_i w_i \log
+  \frac{w_i}{b_i}}\\
 
-- when `norm = "log"`, \\f\left(w_i, b_i, s_i\right) = \frac{1}{n}
-  \sum_i {-s_i \log \frac{w_i}{b_i}}\\
+- when `norm = "log"`, \\f\left(\mathbf{w}, \mathbf{b},\mathbf{s}\right)
+  = \frac{1}{n} \sum_i {-s_i \log \frac{w_i}{b_i}}\\
 
 By default, `s.weights` and `b.weights` are set to 1 for all units
 unless supplied. `b.weights` must be positive when `norm` is `"entropy"`

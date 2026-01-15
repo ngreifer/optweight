@@ -73,14 +73,14 @@ optweightMV.fit(
 - targets:
 
   an optional vector of target population mean values for each
-  covariate. The resulting weights will yield sample means within
-  `tols`/2 units of the target values for each covariate. If `NULL` or
-  all `NA`, `estimand` will be used to determine targets. Otherwise,
-  `estimand` is ignored. If any target values are `NA`, the
-  corresponding variable will not be targeted and its weighted mean will
-  be wherever the weights yield the smallest variance; this is only
-  allowed if all treatments are binary or multi-category. Can also be
-  the output of a call to
+  covariate. The resulting weights ensure the midpoint between group
+  means are within `target.tols` units of the target values for each
+  covariate. If `NULL` or all `NA`, `estimand` will be used to determine
+  targets. Otherwise, `estimand` is ignored. If any target values are
+  `NA`, the corresponding variable will not be targeted and its weighted
+  mean will be wherever the weights yield the smallest value of the
+  objective function; this is only allowed if all treatments are binary
+  or multi-category. Can also be the output of a call to
   [`process_targets()`](https://ngreifer.github.io/optweight/reference/process_targets.md).
   See Details.
 
@@ -111,9 +111,9 @@ optweightMV.fit(
 
   `character`; a string containing the name of the norm corresponding to
   the objective function to minimize. Allowable options include `"l1"`
-  for the L1 norm, `"l2"` for the L2 norm (the default), `"linf"` for
-  the L\\\infty\\ norm, `"entropy"` for the negative entropy, and
-  `"log"` for the sum of the logs. See Details.
+  for the \\L_1\\ norm, `"l2"` for the \\L_2\\ norm (the default),
+  `"linf"` for the \\L\_\infty\\ norm, `"entropy"` for the relative
+  entropy, and `"log"` for the sum of the negative logs. See Details.
 
 - min.w:
 
@@ -154,8 +154,7 @@ optweightMV.fit(
   because raw proportion differences make more sense than standardized
   mean difference for binary variables. These arguments are analogous to
   the `binary` and `continuous` arguments in
-  [`bal.tab()`](https://ngreifer.github.io/cobalt/reference/bal.tab.html)
-  in cobalt.
+  [`cobalt::bal.tab()`](https://ngreifer.github.io/cobalt/reference/bal.tab.html).
 
 - solver:
 

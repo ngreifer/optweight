@@ -95,9 +95,9 @@ optweight.svy.fit(
 
   `character`; a string containing the name of the norm corresponding to
   the objective function to minimize. Allowable options include `"l1"`
-  for the L1 norm, `"l2"` for the L2 norm (the default), `"linf"` for
-  the L\\\infty\\ norm, `"entropy"` for the negative entropy, and
-  `"log"` for the sum of the logs. See Details.
+  for the \\L_1\\ norm, `"l2"` for the \\L_2\\ norm (the default),
+  `"linf"` for the \\L\_\infty\\ norm, `"entropy"` for the relative
+  entropy, and `"log"` for the sum of the negative logs. See Details.
 
 - min.w:
 
@@ -136,8 +136,7 @@ optweight.svy.fit(
   because raw proportion differences make more sense than standardized
   mean difference for binary variables. These arguments are analogous to
   the `binary` and `continuous` arguments in
-  [`bal.tab()`](https://ngreifer.github.io/cobalt/reference/bal.tab.html)
-  in cobalt.
+  [`cobalt::bal.tab()`](https://ngreifer.github.io/cobalt/reference/bal.tab.html).
 
 - solver:
 

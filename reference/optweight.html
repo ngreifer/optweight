@@ -13,7 +13,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">optweight</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0.9002</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0.9003</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -102,7 +102,7 @@
 
 
 <dt id="arg-targets">targets<a class="anchor" aria-label="anchor" href="#arg-targets"></a></dt>
-<dd><p>an optional vector of target population mean values for each covariate. The resulting weights will yield sample means within <code>tols</code>/2 units of the target values for each covariate. If <code>NULL</code> or all <code>NA</code>, <code>estimand</code> will be used to determine targets. Otherwise, <code>estimand</code> is ignored. If any target values are <code>NA</code>, the corresponding variable will not be targeted and its weighted mean will be wherever the weights yield the smallest variance; this is only allowed for binary and multi-category treatments. Can also be the output of a call to <code><a href="process_targets.html">process_targets()</a></code>. See Details.</p></dd>
+<dd><p>an optional vector of target population mean values for each covariate. The resulting weights ensure the midpoint between group means are within <code>target.tols</code> units of the target values for each covariate. If <code>NULL</code> or all <code>NA</code>, <code>estimand</code> will be used to determine targets. Otherwise, <code>estimand</code> is ignored. If any target values are <code>NA</code>, the corresponding variable will not be targeted and its weighted mean will be wherever the weights yield the smallest value of the objective function; this is only allowed for binary and multi-category treatments. Can also be the output of a call to <code><a href="process_targets.html">process_targets()</a></code>. See Details.</p></dd>
 
 
 <dt id="arg-target-tols">target.tols<a class="anchor" aria-label="anchor" href="#arg-target-tols"></a></dt>
@@ -122,7 +122,7 @@
 
 
 <dt id="arg-norm">norm<a class="anchor" aria-label="anchor" href="#arg-norm"></a></dt>
-<dd><p><code>character</code>; a string containing the name of the norm corresponding to the objective function to minimize. Allowable options include <code>"l1"</code> for the L1 norm, <code>"l2"</code> for the L2 norm (the default), <code>"linf"</code> for the L\(\infty\) norm, <code>"entropy"</code> for the negative entropy, and <code>"log"</code> for the sum of the logs. See Details.</p></dd>
+<dd><p><code>character</code>; a string containing the name of the norm corresponding to the objective function to minimize. Allowable options include <code>"l1"</code> for the \(L_1\) norm, <code>"l2"</code> for the \(L_2\) norm (the default), <code>"linf"</code> for the \(L_\infty\) norm, <code>"entropy"</code> for the relative entropy, and <code>"log"</code> for the sum of the negative logs. See Details.</p></dd>
 
 
 <dt id="arg-min-w">min.w<a class="anchor" aria-label="anchor" href="#arg-min-w"></a></dt>
@@ -146,7 +146,7 @@
 
 
 <dt id="arg-std-binary-std-cont">std.binary, std.cont<a class="anchor" aria-label="anchor" href="#arg-std-binary-std-cont"></a></dt>
-<dd><p><code>logical</code>; whether the tolerances are in standardized mean units (<code>TRUE</code>) or raw units (<code>FALSE</code>) for binary variables and continuous variables, respectively. The default is <code>FALSE</code> for <code>std.binary</code> because raw proportion differences make more sense than standardized mean difference for binary variables. These arguments are analogous to the <code>binary</code> and <code>continuous</code> arguments in <code><a href="https://ngreifer.github.io/cobalt/reference/bal.tab.html" class="external-link">bal.tab()</a></code> in <span class="pkg">cobalt</span>.</p></dd>
+<dd><p><code>logical</code>; whether the tolerances are in standardized mean units (<code>TRUE</code>) or raw units (<code>FALSE</code>) for binary variables and continuous variables, respectively. The default is <code>FALSE</code> for <code>std.binary</code> because raw proportion differences make more sense than standardized mean difference for binary variables. These arguments are analogous to the <code>binary</code> and <code>continuous</code> arguments in <code><a href="https://ngreifer.github.io/cobalt/reference/bal.tab.html" class="external-link">cobalt::bal.tab()</a></code>.</p></dd>
 
 
 <dt id="arg-solver">solver<a class="anchor" aria-label="anchor" href="#arg-solver"></a></dt>
@@ -184,7 +184,7 @@
 <dd><p>The balance tolerance values for each covariate.</p></dd>
 
 <dt>target.tols</dt>
-<dd><p>The target tolerance values for each covariate.</p></dd>
+<dd><p>The target balance tolerance values for each covariate.</p></dd>
 
 <dt>duals</dt>
 <dd><p>A data.frame containing the dual variables for each covariate. See Details for interpretation of these values.</p></dd>
@@ -226,16 +226,22 @@ $$
 $$
 where \(\bar{x}^w_1\) and \(\bar{x}^w_0\) are the weighted means of covariate \(x\) for treatment groups 1 and 0, respectively, and \(\bar{x}^*\) is the target mean for that covariate. \(\delta\) corresponds to <code>tols</code>, and \(\varepsilon\) corresponds to <code>target.tols</code>. Setting a covariate's value of <code>target.tols</code> to <code>Inf</code> or its <code>target</code> to <code>NA</code> both serve to remove the second constraint, as is done in Barnard et al. (2025).</p>
 <p>If standardized tolerance values are requested, the standardization factor corresponds to the estimand requested: when the ATE is requested or a target population specified, the standardization factor is the square root of the average variance for that covariate across treatment groups, and when the ATT or ATC are requested, the standardization factor is the standard deviation of the covariate in the focal group. The standardization factor is computed accounting for <code>s.weights</code>.</p>
-<p>For continuous treatments, weights are estimated so that the weighted correlation between the treatment and each covariate is within the specified tolerance threshold. The means of the weighted covariates and treatment are restricted to be exactly equal to those of the target population to ensure generalizability to the desired target population, regardless of <code>tols</code> or <code>target.tols</code>. The weighted correlation is computed as the weighted covariance divided by the product of the <em>unweighted</em> standard deviations. The means used to center the variables in computing the covariance are those specified in the target population.</p>
 <p>Target and balance constraints are applied to the product of the estimated weights and the sampling weights. In addition, the sum of the product of the estimated weights and the sampling weights is constrained to be equal to the sum of the product of the base weights and sampling weights. For binary and multi-category treatments, these constraints apply within each treatment group.</p><div class="section">
+<h3 id="continuous-treatments">Continuous treatments<a class="anchor" aria-label="anchor" href="#continuous-treatments"></a></h3>
+
+
+<p>For continuous treatments, weights are estimated so that the weighted correlation between the treatment and each covariate is within the specified tolerance threshold. The means of the weighted covariates and treatment are restricted to be exactly equal to those of the target population to ensure generalizability to the desired target population, regardless of <code>tols</code> or <code>target.tols</code>. The weighted correlation is computed as the weighted covariance divided by the product of the <em>unweighted</em> standard deviations. The means used to center the variables in computing the covariance are those specified in the target population.</p>
+</div>
+
+<div class="section">
 <h3 id="norm"><code>norm</code><a class="anchor" aria-label="anchor" href="#norm"></a></h3>
 
 
-<p>The objective function for the optimization problem is \(f\left(w_i, b_i, s_i\right)\), where \(w_i\) is the estimated weight for unit \(i\), \(s_i\) is the sampling weight for unit \(i\) (supplied by <code>s.weights</code>) and \(b_i\) is the base weight for unit \(i\) (supplied by <code>b.weights</code>). The <code>norm</code> argument determines \(f(.,.,.)\), as detailed below:</p><ul><li><p>when <code>norm = "l2"</code>, \(f\left(w_i, b_i, s_i\right) = \frac{1}{n} \sum_i {s_i(w_i - b_i)^2}\)</p></li>
-<li><p>when <code>norm = "l1"</code>, \(f\left(w_i, b_i, s_i\right) = \frac{1}{n} \sum_i {s_i \vert w_i - b_i \vert}\)</p></li>
-<li><p>when <code>norm = "linf"</code>, \(f\left(w_i, b_i, s_i\right) = \max_i {\vert w_i - b_i \vert}\)</p></li>
-<li><p>when <code>norm = "entropy"</code>, \(f\left(w_i, b_i, s_i\right) = \frac{1}{n} \sum_i {s_i w_i \log \frac{w_i}{b_i}}\)</p></li>
-<li><p>when <code>norm = "log"</code>, \(f\left(w_i, b_i, s_i\right) = \frac{1}{n} \sum_i {-s_i \log \frac{w_i}{b_i}}\)</p></li>
+<p>The objective function for the optimization problem is \(f\left(\mathbf{w}, \mathbf{b},\mathbf{s}\right)\), where \(\mathbf{w}=\{w_1, \dots, w_n\}\) are the estimated weights, \(\mathbf{s}=\{s_1, \dots, s_n\}\) are sampling weights (supplied by <code>s.weights</code>), and \(\mathbf{b}=\{b_1, \dots, b_n\}\) are base weights (supplied by <code>b.weights</code>). The <code>norm</code> argument determines \(f(.,.,.)\), as detailed below:</p><ul><li><p>when <code>norm = "l2"</code>, \(f\left(\mathbf{w}, \mathbf{b},\mathbf{s}\right) = \frac{1}{n} \sum_i {s_i(w_i - b_i)^2}\)</p></li>
+<li><p>when <code>norm = "l1"</code>, \(f\left(\mathbf{w}, \mathbf{b},\mathbf{s}\right) = \frac{1}{n} \sum_i {s_i \vert w_i - b_i \vert}\)</p></li>
+<li><p>when <code>norm = "linf"</code>, \(f\left(\mathbf{w}, \mathbf{b},\mathbf{s}\right) = \max_i {\vert w_i - b_i \vert}\)</p></li>
+<li><p>when <code>norm = "entropy"</code>, \(f\left(\mathbf{w}, \mathbf{b},\mathbf{s}\right) = \frac{1}{n} \sum_i {s_i w_i \log \frac{w_i}{b_i}}\)</p></li>
+<li><p>when <code>norm = "log"</code>, \(f\left(\mathbf{w}, \mathbf{b},\mathbf{s}\right) = \frac{1}{n} \sum_i {-s_i \log \frac{w_i}{b_i}}\)</p></li>
 </ul><p>By default, <code>s.weights</code> and <code>b.weights</code> are set to 1 for all units unless supplied. <code>b.weights</code> must be positive when <code>norm</code> is <code>"entropy"</code> or <code>"log"</code>, and <code>norm = "linf"</code> cannot be used when <code>s.weights</code> are supplied.</p>
 <p>When <code>norm = "l2"</code> and both <code>s.weights</code> and <code>b.weights</code> are <code>NULL</code>, weights are estimated to maximize the effective sample size. When <code>norm = "entropy"</code>, the estimated weights are equivalent to entropy balancing weights (Källberg &amp; Waernbaum, 2023). When <code>norm = "log"</code>, <code>b.weights</code> are ignored in the optimization, as they do not affect the estimated weights.</p>
 </div>

@@ -8,7 +8,7 @@ or
 [`summary()`](https://rdrr.io/r/base/summary.html) produces summary
 statistics on the distribution of weights, including their range and
 variability, and the effective sample size of the weighted sample
-(computed using the formula in McCaffrey, Rudgeway, & Morral, 2004).
+(computed using the formula in McCaffrey, et al., 2004).
 [`plot()`](https://rdrr.io/r/graphics/plot.default.html) creates a
 histogram of the weights.
 
@@ -87,25 +87,25 @@ For point treatments (i.e., `optweight` objects),
 
 - l2:
 
-  The square root of the L2 norm of the estimated weights from the base
-  weights, weighted by the sampling weights (if any):
+  The square root of the \\L_2\\ norm of the estimated weights from the
+  base weights, weighted by the sampling weights (if any):
   \\\sqrt{\frac{1}{n}\sum_i {s_i(w_i - b_i)^2}}\\
 
 - l1:
 
-  The L1 norm of the estimated weights from the base weights, weighted
-  by the sampling weights (if any): \\\frac{1}{n}\sum_i {s_i \vert w_i -
-  b_i \vert}\\
+  The \\L_1\\ norm of the estimated weights from the base weights,
+  weighted by the sampling weights (if any): \\\frac{1}{n}\sum_i {s_i
+  \vert w_i - b_i \vert}\\
 
 - linf:
 
-  The L\\\infty\\ norm (maximum absolute deviation) of the estimated
+  The \\L\_\infty\\ norm (maximum absolute deviation) of the estimated
   weights from the base weights: \\\max_i {\vert w_i - b_i \vert}\\
 
 - rel.ent:
 
   The relative entropy between the estimated weights and the base
-  weights (entropy norm), weighted by the sampling weights (if any):
+  weights, weighted by the sampling weights (if any):
   \\\frac{1}{n}\sum_i {s_i w_i \log\left(\frac{w_i}{b_i}\right)}\\. Only
   computed if all weights are positive.
 

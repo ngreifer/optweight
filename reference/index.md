@@ -34,15 +34,3 @@
   [`summary(`*`<optweight.svy>`*`)`](https://ngreifer.github.io/optweight/reference/summary.optweight.md)
   [`plot(`*`<summary.optweight>`*`)`](https://ngreifer.github.io/optweight/reference/summary.optweight.md)
   : Summarize, Print, and Plot Information about Estimated Weights
-
-## Lower-Level Functions
-
-- [`optweight()`](https://ngreifer.github.io/optweight/reference/optweight.md)
-  [`optweight.fit()`](https://ngreifer.github.io/optweight/reference/optweight.md)
-  : Stable Balancing Weights
-- [`optweight.svy()`](https://ngreifer.github.io/optweight/reference/optweight.svy.md)
-  [`optweight.svy.fit()`](https://ngreifer.github.io/optweight/reference/optweight.svy.md)
-  : Stable Balancing Weights for Generalization
-- [`optweightMV()`](https://ngreifer.github.io/optweight/reference/optweightMV.md)
-  [`optweightMV.fit()`](https://ngreifer.github.io/optweight/reference/optweightMV.md)
-  : Stable Balancing Weights for Multivariate Treatments
