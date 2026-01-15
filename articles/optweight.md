@@ -1,4 +1,4 @@
-# Using \*optweight\* to Estimate Stable Balancing Weights
+# Using optweight to Estimate Stable Balancing Weights
 
 ## Introduction
 
@@ -39,15 +39,15 @@ where
 - \\\mathbf{s}=\\s_1, \dots, s_n\\\\ are sampling weights
 - \\\mathbf{b}=\\b_1, \dots, b_n\\\\ are “base” weights
 - \\f(\mathbf{w}, \mathbf{b}, \mathbf{s})\\ is the objective function to
-  minimize–a function of the estimated weights, base weights, and
+  minimize—a function of the estimated weights, base weights, and
   sampling weights
-- \\A_i\\ is a categorical treatment taking on values \\a \in
-  \mathcal{A}\\
+- \\A_i\\ is a categorical treatment for unit \\i\\ taking on values \\a
+  \in \mathcal{A}\\
 - \\\bar{x}^{sw}\_{k,a}\\ is the weighted mean of covariate \\x_k\\ in
   treatment group \\a\\, weighted using the product of \\\mathbf{s}\\
   and \\\mathbf{w}\\ (i.e., \\\bar{x}^{sw}\_{k,a} =
   \frac{\sum\_{i:A_i=a} s_i w_i x\_{ki}}{\sum\_{i:A_i=a} s_i w_i}\\,
-  where\\x\_{ki}\\ is the value of covariate \\\mathbf{x}\_k\\ for unit
+  where \\x\_{ki}\\ is the value of covariate \\\mathbf{x}\_k\\ for unit
   \\i\\)
 - \\\delta_k\\ is the group balance tolerance for covariate \\k\\
 - \\\varepsilon_k\\ is the target balance tolerance for covariate \\k\\
@@ -147,13 +147,14 @@ data("lalonde", package = "cobalt")
 head(lalonde)
 ```
 
-    ##   treat age educ   race married nodegree re74 re75    re78
-    ## 1     1  37   11  black       1        1    0    0  9930.0
-    ## 2     1  22    9 hispan       0        1    0    0  3595.9
-    ## 3     1  30   12  black       0        0    0    0 24909.5
-    ## 4     1  27   11  black       0        1    0    0  7506.1
-    ## 5     1  33    8  black       0        1    0    0   289.8
-    ## 6     1  22    9  black       0        1    0    0  4056.5
+| treat | age | educ | race   | married | nodegree | re74 | re75 |    re78 |
+|------:|----:|-----:|:-------|--------:|---------:|-----:|-----:|--------:|
+|     1 |  37 |   11 | black  |       1 |        1 |    0 |    0 |  9930.0 |
+|     1 |  22 |    9 | hispan |       0 |        1 |    0 |    0 |  3595.9 |
+|     1 |  30 |   12 | black  |       0 |        0 |    0 |    0 | 24909.5 |
+|     1 |  27 |   11 | black  |       0 |        1 |    0 |    0 |  7506.1 |
+|     1 |  33 |    8 | black  |       0 |        1 |    0 |    0 |   289.8 |
+|     1 |  22 |    9 | black  |       0 |        1 |    0 |    0 |  4056.5 |
 
 [`optweight()`](https://ngreifer.github.io/optweight/reference/optweight.md)
 can be used simply by supplying the treatment and covariates to the
@@ -474,11 +475,12 @@ ow_re <- optweight(treat ~ age + educ + race + married +
 Below is a table of the statistics (rows) for the control group for each
 norm minimized (columns).
 
-    ##            l2    l1  linf    RE
-    ## L2      1.717 2.017 1.877 1.832
-    ## L1      1.339 1.281 1.548 1.287
-    ## L∞      5.002 9.924 3.577 8.420
-    ## Rel Ent 1.230 1.227 1.500 1.101
+|         |    l2 |    l1 |  linf |    RE |
+|:--------|------:|------:|------:|------:|
+| L2      | 1.717 | 2.017 | 1.877 | 1.832 |
+| L1      | 1.339 | 1.281 | 1.548 | 1.287 |
+| L∞      | 5.002 | 9.924 | 3.577 | 8.421 |
+| Rel Ent | 1.230 | 1.227 | 1.500 | 1.101 |
 
 We can see that minimizing the \\L_2\\ norm yields weights that have the
 lowest \\L_2\\ divergence, minimizing the \\L_1\\ norm yields weights
@@ -1075,15 +1077,16 @@ object and plot them with
 ow$duals
 ```
 
-    ##   component   constraint      cov    dual
-    ## 1         0 weight range     <NA> 2.46151
-    ## 2         1      balance      age 0.24485
-    ## 3         1      balance     educ 0.62674
-    ## 4         1      balance     race 5.66548
-    ## 5         1      balance  married 1.05266
-    ## 6         1      balance nodegree 1.61135
-    ## 7         1      balance     re74 0.71501
-    ## 8         1      balance     re75 0.04373
+| component | constraint   | cov      |   dual |
+|----------:|:-------------|:---------|-------:|
+|         0 | weight range | NA       | 2.4615 |
+|         1 | balance      | age      | 0.2449 |
+|         1 | balance      | educ     | 0.6267 |
+|         1 | balance      | race     | 5.6655 |
+|         1 | balance      | married  | 1.0527 |
+|         1 | balance      | nodegree | 1.6113 |
+|         1 | balance      | re74     | 0.7150 |
+|         1 | balance      | re75     | 0.0437 |
 
 ``` r
 plot(ow)
