@@ -214,13 +214,13 @@ optweight.svy.fit <- function(covs, targets, tols = 0, s.weights = NULL, b.weigh
   }
 
   #Process tols
-  if (!inherits(tols, "optweight.tols") || is_null(attr(tols, "internal.tols"))) {
+  if (!inherits(tols, "optweight.tols") || is_null(.attr(tols, "internal.tols"))) {
     tols <- .process_tols_internal(covs, tols, tols_found_in = "covs",
                                    tols_arg = "tols")
   }
 
   tols <- tols |>
-    attr("internal.tols") |>
+    .attr("internal.tols") |>
     abs()
 
   #Process norm

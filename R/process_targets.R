@@ -129,18 +129,18 @@ process_targets <- function(formula, data = NULL, targets = NULL, s.weights = NU
   }
 
   if (is_not_null(formula.covs)) {
-    formula.vars <- attr(formula.covs, "terms") |> attr("term.labels")
+    formula.vars <- .attr(formula.covs, "terms") |> .attr("term.labels")
 
     if (is_null(formula.vars)) {
       formula.vars <- "(Intercept)"
       attr(model.covs, "assign") <- 1
     }
 
-    original.variables <- formula.vars[attr(model.covs, "assign")] |> setNames(model.vars)
+    original.variables <- formula.vars[.attr(model.covs, "assign")] |> setNames(model.vars)
 
     for (v in formula.vars) {
-      if (attr(terms(formula.covs), "order")[formula.vars == v] == 1 &&
-          attr(terms(formula.covs), "dataClasses")[formula.vars == v] == "factor" &&
+      if (.attr(terms(formula.covs), "order")[formula.vars == v] == 1 &&
+          .attr(terms(formula.covs), "dataClasses")[formula.vars == v] == "factor" &&
           !anyNA(internal.targets[original.variables == v]) &&
           !check_if_zero(sum(internal.targets[original.variables == v]) - 1)) {
         .err("the target values for {.var {v}} must add up to 1")
@@ -148,18 +148,18 @@ process_targets <- function(formula, data = NULL, targets = NULL, s.weights = NU
     }
 
     if (!allNA(internal.targets) && any_apply(formula.vars, function(v) {
-      if (attr(terms(formula.covs), "order")[formula.vars == v] <= 1) {
+      if (.attr(terms(formula.covs), "order")[formula.vars == v] <= 1) {
         return(FALSE)
       }
 
-      vars.in.interaction <- rownames(attr(terms(formula.covs), "factors"))[attr(terms(formula.covs), "factors")[, v] == 1]
+      vars.in.interaction <- rownames(.attr(terms(formula.covs), "factors"))[.attr(terms(formula.covs), "factors")[, v] == 1]
 
-      sum(attr(terms(formula.covs), "dataClasses")[vars.in.interaction] == "factor") > 1
+      sum(.attr(terms(formula.covs), "dataClasses")[vars.in.interaction] == "factor") > 1
     })) {
       .wrn("interactions between factor variables were entered, but {.fn process_targets} cannot verify whether the target values are suitable. See {.fn process_targets} for details")
     }
 
-    attr(internal.targets, "original.vars") <- formula.vars[attr(model.covs, "assign")] |> setNames(model.vars)
+    attr(internal.targets, "original.vars") <- formula.vars[.attr(model.covs, "assign")] |> setNames(model.vars)
   }
 
   attr(internal.targets, "ATE") <- ATE

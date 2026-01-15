@@ -15,7 +15,7 @@
 \arguments{
 \item{x}{an \code{optweight}, \code{optweightMV}, or \code{optweight.svy} object; the output of a call to \code{\link[=optweight]{optweight()}}, \code{\link[=optweightMV]{optweightMV()}}, or \code{\link[=optweight.svy]{optweight.svy()}}.}
 
-\item{type}{the type of plot to display; allowable options include \code{"variables"} (the default), which produces a row for each covariates, and \code{"constraints"}, which produces a row for each type of constraint (computed as the sum of the absolute dual variables for each constraint type).}
+\item{type}{the type of plot to display; allowable options include \code{"variables"} (the default), which produces a row for each covariate, and \code{"constraints"}, which produces a row for each type of constraint (computed as the sum of the absolute dual variables for each constraint type).}
 
 \item{\dots}{ignored.}
 
@@ -25,9 +25,7 @@
 A \code{ggplot} object that can be used with other \pkg{ggplot2} functions.
 }
 \description{
-Plots the dual variables resulting from \code{\link[=optweight]{optweight()}}, \code{\link[=optweightMV]{optweightMV()}}, or \code{\link[=optweight.svy]{optweight.svy()}} in a way similar to
-figure 2 of Zubizarreta (2015), which explains how to interpret these
-values.
+Plots the dual variables resulting from \code{\link[=optweight]{optweight()}}, \code{\link[=optweightMV]{optweightMV()}}, or \code{\link[=optweight.svy]{optweight.svy()}} in a way similar to figure 2 of Zubizarreta (2015), which explains how to interpret these values.
 }
 \details{
 Dual variables represent the cost of changing the constraint on the objective function minimized to estimate the weights. For covariates with large values of the dual variable, tightening the constraint will increase the variability of the weights, and relaxing the constraint will decrease the variability of the weights, both to a greater extent than would doing the same for covariate with small values of the dual variable. See \code{\link[=optweight]{optweight()}} and \code{vignette("optweight")} for more information on interpreting dual variables.
@@ -47,10 +45,12 @@ ow1 <- optweight(treat ~ age + educ + married +
                  tols = tols,
                  estimand = "ATT")
 
-summary(ow1) # Note the L2 divergence and effective
-#              sample size (ESS)
+# Note the L2 divergence and effective sample
+# size (ESS)
+summary(ow1, weight.range = FALSE)
 
-plot(ow1) # age has a low value, married is high
+# age has a low value, married is high
+plot(ow1)
 
 tols["age"] <- 0
 ow2 <- optweight(treat ~ age + educ + married +
@@ -58,9 +58,10 @@ ow2 <- optweight(treat ~ age + educ + married +
                  tols = tols,
                  estimand = "ATT")
 
-summary(ow2) # Notice that tightening the constraint
-#              on age had a negligible effect on the
-#              variability of the weights and ESS
+# Notice that tightening the constraint on age has
+# a negligible effect on the variability of the
+# weights and ESS
+summary(ow2, weight.range = FALSE)
 
 tols["age"] <- .1
 tols["married"] <- 0
@@ -69,10 +70,21 @@ ow3 <- optweight(treat ~ age + educ + married +
                  tols = tols,
                  estimand = "ATT")
 
-summary(ow3) # In contrast, tightening the constraint
-#              on married had a large effect on the
-#              variability of the weights, shrinking
-#              the ESS
+# In contrast, tightening the constraint on married
+# has a large effect on the variability of the
+# weights, shrinking the ESS
+summary(ow3, weight.range = FALSE)
+
+# More duals are displayed when targeting other
+# estimands:
+ow4 <- optweight(treat ~ age + educ + married +
+                   nodegree + re74, data = lalonde,
+                 estimand = "ATE")
+
+plot(ow4)
+
+# Display duals by constraint type
+plot(ow4, type = "constraints")
 \dontshow{\}) # examplesIf}
 }
 \references{

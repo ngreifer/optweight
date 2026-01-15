@@ -6,15 +6,15 @@
 #' @param data an optional data set in the form of a data frame that contains the variables in `formula`.
 #' @param tols a vector of balance tolerance values for each covariate. The resulting weighted balance statistics will be at least as small as these values. If only one value is supplied, it will be applied to all covariates. Can also be the output of a call to [process_tols()]. See Details. Default is 0 for all covariates.
 #' @param estimand a string containing the desired estimand, which determines the target population. For binary treatments, can be "ATE", "ATT", "ATC", or `NULL`. For multi-category treatments, can be "ATE", "ATT", or `NULL`. For continuous treatments, can be "ATE" or `NULL`. The default for both is "ATE". `estimand` is ignored when `targets` is non-`NULL`. If both `estimand` and `targets` are `NULL`, no targeting will take place. See Details.
-#' @param targets an optional vector of target population mean values for each covariate. The resulting weights will yield sample means within `tols`/2 units of the target values for each covariate. If `NULL` or all `NA`, `estimand` will be used to determine targets. Otherwise, `estimand` is ignored. If any target values are `NA`, the corresponding variable will not be targeted and its weighted mean will be wherever the weights yield the smallest variance; this is only allowed for binary and multi-category treatments. Can also be the output of a call to [process_targets()]. See Details.
+#' @param targets an optional vector of target population mean values for each covariate. The resulting weights ensure the midpoint between group means are within `target.tols` units of the target values for each covariate. If `NULL` or all `NA`, `estimand` will be used to determine targets. Otherwise, `estimand` is ignored. If any target values are `NA`, the corresponding variable will not be targeted and its weighted mean will be wherever the weights yield the smallest value of the objective function; this is only allowed for binary and multi-category treatments. Can also be the output of a call to [process_targets()]. See Details.
 #' @param target.tols a vector of target balance tolerance values for each covariate. For binary and multi-category treatments, the average of each pair of means will be at most as far from the target means as these values. Can also be the output of a call to [process_tols()]. See Details. Default is 0 for all covariates. Ignored with continuous treatments and when `estimand` is `"ATT"` or `"ATC"`.
 #' @param s.weights a vector of sampling weights. For `optweight()`, can also be the name of a variable in `data` that contains sampling weights.
 #' @param b.weights a vector of base weights. If supplied, the desired norm of the distance between the estimated weights and the base weights is minimized. For `optweight()`, can also the name of a variable in `data` that contains base weights.
-#' @param norm `character`; a string containing the name of the norm corresponding to the objective function to minimize. Allowable options include `"l1"` for the L1 norm, `"l2"` for the L2 norm (the default), `"linf"` for the L\eqn{\infty} norm, `"entropy"` for the negative entropy, and `"log"` for the sum of the logs. See Details.
+#' @param norm `character`; a string containing the name of the norm corresponding to the objective function to minimize. Allowable options include `"l1"` for the \eqn{L_1} norm, `"l2"` for the \eqn{L_2} norm (the default), `"linf"` for the \eqn{L_\infty} norm, `"entropy"` for the relative entropy, and `"log"` for the sum of the negative logs. See Details.
 #' @param focal when multi-category treatments are used and `estimand = "ATT"`, which group to consider the "treated" or focal group. This group will not be weighted, and the other groups will be weighted to be more like the focal group. If specified, `estimand` will automatically be set to `"ATT"`.
 #' @param covs a numeric matrix of covariates to be balanced.
 #' @param treat a vector of treatment statuses. Non-numeric (i.e., factor or character) vectors are allowed.
-#' @param std.binary,std.cont `logical`; whether the tolerances are in standardized mean units (`TRUE`) or raw units (`FALSE`) for binary variables and continuous variables, respectively. The default is `FALSE` for `std.binary` because raw proportion differences make more sense than standardized mean difference for binary variables. These arguments are analogous to the `binary` and `continuous` arguments in `bal.tab()` in \pkg{cobalt}.
+#' @param std.binary,std.cont `logical`; whether the tolerances are in standardized mean units (`TRUE`) or raw units (`FALSE`) for binary variables and continuous variables, respectively. The default is `FALSE` for `std.binary` because raw proportion differences make more sense than standardized mean difference for binary variables. These arguments are analogous to the `binary` and `continuous` arguments in \pkgfun{cobalt}{bal.tab}.
 #' @param min.w `numeric`; a single value less than 1 for the smallest allowable weight. Some analyses require nonzero weights for all units, so a small, nonzero minimum may be desirable. The default is `1e-8` (\eqn{10^{-8}}), which does not materially change the properties of the weights from a minimum of 0 but prevents warnings in some packages that use weights in model fitting. When `norm` is `"entropy"` or `"log"` and `min.w <= 0`, `min.w` will be set to the smallest nonzero value.
 #' @param verbose `logical`; whether information on the optimization problem solution should be printed. Default is `FALSE`.
 #' @param solver string; the name of the optimization solver to use. Allowable options depend on `norm`. Default is to use whichever eligible solver is installed, if any, or the default solver for the corresponding `norm`. See Details for information.
@@ -31,7 +31,7 @@
 #' \item{focal}{The focal variable if the ATT was requested with a multi-category treatment.}
 #' \item{call}{The function call.}
 #' \item{tols}{The balance tolerance values for each covariate.}
-#' \item{target.tols}{The target tolerance values for each covariate.}
+#' \item{target.tols}{The target balance tolerance values for each covariate.}
 #' \item{duals}{A data.frame containing the dual variables for each covariate. See Details for interpretation of these values.}
 #' \item{info}{A list containing information about the performance of the optimization at termination.}
 #' \item{norm}{The `norm` used.}
@@ -56,19 +56,21 @@
 #'
 #' If standardized tolerance values are requested, the standardization factor corresponds to the estimand requested: when the ATE is requested or a target population specified, the standardization factor is the square root of the average variance for that covariate across treatment groups, and when the ATT or ATC are requested, the standardization factor is the standard deviation of the covariate in the focal group. The standardization factor is computed accounting for `s.weights`.
 #'
-#' For continuous treatments, weights are estimated so that the weighted correlation between the treatment and each covariate is within the specified tolerance threshold. The means of the weighted covariates and treatment are restricted to be exactly equal to those of the target population to ensure generalizability to the desired target population, regardless of `tols` or `target.tols`. The weighted correlation is computed as the weighted covariance divided by the product of the *unweighted* standard deviations. The means used to center the variables in computing the covariance are those specified in the target population.
-#'
 #' Target and balance constraints are applied to the product of the estimated weights and the sampling weights. In addition, the sum of the product of the estimated weights and the sampling weights is constrained to be equal to the sum of the product of the base weights and sampling weights. For binary and multi-category treatments, these constraints apply within each treatment group.
+#'
+#' ## Continuous treatments
+#'
+#' For continuous treatments, weights are estimated so that the weighted correlation between the treatment and each covariate is within the specified tolerance threshold. The means of the weighted covariates and treatment are restricted to be exactly equal to those of the target population to ensure generalizability to the desired target population, regardless of `tols` or `target.tols`. The weighted correlation is computed as the weighted covariance divided by the product of the *unweighted* standard deviations. The means used to center the variables in computing the covariance are those specified in the target population.
 #'
 #' ## `norm`
 #'
-#' The objective function for the optimization problem is \eqn{f\left(w_i, b_i, s_i\right)}, where \eqn{w_i} is the estimated weight for unit \eqn{i}, \eqn{s_i} is the sampling weight for unit \eqn{i} (supplied by `s.weights`) and \eqn{b_i} is the base weight for unit \eqn{i} (supplied by `b.weights`). The `norm` argument determines \eqn{f(.,.,.)}, as detailed below:
+#' The objective function for the optimization problem is \eqn{f\left(\mathbf{w}, \mathbf{b},\mathbf{s}\right)}, where \eqn{\mathbf{w}=\{w_1, \dots, w_n\}} are the estimated weights, \eqn{\mathbf{s}=\{s_1, \dots, s_n\}} are sampling weights (supplied by `s.weights`), and \eqn{\mathbf{b}=\{b_1, \dots, b_n\}} are base weights (supplied by `b.weights`). The `norm` argument determines \eqn{f(.,.,.)}, as detailed below:
 #'
-#' * when `norm = "l2"`, \eqn{f\left(w_i, b_i, s_i\right) = \frac{1}{n} \sum_i {s_i(w_i - b_i)^2}}
-#' * when `norm = "l1"`, \eqn{f\left(w_i, b_i, s_i\right) = \frac{1}{n} \sum_i {s_i \vert w_i - b_i \vert}}
-#' * when `norm = "linf"`, \eqn{f\left(w_i, b_i, s_i\right) = \max_i {\vert w_i - b_i \vert}}
-#' * when `norm = "entropy"`, \eqn{f\left(w_i, b_i, s_i\right) = \frac{1}{n} \sum_i {s_i w_i \log \frac{w_i}{b_i}}}
-#' * when `norm = "log"`, \eqn{f\left(w_i, b_i, s_i\right) = \frac{1}{n} \sum_i {-s_i \log \frac{w_i}{b_i}}}
+#' * when `norm = "l2"`, \eqn{f\left(\mathbf{w}, \mathbf{b},\mathbf{s}\right) = \frac{1}{n} \sum_i {s_i(w_i - b_i)^2}}
+#' * when `norm = "l1"`, \eqn{f\left(\mathbf{w}, \mathbf{b},\mathbf{s}\right) = \frac{1}{n} \sum_i {s_i \vert w_i - b_i \vert}}
+#' * when `norm = "linf"`, \eqn{f\left(\mathbf{w}, \mathbf{b},\mathbf{s}\right) = \max_i {\vert w_i - b_i \vert}}
+#' * when `norm = "entropy"`, \eqn{f\left(\mathbf{w}, \mathbf{b},\mathbf{s}\right) = \frac{1}{n} \sum_i {s_i w_i \log \frac{w_i}{b_i}}}
+#' * when `norm = "log"`, \eqn{f\left(\mathbf{w}, \mathbf{b},\mathbf{s}\right) = \frac{1}{n} \sum_i {-s_i \log \frac{w_i}{b_i}}}
 #'
 #' By default, `s.weights` and `b.weights` are set to 1 for all units unless supplied. `b.weights` must be positive when `norm` is `"entropy"` or `"log"`, and `norm = "linf"` cannot be used when `s.weights` are supplied.
 #'
@@ -229,7 +231,7 @@ optweight <- function(formula, data = NULL, tols = 0,
 
   #Get treat type
   treat <- assign_treat_type(treat)
-  treat.type <- attr(treat, "treat.type")
+  treat.type <- .attr(treat, "treat.type")
 
   if (is_null(covs)) {
     .err("no covariates were specified")
@@ -299,7 +301,7 @@ optweight <- function(formula, data = NULL, tols = 0,
   }
 
   if (anyNA(test.w)) {
-    .err("some weights are NA, which means something went wrong")
+    .err("some weights are {.val NA}, which means something went wrong")
   }
 
   #Process duals
@@ -347,7 +349,7 @@ optweight.fit <- function(covs, treat, tols = 0,
 
   covs <- as.matrix(covs)
 
-  treat.name <- attr(treat, "treat.name") %or% "treat"
+  treat.name <- .attr(treat, "treat.name") %or% "treat"
 
   treat.type <- {
     if (chk::vld_character_or_factor(treat) || is_binary(treat)) "cat"
@@ -377,22 +379,22 @@ optweight.fit <- function(covs, treat, tols = 0,
   }
 
   #Process tols and target.tols
-  if (!inherits(tols, "optweight.tols") || is_null(attr(tols, "internal.tols"))) {
+  if (!inherits(tols, "optweight.tols") || is_null(.attr(tols, "internal.tols"))) {
     tols <- .process_tols_internal(covs, tols = tols, tols_found_in = "covs",
                                    tols_arg = "tols")
   }
 
   tols <- tols |>
-    attr("internal.tols") |>
+    .attr("internal.tols") |>
     abs()
 
-  if (!inherits(target.tols, "optweight.tols") || is_null(attr(target.tols, "internal.tols"))) {
+  if (!inherits(target.tols, "optweight.tols") || is_null(.attr(target.tols, "internal.tols"))) {
     target.tols <- .process_tols_internal(covs, tols = target.tols, tols_found_in = "covs",
                                           tols_arg = "target.tols")
   }
 
   target.tols <- target.tols |>
-    attr("internal.tols") |>
+    .attr("internal.tols") |>
     abs()
 
   #Process estimand and targets
@@ -594,7 +596,7 @@ optweight.fit <- function(covs, treat, tols = 0,
 
 #' @exportS3Method print optweight
 print.optweight <- function(x, ...) {
-  treat.type <- attr(x[["treat"]], "treat.type")
+  treat.type <- .attr(x[["treat"]], "treat.type")
 
   if (is_not_null(treat.type)) {
     treat.type[treat.type == "multinomial"] <- "multi-category"

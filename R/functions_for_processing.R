@@ -88,9 +88,9 @@ process_focal_and_estimand_w_targets <- function(focal, estimand, targets = NULL
 
 .get_control_and_treated_levels <- function(treat, estimand, focal = NULL, treated = NULL) {
 
-  if (is_not_null(attr(treat, "control")) &&
-      is_not_null(attr(treat, "treated"))) {
-    return(setNames(c(attr(treat, "control"), attr(treat, "treated")),
+  if (is_not_null(.attr(treat, "control")) &&
+      is_not_null(.attr(treat, "treated"))) {
+    return(setNames(c(.attr(treat, "control"), .attr(treat, "treated")),
                     c("control", "treated")))
   }
 
@@ -117,11 +117,11 @@ process_focal_and_estimand_w_targets <- function(focal, estimand, targets = NULL
       treated <- focal
     }
   }
-  else if (is_not_null(attr(treat, "treated", TRUE))) {
-    treated <- attr(treat, "treated", TRUE)
+  else if (is_not_null(.attr(treat, "treated", TRUE))) {
+    treated <- .attr(treat, "treated", TRUE)
   }
-  else if (is_not_null(attr(treat, "control", TRUE))) {
-    control <- attr(treat, "control", TRUE)
+  else if (is_not_null(.attr(treat, "control", TRUE))) {
+    control <- .attr(treat, "control", TRUE)
   }
   else if (is_not_null(treated)) {
     if (length(treated) > 1L || treated %nin% unique.vals) {
@@ -338,8 +338,8 @@ process_duals <- function(d, tols) {
     .i <- d$component == time & d$constraint %in% c("target", "balance")
 
     original.vars <- {
-      if (is.list(tols)) attr(tols[[time]], "original.vars")
-      else attr(tols, "original.vars")
+      if (is.list(tols)) .attr(tols[[time]], "original.vars")
+      else .attr(tols, "original.vars")
     }
 
     na.cov <- is.na(d$cov[.i])

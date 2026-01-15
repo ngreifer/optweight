@@ -284,7 +284,7 @@ col.w.v <- function(mat, g = NULL, w = NULL, bin.vars = NULL) {
   vars <- .f(fmean(mat, g = g, w = w))
 
   if (is.matrix(vars)) {
-    vars[,!bin.vars] <- fvar(ss(mat, j = !bin.vars), g = g, w = w)
+    vars[, !bin.vars] <- fvar(ss(mat, j = !bin.vars), g = g, w = w)
   }
   else {
     vars[!bin.vars] <- fvar(ss(mat, j = !bin.vars), g = g, w = w)
@@ -882,7 +882,7 @@ match_arg <- function(arg, choices, several.ok = FALSE, context = NULL) {
       else "one of"
     }
 
-    .err("{(context)} the argument to {.arg {arg.name}} should be {one_of} {.or {add_quotes(choices)}}")
+    .err("{context} the argument to {.arg {arg.name}} should be {one_of} {.or {add_quotes(choices)}}")
   }
 
   i <- i[i > 0L]

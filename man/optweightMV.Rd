@@ -47,7 +47,7 @@ optweightMV.fit(
 
 \item{estimand}{the desired estimand, which determines the target population. Only "ATE" or \code{NULL} are supported. \code{estimand} is ignored when \code{targets} is non-\code{NULL}. If both \code{estimand} and \code{targets} are \code{NULL}, no targeting will take place.}
 
-\item{targets}{an optional vector of target population mean values for each covariate. The resulting weights will yield sample means within \code{tols}/2 units of the target values for each covariate. If \code{NULL} or all \code{NA}, \code{estimand} will be used to determine targets. Otherwise, \code{estimand} is ignored. If any target values are \code{NA}, the corresponding variable will not be targeted and its weighted mean will be wherever the weights yield the smallest variance; this is only allowed if all treatments are binary or multi-category. Can also be the output of a call to \code{\link[=process_targets]{process_targets()}}. See Details.}
+\item{targets}{an optional vector of target population mean values for each covariate. The resulting weights ensure the midpoint between group means are within \code{target.tols} units of the target values for each covariate. If \code{NULL} or all \code{NA}, \code{estimand} will be used to determine targets. Otherwise, \code{estimand} is ignored. If any target values are \code{NA}, the corresponding variable will not be targeted and its weighted mean will be wherever the weights yield the smallest value of the objective function; this is only allowed if all treatments are binary or multi-category. Can also be the output of a call to \code{\link[=process_targets]{process_targets()}}. See Details.}
 
 \item{target.tols.list}{a list of vectors of target balance tolerance values for each covariate for each treatment. For binary and multi-category treatments, the average of each pair of means will be at most as far from the target means as these values. Can also be the output of a call to \code{\link[=process_tols]{process_tols()}}. See Details. Default is 0 for all covariates. Ignored with continuous treatments.}
 
@@ -55,7 +55,7 @@ optweightMV.fit(
 
 \item{b.weights}{a vector of base weights. If supplied, the desired norm of the distance between the estimated weights and the base weights is minimized. For \code{optweightMV()}, can also the name of a variable in \code{data} that contains base weights.}
 
-\item{norm}{\code{character}; a string containing the name of the norm corresponding to the objective function to minimize. Allowable options include \code{"l1"} for the L1 norm, \code{"l2"} for the L2 norm (the default), \code{"linf"} for the L\eqn{\infty} norm, \code{"entropy"} for the negative entropy, and \code{"log"} for the sum of the logs. See Details.}
+\item{norm}{\code{character}; a string containing the name of the norm corresponding to the objective function to minimize. Allowable options include \code{"l1"} for the \eqn{L_1} norm, \code{"l2"} for the \eqn{L_2} norm (the default), \code{"linf"} for the \eqn{L_\infty} norm, \code{"entropy"} for the relative entropy, and \code{"log"} for the sum of the negative logs. See Details.}
 
 \item{min.w}{\code{numeric}; a single value less than 1 for the smallest allowable weight. Some analyses require nonzero weights for all units, so a small, nonzero minimum may be desirable. The default is \code{1e-8} (\eqn{10^{-8}}), which does not materially change the properties of the weights from a minimum of 0 but prevents warnings in some packages that use weights in model fitting. When \code{norm} is \code{"entropy"} or \code{"log"} and \code{min.w <= 0}, \code{min.w} will be set to the smallest nonzero value.}
 
@@ -67,7 +67,7 @@ optweightMV.fit(
 
 \item{treat.list}{a list containing one vector of treatment statuses for each treatment.}
 
-\item{std.binary, std.cont}{\code{logical}; whether the tolerances are in standardized mean units (\code{TRUE}) or raw units (\code{FALSE}) for binary variables and continuous variables, respectively. The default is \code{FALSE} for \code{std.binary} because raw proportion differences make more sense than standardized mean difference for binary variables. These arguments are analogous to the \code{binary} and \code{continuous} arguments in \code{bal.tab()} in \pkg{cobalt}.}
+\item{std.binary, std.cont}{\code{logical}; whether the tolerances are in standardized mean units (\code{TRUE}) or raw units (\code{FALSE}) for binary variables and continuous variables, respectively. The default is \code{FALSE} for \code{std.binary} because raw proportion differences make more sense than standardized mean difference for binary variables. These arguments are analogous to the \code{binary} and \code{continuous} arguments in \pkgfun{cobalt}{bal.tab}.}
 
 \item{solver}{string; the name of the optimization solver to use. Allowable options depend on \code{norm}. Default is to use whichever eligible solver is installed, if any, or the default solver for the corresponding \code{norm}. See Details for information.}
 }

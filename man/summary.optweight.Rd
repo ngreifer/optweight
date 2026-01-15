@@ -34,10 +34,10 @@ For point treatments (i.e., \code{optweight} objects), \code{summary()} returns 
 elements:
 \item{weight.range}{The range (minimum and maximum) weight for each treatment group.}
 \item{weight.top}{The units with the greatest weights in each treatment group; how many are included is determined by \code{top}.}
-\item{l2}{The square root of the L2 norm of the estimated weights from the base weights, weighted by the sampling weights (if any): \eqn{\sqrt{\frac{1}{n}\sum_i {s_i(w_i - b_i)^2}}}}
-\item{l1}{The L1 norm of the estimated weights from the base weights, weighted by the sampling weights (if any): \eqn{\frac{1}{n}\sum_i {s_i \vert w_i - b_i \vert}}}
-\item{linf}{The L\eqn{\infty} norm (maximum absolute deviation) of the estimated weights from the base weights: \eqn{\max_i {\vert w_i - b_i \vert}}}
-\item{rel.ent}{The relative entropy between the estimated weights and the base weights (entropy norm), weighted by the sampling weights (if any): \eqn{\frac{1}{n}\sum_i {s_i w_i \log\left(\frac{w_i}{b_i}\right)}}. Only computed if all weights are positive.}
+\item{l2}{The square root of the \eqn{L_2} norm of the estimated weights from the base weights, weighted by the sampling weights (if any): \eqn{\sqrt{\frac{1}{n}\sum_i {s_i(w_i - b_i)^2}}}}
+\item{l1}{The \eqn{L_1} norm of the estimated weights from the base weights, weighted by the sampling weights (if any): \eqn{\frac{1}{n}\sum_i {s_i \vert w_i - b_i \vert}}}
+\item{linf}{The \eqn{L_\infty} norm (maximum absolute deviation) of the estimated weights from the base weights: \eqn{\max_i {\vert w_i - b_i \vert}}}
+\item{rel.ent}{The relative entropy between the estimated weights and the base weights, weighted by the sampling weights (if any): \eqn{\frac{1}{n}\sum_i {s_i w_i \log\left(\frac{w_i}{b_i}\right)}}. Only computed if all weights are positive.}
 \item{num.zeros}{The number of units with a weight equal to 0.}
 \item{effective.sample.size}{The effective sample size for each treatment group before and after weighting.}
 
@@ -52,7 +52,7 @@ weights for the focal group are all 1). A dotted line is displayed at the
 mean of the weights (the mean of the base weights, or 1 if not supplied).
 }
 \description{
-These functions summarize the weights resulting from a call to \code{\link[=optweight]{optweight()}}, \code{\link[=optweightMV]{optweightMV()}}, or \code{\link[=optweight.svy]{optweight.svy()}}. \code{summary()} produces summary statistics on the distribution of weights, including their range and variability, and the effective sample size of the weighted sample (computed using the formula in McCaffrey, Rudgeway, & Morral, 2004). \code{plot()} creates a histogram of the weights.
+These functions summarize the weights resulting from a call to \code{\link[=optweight]{optweight()}}, \code{\link[=optweightMV]{optweightMV()}}, or \code{\link[=optweight.svy]{optweight.svy()}}. \code{summary()} produces summary statistics on the distribution of weights, including their range and variability, and the effective sample size of the weighted sample (computed using the formula in McCaffrey, et al., 2004). \code{plot()} creates a histogram of the weights.
 }
 \examples{
 \dontshow{if (rlang::is_installed("cobalt")) withAutoprint(\{ # examplesIf}

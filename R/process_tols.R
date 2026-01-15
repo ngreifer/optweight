@@ -103,7 +103,7 @@ process_tols <- function(formula, data = NULL, tols = 0) {
   model.vars <- colnames(model.covs)
 
   if (is_not_null(formula.covs)) {
-    formula.vars <- attr(formula.covs, "terms") |> attr("term.labels")
+    formula.vars <- .attr(formula.covs, "terms") |> .attr("term.labels")
     if (is_null(formula.vars)) {
       formula.vars <- "(Intercept)"
       attr(model.covs, "assign") <- 1
@@ -143,10 +143,10 @@ process_tols <- function(formula, data = NULL, tols = 0) {
   }
 
   if (is_not_null(formula.covs)) {
-    internal.tols <- user.tols[attr(model.covs, "assign")]
+    internal.tols <- user.tols[.attr(model.covs, "assign")]
     names(internal.tols) <- model.vars
 
-    attr(user.tols, "original.vars") <- names(user.tols)[attr(model.covs, "assign")] |> setNames(model.vars)
+    attr(user.tols, "original.vars") <- names(user.tols)[.attr(model.covs, "assign")] |> setNames(model.vars)
   }
   else {
     internal.tols <- user.tols
@@ -169,7 +169,7 @@ check.tols <- function(...) {
 #' @rdname process_tols
 print.optweight.tols <- function(x, internal = FALSE, digits = 5, ...) {
   tols <- x
-  internal.tols <- attr(tols, "internal.tols")
+  internal.tols <- .attr(tols, "internal.tols")
   attributes(tols) <- NULL
   names(tols) <- names(x)
 

@@ -49,7 +49,7 @@ optweight.fit(
 
 \item{estimand}{a string containing the desired estimand, which determines the target population. For binary treatments, can be "ATE", "ATT", "ATC", or \code{NULL}. For multi-category treatments, can be "ATE", "ATT", or \code{NULL}. For continuous treatments, can be "ATE" or \code{NULL}. The default for both is "ATE". \code{estimand} is ignored when \code{targets} is non-\code{NULL}. If both \code{estimand} and \code{targets} are \code{NULL}, no targeting will take place. See Details.}
 
-\item{targets}{an optional vector of target population mean values for each covariate. The resulting weights will yield sample means within \code{tols}/2 units of the target values for each covariate. If \code{NULL} or all \code{NA}, \code{estimand} will be used to determine targets. Otherwise, \code{estimand} is ignored. If any target values are \code{NA}, the corresponding variable will not be targeted and its weighted mean will be wherever the weights yield the smallest variance; this is only allowed for binary and multi-category treatments. Can also be the output of a call to \code{\link[=process_targets]{process_targets()}}. See Details.}
+\item{targets}{an optional vector of target population mean values for each covariate. The resulting weights ensure the midpoint between group means are within \code{target.tols} units of the target values for each covariate. If \code{NULL} or all \code{NA}, \code{estimand} will be used to determine targets. Otherwise, \code{estimand} is ignored. If any target values are \code{NA}, the corresponding variable will not be targeted and its weighted mean will be wherever the weights yield the smallest value of the objective function; this is only allowed for binary and multi-category treatments. Can also be the output of a call to \code{\link[=process_targets]{process_targets()}}. See Details.}
 
 \item{target.tols}{a vector of target balance tolerance values for each covariate. For binary and multi-category treatments, the average of each pair of means will be at most as far from the target means as these values. Can also be the output of a call to \code{\link[=process_tols]{process_tols()}}. See Details. Default is 0 for all covariates. Ignored with continuous treatments and when \code{estimand} is \code{"ATT"} or \code{"ATC"}.}
 
@@ -59,7 +59,7 @@ optweight.fit(
 
 \item{focal}{when multi-category treatments are used and \code{estimand = "ATT"}, which group to consider the "treated" or focal group. This group will not be weighted, and the other groups will be weighted to be more like the focal group. If specified, \code{estimand} will automatically be set to \code{"ATT"}.}
 
-\item{norm}{\code{character}; a string containing the name of the norm corresponding to the objective function to minimize. Allowable options include \code{"l1"} for the L1 norm, \code{"l2"} for the L2 norm (the default), \code{"linf"} for the L\eqn{\infty} norm, \code{"entropy"} for the negative entropy, and \code{"log"} for the sum of the logs. See Details.}
+\item{norm}{\code{character}; a string containing the name of the norm corresponding to the objective function to minimize. Allowable options include \code{"l1"} for the \eqn{L_1} norm, \code{"l2"} for the \eqn{L_2} norm (the default), \code{"linf"} for the \eqn{L_\infty} norm, \code{"entropy"} for the relative entropy, and \code{"log"} for the sum of the negative logs. See Details.}
 
 \item{min.w}{\code{numeric}; a single value less than 1 for the smallest allowable weight. Some analyses require nonzero weights for all units, so a small, nonzero minimum may be desirable. The default is \code{1e-8} (\eqn{10^{-8}}), which does not materially change the properties of the weights from a minimum of 0 but prevents warnings in some packages that use weights in model fitting. When \code{norm} is \code{"entropy"} or \code{"log"} and \code{min.w <= 0}, \code{min.w} will be set to the smallest nonzero value.}
 
@@ -71,7 +71,7 @@ optweight.fit(
 
 \item{treat}{a vector of treatment statuses. Non-numeric (i.e., factor or character) vectors are allowed.}
 
-\item{std.binary, std.cont}{\code{logical}; whether the tolerances are in standardized mean units (\code{TRUE}) or raw units (\code{FALSE}) for binary variables and continuous variables, respectively. The default is \code{FALSE} for \code{std.binary} because raw proportion differences make more sense than standardized mean difference for binary variables. These arguments are analogous to the \code{binary} and \code{continuous} arguments in \code{bal.tab()} in \pkg{cobalt}.}
+\item{std.binary, std.cont}{\code{logical}; whether the tolerances are in standardized mean units (\code{TRUE}) or raw units (\code{FALSE}) for binary variables and continuous variables, respectively. The default is \code{FALSE} for \code{std.binary} because raw proportion differences make more sense than standardized mean difference for binary variables. These arguments are analogous to the \code{binary} and \code{continuous} arguments in \pkgfun{cobalt}{bal.tab}.}
 
 \item{solver}{string; the name of the optimization solver to use. Allowable options depend on \code{norm}. Default is to use whichever eligible solver is installed, if any, or the default solver for the corresponding \code{norm}. See Details for information.}
 }
@@ -86,7 +86,7 @@ For \code{optweight()}, an \code{optweight} object with the following elements:
 \item{focal}{The focal variable if the ATT was requested with a multi-category treatment.}
 \item{call}{The function call.}
 \item{tols}{The balance tolerance values for each covariate.}
-\item{target.tols}{The target tolerance values for each covariate.}
+\item{target.tols}{The target balance tolerance values for each covariate.}
 \item{duals}{A data.frame containing the dual variables for each covariate. See Details for interpretation of these values.}
 \item{info}{A list containing information about the performance of the optimization at termination.}
 \item{norm}{The \code{norm} used.}
@@ -114,18 +114,21 @@ where \eqn{\bar{x}^w_1} and \eqn{\bar{x}^w_0} are the weighted means of covariat
 
 If standardized tolerance values are requested, the standardization factor corresponds to the estimand requested: when the ATE is requested or a target population specified, the standardization factor is the square root of the average variance for that covariate across treatment groups, and when the ATT or ATC are requested, the standardization factor is the standard deviation of the covariate in the focal group. The standardization factor is computed accounting for \code{s.weights}.
 
-For continuous treatments, weights are estimated so that the weighted correlation between the treatment and each covariate is within the specified tolerance threshold. The means of the weighted covariates and treatment are restricted to be exactly equal to those of the target population to ensure generalizability to the desired target population, regardless of \code{tols} or \code{target.tols}. The weighted correlation is computed as the weighted covariance divided by the product of the \emph{unweighted} standard deviations. The means used to center the variables in computing the covariance are those specified in the target population.
-
 Target and balance constraints are applied to the product of the estimated weights and the sampling weights. In addition, the sum of the product of the estimated weights and the sampling weights is constrained to be equal to the sum of the product of the base weights and sampling weights. For binary and multi-category treatments, these constraints apply within each treatment group.
+\subsection{Continuous treatments}{
+
+For continuous treatments, weights are estimated so that the weighted correlation between the treatment and each covariate is within the specified tolerance threshold. The means of the weighted covariates and treatment are restricted to be exactly equal to those of the target population to ensure generalizability to the desired target population, regardless of \code{tols} or \code{target.tols}. The weighted correlation is computed as the weighted covariance divided by the product of the \emph{unweighted} standard deviations. The means used to center the variables in computing the covariance are those specified in the target population.
+}
+
 \subsection{\code{norm}}{
 
-The objective function for the optimization problem is \eqn{f\left(w_i, b_i, s_i\right)}, where \eqn{w_i} is the estimated weight for unit \eqn{i}, \eqn{s_i} is the sampling weight for unit \eqn{i} (supplied by \code{s.weights}) and \eqn{b_i} is the base weight for unit \eqn{i} (supplied by \code{b.weights}). The \code{norm} argument determines \eqn{f(.,.,.)}, as detailed below:
+The objective function for the optimization problem is \eqn{f\left(\mathbf{w}, \mathbf{b},\mathbf{s}\right)}, where \eqn{\mathbf{w}=\{w_1, \dots, w_n\}} are the estimated weights, \eqn{\mathbf{s}=\{s_1, \dots, s_n\}} are sampling weights (supplied by \code{s.weights}), and \eqn{\mathbf{b}=\{b_1, \dots, b_n\}} are base weights (supplied by \code{b.weights}). The \code{norm} argument determines \eqn{f(.,.,.)}, as detailed below:
 \itemize{
-\item when \code{norm = "l2"}, \eqn{f\left(w_i, b_i, s_i\right) = \frac{1}{n} \sum_i {s_i(w_i - b_i)^2}}
-\item when \code{norm = "l1"}, \eqn{f\left(w_i, b_i, s_i\right) = \frac{1}{n} \sum_i {s_i \vert w_i - b_i \vert}}
-\item when \code{norm = "linf"}, \eqn{f\left(w_i, b_i, s_i\right) = \max_i {\vert w_i - b_i \vert}}
-\item when \code{norm = "entropy"}, \eqn{f\left(w_i, b_i, s_i\right) = \frac{1}{n} \sum_i {s_i w_i \log \frac{w_i}{b_i}}}
-\item when \code{norm = "log"}, \eqn{f\left(w_i, b_i, s_i\right) = \frac{1}{n} \sum_i {-s_i \log \frac{w_i}{b_i}}}
+\item when \code{norm = "l2"}, \eqn{f\left(\mathbf{w}, \mathbf{b},\mathbf{s}\right) = \frac{1}{n} \sum_i {s_i(w_i - b_i)^2}}
+\item when \code{norm = "l1"}, \eqn{f\left(\mathbf{w}, \mathbf{b},\mathbf{s}\right) = \frac{1}{n} \sum_i {s_i \vert w_i - b_i \vert}}
+\item when \code{norm = "linf"}, \eqn{f\left(\mathbf{w}, \mathbf{b},\mathbf{s}\right) = \max_i {\vert w_i - b_i \vert}}
+\item when \code{norm = "entropy"}, \eqn{f\left(\mathbf{w}, \mathbf{b},\mathbf{s}\right) = \frac{1}{n} \sum_i {s_i w_i \log \frac{w_i}{b_i}}}
+\item when \code{norm = "log"}, \eqn{f\left(\mathbf{w}, \mathbf{b},\mathbf{s}\right) = \frac{1}{n} \sum_i {-s_i \log \frac{w_i}{b_i}}}
 }
 
 By default, \code{s.weights} and \code{b.weights} are set to 1 for all units unless supplied. \code{b.weights} must be positive when \code{norm} is \code{"entropy"} or \code{"log"}, and \code{norm = "linf"} cannot be used when \code{s.weights} are supplied.

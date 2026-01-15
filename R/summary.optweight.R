@@ -1,6 +1,6 @@
 #' Summarize, Print, and Plot Information about Estimated Weights
 #'
-#' These functions summarize the weights resulting from a call to [optweight()], [optweightMV()], or [optweight.svy()]. `summary()` produces summary statistics on the distribution of weights, including their range and variability, and the effective sample size of the weighted sample (computed using the formula in McCaffrey, Rudgeway, & Morral, 2004). `plot()` creates a histogram of the weights.
+#' These functions summarize the weights resulting from a call to [optweight()], [optweightMV()], or [optweight.svy()]. `summary()` produces summary statistics on the distribution of weights, including their range and variability, and the effective sample size of the weighted sample (computed using the formula in McCaffrey, et al., 2004). `plot()` creates a histogram of the weights.
 #'
 #' @param object an `optweight`, `optweightMV`, or `optweight.svy` object; the output of a call to [optweight()], [optweightMV()], or [optweight.svy()].
 #' @param top `integer`; how many of the largest and smallest weights to display. Default
@@ -16,10 +16,10 @@
 #' elements:
 #' \item{weight.range}{The range (minimum and maximum) weight for each treatment group.}
 #' \item{weight.top}{The units with the greatest weights in each treatment group; how many are included is determined by `top`.}
-#' \item{l2}{The square root of the L2 norm of the estimated weights from the base weights, weighted by the sampling weights (if any): \eqn{\sqrt{\frac{1}{n}\sum_i {s_i(w_i - b_i)^2}}}}
-#' \item{l1}{The L1 norm of the estimated weights from the base weights, weighted by the sampling weights (if any): \eqn{\frac{1}{n}\sum_i {s_i \vert w_i - b_i \vert}}}
-#' \item{linf}{The L\eqn{\infty} norm (maximum absolute deviation) of the estimated weights from the base weights: \eqn{\max_i {\vert w_i - b_i \vert}}}
-#' \item{rel.ent}{The relative entropy between the estimated weights and the base weights (entropy norm), weighted by the sampling weights (if any): \eqn{\frac{1}{n}\sum_i {s_i w_i \log\left(\frac{w_i}{b_i}\right)}}. Only computed if all weights are positive.}
+#' \item{l2}{The square root of the \eqn{L_2} norm of the estimated weights from the base weights, weighted by the sampling weights (if any): \eqn{\sqrt{\frac{1}{n}\sum_i {s_i(w_i - b_i)^2}}}}
+#' \item{l1}{The \eqn{L_1} norm of the estimated weights from the base weights, weighted by the sampling weights (if any): \eqn{\frac{1}{n}\sum_i {s_i \vert w_i - b_i \vert}}}
+#' \item{linf}{The \eqn{L_\infty} norm (maximum absolute deviation) of the estimated weights from the base weights: \eqn{\max_i {\vert w_i - b_i \vert}}}
+#' \item{rel.ent}{The relative entropy between the estimated weights and the base weights, weighted by the sampling weights (if any): \eqn{\frac{1}{n}\sum_i {s_i w_i \log\left(\frac{w_i}{b_i}\right)}}. Only computed if all weights are positive.}
 #' \item{num.zeros}{The number of units with a weight equal to 0.}
 #' \item{effective.sample.size}{The effective sample size for each treatment group before and after weighting.}
 #'
@@ -74,7 +74,7 @@ summary.optweight <- function(object, top = 5L, ignore.s.weights = FALSE, weight
 
   t <- object$treat
 
-  out <- .summary_internal(t, attr(t, "treat.type"),
+  out <- .summary_internal(t, .attr(t, "treat.type"),
                            object$weights, sw, bw,
                            top, weight.range)
 
@@ -108,7 +108,7 @@ summary.optweightMV <- function(object, top = 5L, ignore.s.weights = FALSE, weig
   bw <- object$b.weights %or% rep_with(1, object$weights)
 
   out.list <- lapply(object$treat.list, function(t) {
-    .summary_internal(t, attr(t, "treat.type"),
+    .summary_internal(t, .attr(t, "treat.type"),
                       object$weights, sw, bw,
                       top, weight.range)
   })
@@ -165,17 +165,16 @@ print.summary.optweightMV <- function(x, digits = 3L, ...) {
 
   cat0(space(18L), .ul("Summary of weights"), "\n")
 
-  for (ti in seq_along(x)) {
-    if (!only.one) {
+  if (only.one) {
+    .print_summary_internal(x[[1L]], digits = digits, ...)
+  }
+  else {
+    for (ti in seq_along(x)) {
       cat0(txtbar(19L),
            .it(sprintf(" Treatment %s ", ti)),
            txtbar(19L), "\n")
-    }
 
-    .print_summary_internal(x[[ti]], digits = digits, ...)
-
-    if (only.one) {
-      break
+      .print_summary_internal(x[[ti]], digits = digits, ...)
     }
   }
 
@@ -188,8 +187,8 @@ print.summary.optweight.svy <- print.summary.optweight
 #' @rdname summary.optweight
 #' @exportS3Method plot summary.optweight
 plot.summary.optweight <- function(x, ...) {
-  w <- attr(x, "weights")
-  focal <- attr(w, "focal")
+  w <- .attr(x, "weights")
+  focal <- .attr(w, "focal")
 
   subtitle <- if (is_not_null(focal)) sprintf("For Units Not in Treatment Group %s", add_quotes(focal))
 
@@ -289,10 +288,11 @@ plot.summary.optweight <- function(x, ...) {
          ":\n")
 
 
-    data.frame(unlist(lapply(names(x$weight.top), function(y) c(" ", y))),
-               matrix(unlist(lapply(x$weight.top, function(y) c(names(y), character(top - length(y)),
-                                                                round(y, digits), character(top - length(y))))),
-                      byrow = TRUE, nrow = 2 * length(x$weight.top))) |>
+    cbind(unlist(lapply(names(x$weight.top), function(y) c(" ", y))),
+          matrix(unlist(lapply(x$weight.top, function(y) c(names(y), character(top - length(y)),
+                                                           round(y, digits), character(top - length(y))))),
+                 byrow = TRUE, nrow = 2 * length(x$weight.top))) |>
+      as.data.frame() |>
       setNames(character(1L + top)) |>
       print.data.frame(row.names = FALSE, digits = digits)
 

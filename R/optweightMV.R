@@ -7,7 +7,7 @@
 #' @param data an optional data set in the form of a data frame that contains the variables in `formula.list`.
 #' @param tols.list a list of vectors of balance tolerance values for each covariate for each treatment. The resulting weighted balance statistics will be at least as small as these values. If only one value is supplied, it will be applied to all covariates. See Details. Default is 0 for all covariates.
 #' @param estimand the desired estimand, which determines the target population. Only "ATE" or `NULL` are supported. `estimand` is ignored when `targets` is non-`NULL`. If both `estimand` and `targets` are `NULL`, no targeting will take place.
-#' @param targets an optional vector of target population mean values for each covariate. The resulting weights will yield sample means within `tols`/2 units of the target values for each covariate. If `NULL` or all `NA`, `estimand` will be used to determine targets. Otherwise, `estimand` is ignored. If any target values are `NA`, the corresponding variable will not be targeted and its weighted mean will be wherever the weights yield the smallest variance; this is only allowed if all treatments are binary or multi-category. Can also be the output of a call to [process_targets()]. See Details.
+#' @param targets an optional vector of target population mean values for each covariate. The resulting weights ensure the midpoint between group means are within `target.tols` units of the target values for each covariate. If `NULL` or all `NA`, `estimand` will be used to determine targets. Otherwise, `estimand` is ignored. If any target values are `NA`, the corresponding variable will not be targeted and its weighted mean will be wherever the weights yield the smallest value of the objective function; this is only allowed if all treatments are binary or multi-category. Can also be the output of a call to [process_targets()]. See Details.
 #' @param target.tols.list a list of vectors of target balance tolerance values for each covariate for each treatment. For binary and multi-category treatments, the average of each pair of means will be at most as far from the target means as these values. Can also be the output of a call to [process_tols()]. See Details. Default is 0 for all covariates. Ignored with continuous treatments.
 #' @param s.weights a vector of sampling weights. For `optweightMV()`, can also be the name of a variable in `data` that contains sampling weights.
 #' @param b.weights a vector of base weights. If supplied, the desired norm of the distance between the estimated weights and the base weights is minimized. For `optweightMV()`, can also the name of a variable in `data` that contains base weights.
@@ -115,7 +115,7 @@ optweightMV <- function(formula.list, data = NULL, tols.list = list(0),
       .err("no treatment variable was specified in the {ordinal(i)} formula")
     }
 
-    treat.names[i] <- attr(treat.list[[i]], "treat.name") %or% sprintf("treatment %s", i)
+    treat.names[i] <- .attr(treat.list[[i]], "treat.name") %or% sprintf("treatment %s", i)
 
     if (anyNA(treat.list[[i]]) || !all(is.finite(treat.list[[i]]))) {
       .err("no missing or non-finite values are allowed in the treatment variable. Missing or non-finite values were found in {.var treat.names[i]}")
@@ -268,7 +268,7 @@ optweightMV.fit <- function(covs.list, treat.list, tols.list = list(0),
       else "cont"
     }
 
-    treat.names[i] <- attr(treat.list[[i]], "treat.name") %or%
+    treat.names[i] <- .attr(treat.list[[i]], "treat.name") %or%
       names(treat.list)[i] %or%
       sprintf("treatment %s", i)
   }
@@ -312,25 +312,25 @@ optweightMV.fit <- function(covs.list, treat.list, tols.list = list(0),
 
   for (i in times) {
     if (!inherits(tols.list[[i]], "optweight.tols") ||
-        is_null(attr(tols.list[[i]], "internal.tols"))) {
+        is_null(.attr(tols.list[[i]], "internal.tols"))) {
       tols.list[[i]] <- .process_tols_internal(covs.list[[i]], tols = tols.list[[i]],
                                                tols_found_in = "covs.list",
                                                tols_arg = "tols.list")
     }
 
     tols.list[[i]] <- tols.list[[i]] |>
-      attr("internal.tols") |>
+      .attr("internal.tols") |>
       abs()
 
     if (!inherits(target.tols.list[[i]], "optweight.tols") ||
-        is_null(attr(target.tols.list[[i]], "internal.tols"))) {
+        is_null(.attr(target.tols.list[[i]], "internal.tols"))) {
       target.tols.list[[i]] <- .process_tols_internal(covs.list[[i]], tols = target.tols.list[[i]],
                                                       tols_found_in = "covs.list",
                                                       tols_arg = "target.tols.list")
     }
 
     target.tols.list[[i]] <- target.tols.list[[i]] |>
-      attr("internal.tols") |>
+      .attr("internal.tols") |>
       abs()
   }
 
@@ -490,10 +490,10 @@ optweightMV.fit <- function(covs.list, treat.list, tols.list = list(0),
 
 #' @exportS3Method print optweightMV
 print.optweightMV <- function(x, ...) {
-  treat.types <- vapply(x[["treat.list"]], attr, character(1L), "treat.type")
+  treat.types <- vapply(x[["treat.list"]], .attr, character(1L), "treat.type")
   treat.types[treat.types == "multinomial"] <- "multi-category"
 
-  treat.names <- vapply(x[["treat.list"]], attr, character(1L), "treat.name")
+  treat.names <- vapply(x[["treat.list"]], .attr, character(1L), "treat.name")
 
   cat(sprintf("An %s object\n", .it(class(x)[1L])))
 

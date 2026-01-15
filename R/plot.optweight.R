@@ -1,12 +1,10 @@
 #' Plot Dual Variables for Covariate Constraints
 #'
-#' Plots the dual variables resulting from [optweight()], [optweightMV()], or [optweight.svy()] in a way similar to
-#' figure 2 of Zubizarreta (2015), which explains how to interpret these
-#' values.
+#' Plots the dual variables resulting from [optweight()], [optweightMV()], or [optweight.svy()] in a way similar to figure 2 of Zubizarreta (2015), which explains how to interpret these values.
 #'
 #' @param x an `optweight`, `optweightMV`, or `optweight.svy` object; the output of a call to [optweight()], [optweightMV()], or [optweight.svy()].
 #' @param which.treat for `optweightMV` objects, an integer corresponding to which treatment to display. Only one may be displayed at a time.
-#' @param type the type of plot to display; allowable options include `"variables"` (the default), which produces a row for each covariates, and `"constraints"`, which produces a row for each type of constraint (computed as the sum of the absolute dual variables for each constraint type).
+#' @param type the type of plot to display; allowable options include `"variables"` (the default), which produces a row for each covariate, and `"constraints"`, which produces a row for each type of constraint (computed as the sum of the absolute dual variables for each constraint type).
 #' @param \dots ignored.
 #'
 #' @returns
@@ -37,10 +35,12 @@
 #'                  tols = tols,
 #'                  estimand = "ATT")
 #'
-#' summary(ow1) # Note the L2 divergence and effective
-#' #              sample size (ESS)
+#' # Note the L2 divergence and effective sample
+#' # size (ESS)
+#' summary(ow1, weight.range = FALSE)
 #'
-#' plot(ow1) # age has a low value, married is high
+#' # age has a low value, married is high
+#' plot(ow1)
 #'
 #' tols["age"] <- 0
 #' ow2 <- optweight(treat ~ age + educ + married +
@@ -48,9 +48,10 @@
 #'                  tols = tols,
 #'                  estimand = "ATT")
 #'
-#' summary(ow2) # Notice that tightening the constraint
-#' #              on age had a negligible effect on the
-#' #              variability of the weights and ESS
+#' # Notice that tightening the constraint on age has
+#' # a negligible effect on the variability of the
+#' # weights and ESS
+#' summary(ow2, weight.range = FALSE)
 #'
 #' tols["age"] <- .1
 #' tols["married"] <- 0
@@ -59,11 +60,21 @@
 #'                  tols = tols,
 #'                  estimand = "ATT")
 #'
-#' summary(ow3) # In contrast, tightening the constraint
-#' #              on married had a large effect on the
-#' #              variability of the weights, shrinking
-#' #              the ESS
-
+#' # In contrast, tightening the constraint on married
+#' # has a large effect on the variability of the
+#' # weights, shrinking the ESS
+#' summary(ow3, weight.range = FALSE)
+#'
+#' # More duals are displayed when targeting other
+#' # estimands:
+#' ow4 <- optweight(treat ~ age + educ + married +
+#'                    nodegree + re74, data = lalonde,
+#'                  estimand = "ATE")
+#'
+#' plot(ow4)
+#'
+#' # Display duals by constraint type
+#' plot(ow4, type = "constraints")
 
 #' @exportS3Method plot optweight
 plot.optweight <- function(x, type = "variables", ...) {
@@ -126,7 +137,7 @@ plot.optweight.svy <- plot.optweight
     constraint_types <- c("target", "balance", "weight range")
 
     d$constraint <- factor(d$constraint,
-                           levels = constraint_types)
+                           levels = rev(constraint_types))
 
     agg <- collap(d, dual ~ constraint, FUN = sum, sort = FALSE)
 
