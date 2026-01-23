@@ -142,7 +142,7 @@ Two types of constraints may be associated with each covariate: target constrain
 
 For factor variables, \code{optweight()} takes the sum of the absolute dual variables for the constraints for all levels and reports it as the the single dual variable for the variable itself. This summed dual variable works the same way as dual variables for continuous variables do.
 
-An addition dual variable is computed for the constraint on the range of the weights, controlled by \code{min.w}. A high dual variable for this constraint implies that decreasing \code{min.w} will decrease the value of the objective function at the optimum.
+An additional dual variable is computed for the constraint on the range of the weights, controlled by \code{min.w}. A high dual variable for this constraint implies that decreasing \code{min.w} will decrease the value of the objective function at the optimum.
 }
 
 \subsection{\code{solver}}{
