@@ -1823,7 +1823,7 @@ of Entropy Balancing Estimators of Average Causal Effects.”
 
 Kallus, Nathan, and Michele Santacatterina. 2019. “Optimal Estimation of
 Generalized Average Treatment Effects Using Kernel Optimal Matching.”
-*arXiv:1908.04748 \[Stat\]*, August. <http://arxiv.org/abs/1908.04748>.
+<https://doi.org/10.48550/arXiv.1908.04748>.
 
 Phillippo, David M., Sofia Dias, A. E. Ades, and Nicky J. Welton. 2020.
 “Equivalence of Entropy Balancing and the Method of Moments for
@@ -1849,7 +1849,7 @@ Services and Outcomes Research Methodology* 21 (1): 69–110.
 <https://doi.org/10.1007/s10742-020-00236-2>.
 
 Wang, Jixian. 2021. “On Matching-Adjusted Indirect Comparison and
-Calibration Estimation.” <https://arxiv.org/abs/2107.11687>.
+Calibration Estimation.” <https://doi.org/10.48550/arXiv.2107.11687>.
 
 Wang, Yixin, and José R. Zubizarreta. 2020. “Minimal Dispersion
 Approximately Balancing Weights: Asymptotic Properties and Practical
@@ -1863,8 +1863,7 @@ American Statistician* 74 (4): 345–58.
 
 Yiu, Sean, and Li Su. 2020. “Joint Calibrated Estimation of Inverse
 Probability of Treatment and Censoring Weights for Marginal Structural
-Models.” *Biometrics* n/a (n/a).
-https://doi.org/<https://doi.org/10.1111/biom.13411>.
+Models.” *Biometrics* n/a (n/a). <https://doi.org/10.1111/biom.13411>.
 
 Zhao, Qingyuan, and Daniel Percival. 2017. “Entropy Balancing Is Doubly
 Robust.” *Journal of Causal Inference* 5 (1).

@@ -1,7 +1,7 @@
 # *optweight*: Optimization-Based Stable Balancing Weights
 
-[![CRAN_Status_Badge](http://r-pkg.org/badges/version-last-release/optweight?color=737373)](https://cran.r-project.org/package=optweight)
-[![CRAN_Downloads_Badge](http://cranlogs.r-pkg.org/badges/optweight?color=737373)](https://cran.r-project.org/package=optweight)
+[![CRAN_Status_Badge](https://r-pkg.org/badges/version-last-release/optweight?color=737373)](https://cran.r-project.org/package=optweight)
+[![CRAN_Downloads_Badge](https://cranlogs.r-pkg.org/badges/optweight?color=737373)](https://cran.r-project.org/package=optweight)
 
 *optweight* contains functions to estimate stable balancing weights that
 balance covariates up to given thresholds. It solves a convex
