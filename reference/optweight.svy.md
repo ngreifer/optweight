@@ -136,7 +136,8 @@ optweight.svy.fit(
   because raw proportion differences make more sense than standardized
   mean difference for binary variables. These arguments are analogous to
   the `binary` and `continuous` arguments in
-  [`cobalt::bal.tab()`](https://ngreifer.github.io/cobalt/reference/bal.tab.html).
+  [`cobalt::bal.tab()`](https://ngreifer.github.io/cobalt/reference/bal.tab.html)
+  .
 
 - solver:
 

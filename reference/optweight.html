@@ -146,7 +146,8 @@
 
 
 <dt id="arg-std-binary-std-cont">std.binary, std.cont<a class="anchor" aria-label="anchor" href="#arg-std-binary-std-cont"></a></dt>
-<dd><p><code>logical</code>; whether the tolerances are in standardized mean units (<code>TRUE</code>) or raw units (<code>FALSE</code>) for binary variables and continuous variables, respectively. The default is <code>FALSE</code> for <code>std.binary</code> because raw proportion differences make more sense than standardized mean difference for binary variables. These arguments are analogous to the <code>binary</code> and <code>continuous</code> arguments in <code><a href="https://ngreifer.github.io/cobalt/reference/bal.tab.html" class="external-link">cobalt::bal.tab()</a></code>.</p></dd>
+<dd><p><code>logical</code>; whether the tolerances are in standardized mean units (<code>TRUE</code>) or raw units (<code>FALSE</code>) for binary variables and continuous variables, respectively. The default is <code>FALSE</code> for <code>std.binary</code> because raw proportion differences make more sense than standardized mean difference for binary variables. These arguments are analogous to the <code>binary</code> and <code>continuous</code> arguments in <code><a href="https://ngreifer.github.io/cobalt/reference/bal.tab.html" class="external-link">cobalt::bal.tab()</a></code>
+.</p></dd>
 
 
 <dt id="arg-solver">solver<a class="anchor" aria-label="anchor" href="#arg-solver"></a></dt>
@@ -259,7 +260,8 @@ where \(\bar{x}^w_1\) and \(\bar{x}^w_0\) are the weighted means of covariate \(
 <h3 id="solver"><code>solver</code><a class="anchor" aria-label="anchor" href="#solver"></a></h3>
 
 
-<p>The <code>solver</code> argument controls which optimization solver is used. Different solvers are compatible with each <code>norm</code>. See the table below for allowable options, which package they require, which function does the solving, and which function controls the settings.</p><table class="table table"><tr><td><code>solver</code></td><td><code>norm</code></td><td>Package</td><td>Solver function</td><td>Settings function</td></tr><tr><td><code>"osqp"</code></td><td><code>"l2"</code>, <code>"l1"</code>, <code>"linf"</code></td><td><a href="https://CRAN.R-project.org/package=osqp" class="external-link"><span class="pkg">osqp</span></a></td><td><code><a href="https://rdrr.io/pkg/osqp/man/solve_osqp.html" class="external-link">osqp::solve_osqp()</a></code></td><td><code><a href="https://rdrr.io/pkg/osqp/man/osqpSettings.html" class="external-link">osqp::osqpSettings()</a></code></td></tr><tr><td><code>"highs"</code></td><td><code>"l2"</code>, <code>"l1"</code>, <code>"linf"</code></td><td><a href="https://CRAN.R-project.org/package=highs" class="external-link"><span class="pkg">highs</span></a></td><td><code><a href="https://rdrr.io/pkg/highs/man/highs_solve.html" class="external-link">highs::highs_solve()</a></code></td><td><code><a href="https://rdrr.io/pkg/highs/man/highs_control.html" class="external-link">highs::highs_control()</a></code> / <code><a href="https://rdrr.io/pkg/highs/man/highs_available_solver_options.html" class="external-link">highs::highs_available_solver_options()</a></code></td></tr><tr><td><code>"lpsolve"</code></td><td><code>"l1"</code>, <code>"linf"</code></td><td><a href="https://CRAN.R-project.org/package=lpSolve" class="external-link"><span class="pkg">lpSolve</span></a></td><td><code><a href="https://rdrr.io/pkg/lpSolve/man/lp.html" class="external-link">lpSolve::lp()</a></code></td><td>.</td></tr><tr><td><code>"scs"</code></td><td><code>"entropy"</code>, <code>"log"</code></td><td><a href="https://CRAN.R-project.org/package=scs" class="external-link"><span class="pkg">scs</span></a></td><td><code><a href="https://rdrr.io/pkg/scs/man/scs.html" class="external-link">scs::scs()</a></code></td><td><code><a href="https://rdrr.io/pkg/scs/man/scs_control.html" class="external-link">scs::scs_control()</a></code></td></tr><tr><td><code>"clarabel"</code></td><td><code>"entropy"</code>, <code>"log"</code></td><td><a href="https://CRAN.R-project.org/package=clarabel" class="external-link"><span class="pkg">clarabel</span></a></td><td><code><a href="https://oxfordcontrol.github.io/clarabel-r/reference/clarabel.html" class="external-link">clarabel::clarabel()</a></code></td><td><code><a href="https://oxfordcontrol.github.io/clarabel-r/reference/clarabel_control.html" class="external-link">clarabel::clarabel_control()</a></code></td></tr></table><p>Note that <code>"lpsolve"</code> can only be used when <code>min.w</code> is nonnegative.</p>
+<p>The <code>solver</code> argument controls which optimization solver is used. Different solvers are compatible with each <code>norm</code>. See the table below for allowable options, which package they require, which function does the solving, and which function controls the settings.</p><table class="table table"><tr><td><code>solver</code></td><td><code>norm</code></td><td>Package</td><td>Solver function</td><td>Settings function</td></tr><tr><td><code>"osqp"</code></td><td><code>"l2"</code>, <code>"l1"</code>, <code>"linf"</code></td><td><a href="https://CRAN.R-project.org/package=osqp" class="external-link"><span class="pkg">osqp</span></a></td><td><code><a href="https://rdrr.io/pkg/osqp/man/solve_osqp.html" class="external-link">osqp::solve_osqp()</a></code></td><td><code><a href="https://rdrr.io/pkg/osqp/man/osqpSettings.html" class="external-link">osqp::osqpSettings()</a></code></td></tr><tr><td><code>"highs"</code></td><td><code>"l2"</code>, <code>"l1"</code>, <code>"linf"</code></td><td><a href="https://CRAN.R-project.org/package=highs" class="external-link"><span class="pkg">highs</span></a></td><td><code><a href="https://rdrr.io/pkg/highs/man/highs_solve.html" class="external-link">highs::highs_solve()</a></code></td><td><code><a href="https://rdrr.io/pkg/highs/man/highs_control.html" class="external-link">highs::highs_control()</a></code>
+ / <code><a href="https://rdrr.io/pkg/highs/man/highs_available_solver_options.html" class="external-link">highs::highs_available_solver_options()</a></code></td></tr><tr><td><code>"lpsolve"</code></td><td><code>"l1"</code>, <code>"linf"</code></td><td><a href="https://CRAN.R-project.org/package=lpSolve" class="external-link"><span class="pkg">lpSolve</span></a></td><td><code><a href="https://rdrr.io/pkg/lpSolve/man/lp.html" class="external-link">lpSolve::lp()</a></code></td><td>.</td></tr><tr><td><code>"scs"</code></td><td><code>"entropy"</code>, <code>"log"</code></td><td><a href="https://CRAN.R-project.org/package=scs" class="external-link"><span class="pkg">scs</span></a></td><td><code><a href="https://rdrr.io/pkg/scs/man/scs.html" class="external-link">scs::scs()</a></code></td><td><code><a href="https://rdrr.io/pkg/scs/man/scs_control.html" class="external-link">scs::scs_control()</a></code></td></tr><tr><td><code>"clarabel"</code></td><td><code>"entropy"</code>, <code>"log"</code></td><td><a href="https://CRAN.R-project.org/package=clarabel" class="external-link"><span class="pkg">clarabel</span></a></td><td><code><a href="https://oxfordcontrol.github.io/clarabel-r/reference/clarabel.html" class="external-link">clarabel::clarabel()</a></code></td><td><code><a href="https://oxfordcontrol.github.io/clarabel-r/reference/clarabel_control.html" class="external-link">clarabel::clarabel_control()</a></code></td></tr></table><p>Note that <code>"lpsolve"</code> can only be used when <code>min.w</code> is nonnegative.</p>
 <p>The default <code>solver</code> for each <code>norm</code> is as follows:</p><table class="table table"><tr><td><code>norm</code></td><td>Default <code>solver</code></td></tr><tr><td><code>"l2"</code></td><td><code>"osqp"</code></td></tr><tr><td><code>"l1"</code></td><td><code>"highs"</code></td></tr><tr><td><code>"linf"</code></td><td><code>"highs"</code></td></tr><tr><td><code>"entropy"</code></td><td><code>"scs"</code></td></tr><tr><td><code>"log"</code></td><td><code>"scs"</code></td></tr></table><p>If the package corresponding to a default <code>solver</code> is not installed but the package for a different eligible solver is, that will be used. Otherwise, you will be asked to install the required package. <span class="pkg">osqp</span> is required for <span class="pkg">optweight</span>, and so will be the default for the <code>"l1"</code> and <code>"linf"</code> norms if <span class="pkg">highs</span> is not installed. The default package is the one has shown good performance for the given norm in informal testing; generally, all eligible solvers perform about equally well in terms of accuracy but differ in time taken.</p>
 </div>
 
@@ -299,7 +301,8 @@ where \(\bar{x}^w_1\) and \(\bar{x}^w_0\) are the weighted means of covariate \(
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Balancing covariates between treatment groups (binary)</span></span></span>
 <span class="r-in"><span><span class="op">(</span><span class="va">ow1</span> <span class="op">&lt;-</span> <span class="fu">optweight</span><span class="op">(</span><span class="va">treat</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">educ</span> <span class="op">+</span> <span class="va">married</span> <span class="op">+</span></span></span>
-<span class="r-in"><span>                    <span class="va">nodegree</span> <span class="op">+</span> <span class="va">re74</span>, data <span class="op">=</span> <span class="va">lalonde</span>,</span></span>
+<span class="r-in"><span>                    <span class="va">nodegree</span> <span class="op">+</span> <span class="va">re74</span>,</span></span>
+<span class="r-in"><span>                  data <span class="op">=</span> <span class="va">lalonde</span>,</span></span>
 <span class="r-in"><span>                  tols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">.01</span>, <span class="fl">.02</span>, <span class="fl">.03</span>, <span class="fl">.04</span>, <span class="fl">.05</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>                  estimand <span class="op">=</span> <span class="st">"ATE"</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> An <span style="font-style: italic;">optweight</span> object</span>
@@ -324,10 +327,13 @@ where \(\bar{x}^w_1\) and \(\bar{x}^w_0\) are the weighted means of covariate \(
 <span class="r-out co"><span class="r-pr">#&gt;</span> Unadjusted  429.     185. </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Adjusted    415.09   125.3</span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># Exactly alancing covariates with respect to race (multi-category)</span></span></span>
+<span class="r-in"><span><span class="co"># Exactly balancing covariates with respect to</span></span></span>
+<span class="r-in"><span><span class="co"># race (multi-category)</span></span></span>
 <span class="r-in"><span><span class="op">(</span><span class="va">ow2</span> <span class="op">&lt;-</span> <span class="fu">optweight</span><span class="op">(</span><span class="va">race</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">educ</span> <span class="op">+</span> <span class="va">married</span> <span class="op">+</span></span></span>
-<span class="r-in"><span>                    <span class="va">nodegree</span> <span class="op">+</span> <span class="va">re74</span>, data <span class="op">=</span> <span class="va">lalonde</span>,</span></span>
-<span class="r-in"><span>                  tols <span class="op">=</span> <span class="fl">0</span>, estimand <span class="op">=</span> <span class="st">"ATT"</span>,</span></span>
+<span class="r-in"><span>                    <span class="va">nodegree</span> <span class="op">+</span> <span class="va">re74</span>,</span></span>
+<span class="r-in"><span>                  data <span class="op">=</span> <span class="va">lalonde</span>,</span></span>
+<span class="r-in"><span>                  tols <span class="op">=</span> <span class="fl">0</span>,</span></span>
+<span class="r-in"><span>                  estimand <span class="op">=</span> <span class="st">"ATT"</span>,</span></span>
 <span class="r-in"><span>                  focal <span class="op">=</span> <span class="st">"black"</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> An <span style="font-style: italic;">optweight</span> object</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  - number of obs.: 614</span>
@@ -360,7 +366,8 @@ where \(\bar{x}^w_1\) and \(\bar{x}^w_0\) are the weighted means of covariate \(
 <span class="r-in"><span>                                       <span class="fl">1000</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="op">(</span><span class="va">ow3a</span> <span class="op">&lt;-</span> <span class="fu">optweight</span><span class="op">(</span><span class="va">treat</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">educ</span> <span class="op">+</span> <span class="va">married</span> <span class="op">+</span></span></span>
-<span class="r-in"><span>                     <span class="va">nodegree</span> <span class="op">+</span> <span class="va">re74</span>, data <span class="op">=</span> <span class="va">lalonde</span>,</span></span>
+<span class="r-in"><span>                     <span class="va">nodegree</span> <span class="op">+</span> <span class="va">re74</span>,</span></span>
+<span class="r-in"><span>                   data <span class="op">=</span> <span class="va">lalonde</span>,</span></span>
 <span class="r-in"><span>                   targets <span class="op">=</span> <span class="va">targets</span>,</span></span>
 <span class="r-in"><span>                   estimand <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> An <span style="font-style: italic;">optweight</span> object</span>
@@ -388,9 +395,43 @@ where \(\bar{x}^w_1\) and \(\bar{x}^w_0\) are the weighted means of covariate \(
 <span class="r-out co"><span class="r-pr">#&gt;</span> Adjusted    158.04   64.09</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Balancing covariates between treatment groups (binary)</span></span></span>
-<span class="r-in"><span><span class="co"># and not requesting a target population</span></span></span>
+<span class="r-in"><span><span class="co"># and requesting a specified target population, allowing</span></span></span>
+<span class="r-in"><span><span class="co"># for approximate target balance</span></span></span>
 <span class="r-in"><span><span class="op">(</span><span class="va">ow3b</span> <span class="op">&lt;-</span> <span class="fu">optweight</span><span class="op">(</span><span class="va">treat</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">educ</span> <span class="op">+</span> <span class="va">married</span> <span class="op">+</span></span></span>
-<span class="r-in"><span>                     <span class="va">nodegree</span> <span class="op">+</span> <span class="va">re74</span>, data <span class="op">=</span> <span class="va">lalonde</span>,</span></span>
+<span class="r-in"><span>                     <span class="va">nodegree</span> <span class="op">+</span> <span class="va">re74</span>,</span></span>
+<span class="r-in"><span>                   data <span class="op">=</span> <span class="va">lalonde</span>,</span></span>
+<span class="r-in"><span>                   targets <span class="op">=</span> <span class="va">targets</span>,</span></span>
+<span class="r-in"><span>                   estimand <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
+<span class="r-in"><span>                   target.tols <span class="op">=</span> <span class="fl">.05</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> An <span style="font-style: italic;">optweight</span> object</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  - number of obs.: 614</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  - norm minimized: "l2"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  - sampling weights: present</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  - base weights: present</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  - treatment: 2-category</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  - estimand: targets</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  - covariates: age, educ, married, nodegree, re74</span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://ngreifer.github.io/cobalt/reference/bal.tab.html" class="external-link">bal.tab</a></span><span class="op">(</span><span class="va">ow3b</span>, disp.means <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Note: `s.d.denom` not specified; assuming "pooled".</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="text-decoration: underline;">Balance Measures</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>             Type   M.0.Adj   M.1.Adj Diff.Adj</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> age      Contin.   26.1035   26.1035       -0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> educ     Contin.   11.8765   11.8765       -0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> married   Binary    0.3500    0.3500       -0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> nodegree  Binary    0.4500    0.4500       -0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> re74     Contin. 1295.7326 1295.7326       -0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="text-decoration: underline;">Effective sample sizes</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>            Control Treated</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Unadjusted  429.    185.  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Adjusted    195.77   86.29</span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Balancing covariates between treatment groups (binary)</span></span></span>
+<span class="r-in"><span><span class="co"># and not requesting a target population</span></span></span>
+<span class="r-in"><span><span class="op">(</span><span class="va">ow3c</span> <span class="op">&lt;-</span> <span class="fu">optweight</span><span class="op">(</span><span class="va">treat</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">educ</span> <span class="op">+</span> <span class="va">married</span> <span class="op">+</span></span></span>
+<span class="r-in"><span>                     <span class="va">nodegree</span> <span class="op">+</span> <span class="va">re74</span>,</span></span>
+<span class="r-in"><span>                   data <span class="op">=</span> <span class="va">lalonde</span>,</span></span>
 <span class="r-in"><span>                   targets <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
 <span class="r-in"><span>                   estimand <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> An <span style="font-style: italic;">optweight</span> object</span>
@@ -402,7 +443,7 @@ where \(\bar{x}^w_1\) and \(\bar{x}^w_0\) are the weighted means of covariate \(
 <span class="r-out co"><span class="r-pr">#&gt;</span>  - estimand: targets</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  - covariates: age, educ, married, nodegree, re74</span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="fu"><a href="https://ngreifer.github.io/cobalt/reference/bal.tab.html" class="external-link">bal.tab</a></span><span class="op">(</span><span class="va">ow3b</span>, disp.means <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://ngreifer.github.io/cobalt/reference/bal.tab.html" class="external-link">bal.tab</a></span><span class="op">(</span><span class="va">ow3c</span>, disp.means <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Note: `s.d.denom` not specified; assuming "pooled".</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="text-decoration: underline;">Balance Measures</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>             Type   M.0.Adj   M.1.Adj Diff.Adj</span>
@@ -419,10 +460,11 @@ where \(\bar{x}^w_1\) and \(\bar{x}^w_0\) are the weighted means of covariate \(
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Using a different norm</span></span></span>
 <span class="r-in"><span><span class="op">(</span><span class="va">ow1b</span> <span class="op">&lt;-</span> <span class="fu">optweight</span><span class="op">(</span><span class="va">treat</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">educ</span> <span class="op">+</span> <span class="va">married</span> <span class="op">+</span></span></span>
-<span class="r-in"><span>                    <span class="va">nodegree</span> <span class="op">+</span> <span class="va">re74</span>, data <span class="op">=</span> <span class="va">lalonde</span>,</span></span>
-<span class="r-in"><span>                  tols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">.01</span>, <span class="fl">.02</span>, <span class="fl">.03</span>, <span class="fl">.04</span>, <span class="fl">.05</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>                  estimand <span class="op">=</span> <span class="st">"ATE"</span>,</span></span>
-<span class="r-in"><span>                  norm <span class="op">=</span> <span class="st">"l1"</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span>                     <span class="va">nodegree</span> <span class="op">+</span> <span class="va">re74</span>,</span></span>
+<span class="r-in"><span>                   data <span class="op">=</span> <span class="va">lalonde</span>,</span></span>
+<span class="r-in"><span>                   tols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">.01</span>, <span class="fl">.02</span>, <span class="fl">.03</span>, <span class="fl">.04</span>, <span class="fl">.05</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>                   estimand <span class="op">=</span> <span class="st">"ATE"</span>,</span></span>
+<span class="r-in"><span>                   norm <span class="op">=</span> <span class="st">"l1"</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> An <span style="font-style: italic;">optweight</span> object</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  - number of obs.: 614</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  - norm minimized: "l1"</span>

@@ -169,7 +169,8 @@ optweight.fit(
   because raw proportion differences make more sense than standardized
   mean difference for binary variables. These arguments are analogous to
   the `binary` and `continuous` arguments in
-  [`cobalt::bal.tab()`](https://ngreifer.github.io/cobalt/reference/bal.tab.html).
+  [`cobalt::bal.tab()`](https://ngreifer.github.io/cobalt/reference/bal.tab.html)
+  .
 
 - solver:
 
@@ -517,7 +518,8 @@ data("lalonde", package = "cobalt")
 
 # Balancing covariates between treatment groups (binary)
 (ow1 <- optweight(treat ~ age + educ + married +
-                    nodegree + re74, data = lalonde,
+                    nodegree + re74,
+                  data = lalonde,
                   tols = c(.01, .02, .03, .04, .05),
                   estimand = "ATE"))
 #> An optweight object
@@ -542,10 +544,13 @@ bal.tab(ow1)
 #> Unadjusted  429.     185. 
 #> Adjusted    415.09   125.3
 
-# Exactly alancing covariates with respect to race (multi-category)
+# Exactly balancing covariates with respect to
+# race (multi-category)
 (ow2 <- optweight(race ~ age + educ + married +
-                    nodegree + re74, data = lalonde,
-                  tols = 0, estimand = "ATT",
+                    nodegree + re74,
+                  data = lalonde,
+                  tols = 0,
+                  estimand = "ATT",
                   focal = "black"))
 #> An optweight object
 #>  - number of obs.: 614
@@ -578,7 +583,8 @@ targets <- process_targets(~ age + educ + married +
                                        1000))
 
 (ow3a <- optweight(treat ~ age + educ + married +
-                     nodegree + re74, data = lalonde,
+                     nodegree + re74,
+                   data = lalonde,
                    targets = targets,
                    estimand = NULL))
 #> An optweight object
@@ -606,9 +612,43 @@ bal.tab(ow3a, disp.means = TRUE)
 #> Adjusted    158.04   64.09
 
 # Balancing covariates between treatment groups (binary)
-# and not requesting a target population
+# and requesting a specified target population, allowing
+# for approximate target balance
 (ow3b <- optweight(treat ~ age + educ + married +
-                     nodegree + re74, data = lalonde,
+                     nodegree + re74,
+                   data = lalonde,
+                   targets = targets,
+                   estimand = NULL,
+                   target.tols = .05))
+#> An optweight object
+#>  - number of obs.: 614
+#>  - norm minimized: "l2"
+#>  - sampling weights: present
+#>  - base weights: present
+#>  - treatment: 2-category
+#>  - estimand: targets
+#>  - covariates: age, educ, married, nodegree, re74
+
+bal.tab(ow3b, disp.means = TRUE)
+#> Note: `s.d.denom` not specified; assuming "pooled".
+#> Balance Measures
+#>             Type   M.0.Adj   M.1.Adj Diff.Adj
+#> age      Contin.   26.1035   26.1035       -0
+#> educ     Contin.   11.8765   11.8765       -0
+#> married   Binary    0.3500    0.3500       -0
+#> nodegree  Binary    0.4500    0.4500       -0
+#> re74     Contin. 1295.7326 1295.7326       -0
+#> 
+#> Effective sample sizes
+#>            Control Treated
+#> Unadjusted  429.    185.  
+#> Adjusted    195.77   86.29
+
+# Balancing covariates between treatment groups (binary)
+# and not requesting a target population
+(ow3c <- optweight(treat ~ age + educ + married +
+                     nodegree + re74,
+                   data = lalonde,
                    targets = NULL,
                    estimand = NULL))
 #> An optweight object
@@ -620,7 +660,7 @@ bal.tab(ow3a, disp.means = TRUE)
 #>  - estimand: targets
 #>  - covariates: age, educ, married, nodegree, re74
 
-bal.tab(ow3b, disp.means = TRUE)
+bal.tab(ow3c, disp.means = TRUE)
 #> Note: `s.d.denom` not specified; assuming "pooled".
 #> Balance Measures
 #>             Type   M.0.Adj   M.1.Adj Diff.Adj
@@ -637,10 +677,11 @@ bal.tab(ow3b, disp.means = TRUE)
 
 # Using a different norm
 (ow1b <- optweight(treat ~ age + educ + married +
-                    nodegree + re74, data = lalonde,
-                  tols = c(.01, .02, .03, .04, .05),
-                  estimand = "ATE",
-                  norm = "l1"))
+                     nodegree + re74,
+                   data = lalonde,
+                   tols = c(.01, .02, .03, .04, .05),
+                   estimand = "ATE",
+                   norm = "l1"))
 #> An optweight object
 #>  - number of obs.: 614
 #>  - norm minimized: "l1"
