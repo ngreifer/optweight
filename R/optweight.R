@@ -148,15 +148,19 @@
 #'
 #' # Balancing covariates between treatment groups (binary)
 #' (ow1 <- optweight(treat ~ age + educ + married +
-#'                     nodegree + re74, data = lalonde,
+#'                     nodegree + re74,
+#'                   data = lalonde,
 #'                   tols = c(.01, .02, .03, .04, .05),
 #'                   estimand = "ATE"))
 #' bal.tab(ow1)
 #'
-#' # Exactly alancing covariates with respect to race (multi-category)
+#' # Exactly balancing covariates with respect to
+#' # race (multi-category)
 #' (ow2 <- optweight(race ~ age + educ + married +
-#'                     nodegree + re74, data = lalonde,
-#'                   tols = 0, estimand = "ATT",
+#'                     nodegree + re74,
+#'                   data = lalonde,
+#'                   tols = 0,
+#'                   estimand = "ATT",
 #'                   focal = "black"))
 #' bal.tab(ow2)
 #'
@@ -169,27 +173,42 @@
 #'                                        1000))
 #'
 #' (ow3a <- optweight(treat ~ age + educ + married +
-#'                      nodegree + re74, data = lalonde,
+#'                      nodegree + re74,
+#'                    data = lalonde,
 #'                    targets = targets,
 #'                    estimand = NULL))
 #'
 #' bal.tab(ow3a, disp.means = TRUE)
 #'
 #' # Balancing covariates between treatment groups (binary)
-#' # and not requesting a target population
+#' # and requesting a specified target population, allowing
+#' # for approximate target balance
 #' (ow3b <- optweight(treat ~ age + educ + married +
-#'                      nodegree + re74, data = lalonde,
-#'                    targets = NULL,
-#'                    estimand = NULL))
+#'                      nodegree + re74,
+#'                    data = lalonde,
+#'                    targets = targets,
+#'                    estimand = NULL,
+#'                    target.tols = .05))
 #'
 #' bal.tab(ow3b, disp.means = TRUE)
 #'
+#' # Balancing covariates between treatment groups (binary)
+#' # and not requesting a target population
+#' (ow3c <- optweight(treat ~ age + educ + married +
+#'                      nodegree + re74,
+#'                    data = lalonde,
+#'                    targets = NULL,
+#'                    estimand = NULL))
+#'
+#' bal.tab(ow3c, disp.means = TRUE)
+#'
 #' # Using a different norm
 #' (ow1b <- optweight(treat ~ age + educ + married +
-#'                     nodegree + re74, data = lalonde,
-#'                   tols = c(.01, .02, .03, .04, .05),
-#'                   estimand = "ATE",
-#'                   norm = "l1"))
+#'                      nodegree + re74,
+#'                    data = lalonde,
+#'                    tols = c(.01, .02, .03, .04, .05),
+#'                    estimand = "ATE",
+#'                    norm = "l1"))
 #'
 #' summary(ow1b, weight.range = FALSE)
 #' summary(ow1, weight.range = FALSE)
@@ -301,7 +320,7 @@ optweight <- function(formula, data = NULL, tols = 0,
   }
 
   if (anyNA(test.w)) {
-    .err("some weights are {.val NA}, which means something went wrong")
+    .err("some weights are {.val {NA}}, which means something went wrong")
   }
 
   #Process duals
@@ -337,7 +356,7 @@ optweight.fit <- function(covs, treat, tols = 0,
 
   if ((!missing(covs) && is.list(covs) && !is.data.frame(covs)) || is_not_null(...get("covs.list")) ||
       (!missing(treat) && is.list(treat)) || is_not_null(...get("treat.list"))) {
-    .err("{.fn optweight.fit} was called with list arguments; perhaps you meant to call {.fn optweightMV.fit}")
+    .err("{.fun optweight.fit} was called with list arguments; perhaps you meant to call {.fun optweightMV.fit}")
   }
 
   chk::chk_not_missing(covs, "`covs`")
@@ -407,7 +426,7 @@ optweight.fit <- function(covs, treat, tols = 0,
       }
     }
     else if (is_not_null(targets)) {
-      .wrn("{.arg targets} are not {.val NULL}; ignoring {.arg estimand}")
+      .wrn("{.arg targets} are not {.val {list(NULL)}}; ignoring {.arg estimand}")
       estimand <- focal <- NULL
     }
     else {
@@ -457,7 +476,7 @@ optweight.fit <- function(covs, treat, tols = 0,
       }
     }
     else if (is_not_null(targets)) {
-      .wrn("{.arg targets} are not {.val NULL}; ignoring {.arg estimand}")
+      .wrn("{.arg targets} are not {.val {list(NULL)}}; ignoring {.arg estimand}")
       estimand <- NULL
     }
     else {
@@ -465,7 +484,7 @@ optweight.fit <- function(covs, treat, tols = 0,
       estimand <- toupper(estimand)
 
       if (estimand != "ATE") {
-        .err('{.arg estimand} cannot be "{estimand}" with continuous treatments')
+        .err('{.arg estimand} cannot be {.val {estimand}} with continuous treatments')
       }
 
       targets <- NULL # calculated automatically for ATE

@@ -156,7 +156,7 @@ process_targets <- function(formula, data = NULL, targets = NULL, s.weights = NU
 
       sum(.attr(terms(formula.covs), "dataClasses")[vars.in.interaction] == "factor") > 1
     })) {
-      .wrn("interactions between factor variables were entered, but {.fn process_targets} cannot verify whether the target values are suitable. See {.fn process_targets} for details")
+      .wrn("interactions between factor variables were entered, but {.fun process_targets} cannot verify whether the target values are suitable. See {.fun process_targets} for details")
     }
 
     attr(internal.targets, "original.vars") <- formula.vars[.attr(model.covs, "assign")] |> setNames(model.vars)

@@ -148,7 +148,7 @@ optweight.svy <- function(formula, data = NULL, tols = 0, targets = NULL, s.weig
   }
 
   if (anyNA(test.w)) {
-    .err("some weights are NA, which means something went wrong")
+    .err("some weights are {.val {NA}}, which means something went wrong")
   }
 
   #Process duals
@@ -298,4 +298,6 @@ optweight.svy.fit <- function(covs, targets, tols = 0, s.weights = NULL, b.weigh
 }
 
 #' @exportS3Method print optweight.svy
-print.optweight.svy <- print.optweight
+print.optweight.svy <- function(x, ...) {
+  print.optweight(x = x, ...)
+}

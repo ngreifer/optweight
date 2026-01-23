@@ -29,7 +29,7 @@ process_focal_and_estimand_w_targets <- function(focal, estimand, targets = NULL
              continuous = "ATE")
 
   if (estimand %nin% AE[[treat.type]]) {
-    .err("{add_quotes(estimand)} is not an allowable estimand with {treat.type} treatments. Only {add_quotes(AE[[treat.type]])} {?is/are} allowed")
+    .err("{.val {estimand}} is not an allowable estimand with {treat.type} treatments. Only {.val {AE[[treat.type]]}} {?is/are} allowed")
   }
 
   if (treat.type == "continuous") {
@@ -39,7 +39,7 @@ process_focal_and_estimand_w_targets <- function(focal, estimand, targets = NULL
   }
 
   if (is_not_null(focal) && estimand %nin% c("ATT", "ATC")) {
-    .wrn('{.code estimand = "{estimand}"} is not compatible with {.arg focal}. Setting {.arg estimand} to "ATT"')
+    .wrn('{.code estimand = "{estimand}"} is not compatible with {.arg focal}. Setting {.arg estimand} to {.val {"ATT"}}')
 
     reported.estimand <- estimand <- "ATT"
   }
@@ -183,15 +183,15 @@ process_focal_and_estimand_w_targets <- function(focal, estimand, targets = NULL
   if (throw_message) {
     if (estimand == "ATT") {
       tl <- add_quotes(treated, !is.numeric(unique.vals))
-      .msg("assuming {tl} is the treated level. If not, supply an argument to {.arg focal}")
+      .msg("assuming {.val {tl}} is the treated level. If not, supply an argument to {.arg focal}")
     }
     else if (estimand == "ATC") {
       cl <- add_quotes(control, !is.numeric(unique.vals))
-      .msg("assuming {cl} is the control level. If not, supply an argument to {.arg focal}")
+      .msg("assuming {.val {cl}} is the control level. If not, supply an argument to {.arg focal}")
     }
     else {
       tl <- add_quotes(treated, !is.numeric(unique.vals))
-      .msg("assuming {tl} is the treated level. If not, recode the treatment so that 1 is treated and 0 is control")
+      .msg("assuming {.val {tl}} is the treated level. If not, recode the treatment so that 1 is treated and 0 is control")
     }
   }
 
@@ -261,7 +261,7 @@ process_norm <- function(norm, s.weights, b.weights) {
   norm <- match_arg(norm, allowable_norms())
 
   if (norm == "linf" && !all_the_same(s.weights)) {
-    .err("the L-inf norm cannot be used with sampling weights")
+    .err('{.arg norm} cannot be {.val {norm}} when sampling weights are used')
   }
 
   if (norm %in% c("entropy", "log") && any(b.weights <= 0)) {

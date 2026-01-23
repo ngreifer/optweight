@@ -192,15 +192,19 @@ data("lalonde", package = "cobalt")
 
 # Balancing covariates between treatment groups (binary)
 (ow1 <- optweight(treat ~ age + educ + married +
-                    nodegree + re74, data = lalonde,
+                    nodegree + re74,
+                  data = lalonde,
                   tols = c(.01, .02, .03, .04, .05),
                   estimand = "ATE"))
 bal.tab(ow1)
 
-# Exactly alancing covariates with respect to race (multi-category)
+# Exactly balancing covariates with respect to
+# race (multi-category)
 (ow2 <- optweight(race ~ age + educ + married +
-                    nodegree + re74, data = lalonde,
-                  tols = 0, estimand = "ATT",
+                    nodegree + re74,
+                  data = lalonde,
+                  tols = 0,
+                  estimand = "ATT",
                   focal = "black"))
 bal.tab(ow2)
 
@@ -213,27 +217,42 @@ targets <- process_targets(~ age + educ + married +
                                        1000))
 
 (ow3a <- optweight(treat ~ age + educ + married +
-                     nodegree + re74, data = lalonde,
+                     nodegree + re74,
+                   data = lalonde,
                    targets = targets,
                    estimand = NULL))
 
 bal.tab(ow3a, disp.means = TRUE)
 
 # Balancing covariates between treatment groups (binary)
-# and not requesting a target population
+# and requesting a specified target population, allowing
+# for approximate target balance
 (ow3b <- optweight(treat ~ age + educ + married +
-                     nodegree + re74, data = lalonde,
-                   targets = NULL,
-                   estimand = NULL))
+                     nodegree + re74,
+                   data = lalonde,
+                   targets = targets,
+                   estimand = NULL,
+                   target.tols = .05))
 
 bal.tab(ow3b, disp.means = TRUE)
 
+# Balancing covariates between treatment groups (binary)
+# and not requesting a target population
+(ow3c <- optweight(treat ~ age + educ + married +
+                     nodegree + re74,
+                   data = lalonde,
+                   targets = NULL,
+                   estimand = NULL))
+
+bal.tab(ow3c, disp.means = TRUE)
+
 # Using a different norm
 (ow1b <- optweight(treat ~ age + educ + married +
-                    nodegree + re74, data = lalonde,
-                  tols = c(.01, .02, .03, .04, .05),
-                  estimand = "ATE",
-                  norm = "l1"))
+                     nodegree + re74,
+                   data = lalonde,
+                   tols = c(.01, .02, .03, .04, .05),
+                   estimand = "ATE",
+                   norm = "l1"))
 
 summary(ow1b, weight.range = FALSE)
 summary(ow1, weight.range = FALSE)

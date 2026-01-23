@@ -1,56 +1,6 @@
 #May use collapse
 
 #Strings
-word_list <- function(word.list = NULL, and.or = "and", is.are = FALSE, quotes = FALSE) {
-  #When given a vector of strings, creates a string of the form "a and b"
-  #or "a, b, and c"
-  #If is.are, adds "is" or "are" appropriately
-
-  word.list <- setdiff(word.list, c(NA_character_, ""))
-
-  if (is_null(word.list)) {
-    out <- ""
-    attr(out, "plural") <- FALSE
-    return(out)
-  }
-
-  word.list <- add_quotes(word.list, quotes)
-
-  L <- length(word.list)
-
-  if (L == 1L) {
-    out <- word.list
-    if (is.are) out <- paste(out, "is")
-    attr(out, "plural") <- FALSE
-    return(out)
-  }
-
-  if (is_null(and.or) || isFALSE(and.or)) {
-    out <- toString(word.list)
-  }
-  else {
-    and.or <- match_arg(and.or, c("and", "or"))
-
-    if (L == 2L) {
-      out <- sprintf("%s %s %s",
-                     word.list[1L],
-                     and.or,
-                     word.list[2L])
-    }
-    else {
-      out <- sprintf("%s, %s %s",
-                     toString(word.list[-L]),
-                     and.or,
-                     word.list[L])
-    }
-  }
-
-  if (is.are) out <- sprintf("%s are", out)
-
-  attr(out, "plural") <- TRUE
-
-  out
-}
 add_quotes <- function(x, quotes = 2L) {
   if (isFALSE(quotes)) {
     return(x)
@@ -471,7 +421,7 @@ get_covs_and_treat_from_formula2 <- function(f, data = NULL, sep = "", ...) {
     }
     else {
       var_name <- utils::strcapture("object '(.*)' not found", m, character(1L))[[1L]]
-      env_name <- c("data the supplied dataset"[data.specified], "the global environment")
+      env_name <- c("the supplied dataset"[data.specified], "the global environment")
       .err("the given response variable, {.var {var_name}}, is not a variable in {.or {env_name}}")
     }
   }
@@ -592,7 +542,7 @@ get_covs_and_treat_from_formula2 <- function(f, data = NULL, sep = "", ...) {
 
   if (any(rhs.vars.failed)) {
     .err("all variables in {.arg formula} must be variables in {.arg data} or objects in the global environment.\n
-          Missing variables: {.var rhs.vars.mentioned.char[rhs.vars.failed]}")
+          Missing variables: {.var {rhs.vars.mentioned.char[rhs.vars.failed]}}")
 
   }
 
@@ -882,7 +832,7 @@ match_arg <- function(arg, choices, several.ok = FALSE, context = NULL) {
       else "one of"
     }
 
-    .err("{context} the argument to {.arg {arg.name}} should be {one_of} {.or {add_quotes(choices)}}")
+    .err("{context} the argument to {.arg {arg.name}} should be {one_of} {.or {.val {choices}}}")
   }
 
   i <- i[i > 0L]
@@ -968,7 +918,7 @@ all_apply <- function(X, FUN, ...) {
   TRUE
 }
 
-#-------#cli utilities-------
+#cli utilities
 .it <- function(...) cli::style_italic(...)
 .ul <- function(...) cli::style_underline(...)
 .st <- function(...) cli::style_strikethrough(...)

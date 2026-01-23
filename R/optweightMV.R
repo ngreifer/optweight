@@ -118,7 +118,7 @@ optweightMV <- function(formula.list, data = NULL, tols.list = list(0),
     treat.names[i] <- .attr(treat.list[[i]], "treat.name") %or% sprintf("treatment %s", i)
 
     if (anyNA(treat.list[[i]]) || !all(is.finite(treat.list[[i]]))) {
-      .err("no missing or non-finite values are allowed in the treatment variable. Missing or non-finite values were found in {.var treat.names[i]}")
+      .err("no missing or non-finite values are allowed in the treatment variable. Missing or non-finite values were found in {.var {treat.names[i]}}")
     }
 
     check_missing_covs(reported.covs.list[[i]])
@@ -166,7 +166,7 @@ optweightMV <- function(formula.list, data = NULL, tols.list = list(0),
                                                       tols_arg = "target.tols.list")
     },
     error = function(e) {
-      .err("For {.var treat.names[i]}, {conditionMessage(e)}", tidy = FALSE)
+      .err("For {.var {treat.names[i]}}, {conditionMessage(e)}", tidy = FALSE)
     })
   }
 
@@ -176,7 +176,7 @@ optweightMV <- function(formula.list, data = NULL, tols.list = list(0),
       targets <- NA_real_
     }
     else if (is_not_null(estimand) && is_not_null(targets)) {
-      .wrn("{.arg targets} are not {.val NULL}; ignoring {.arg estimand}")
+      .wrn("{.arg targets} are not {.val {list(NULL)}}; ignoring {.arg estimand}")
       estimand <- NULL
     }
     else {
@@ -184,7 +184,7 @@ optweightMV <- function(formula.list, data = NULL, tols.list = list(0),
       estimand <- toupper(estimand)
 
       if (estimand != "ATE") {
-        .err('{.arg estimand} cannot be "{estimand}" with multivariate treatments')
+        .err("{.arg estimand} cannot be {.val {estimand}} with multivariate treatments")
       }
     }
 
@@ -214,7 +214,7 @@ optweightMV <- function(formula.list, data = NULL, tols.list = list(0),
   }
 
   if (anyNA(test.w)) {
-    .err("some weights are NA, which means something went wrong")
+    .err("some weights are {.val {NA}}, which means something went wrong")
   }
 
   #Process duals
@@ -341,7 +341,7 @@ optweightMV.fit <- function(covs.list, treat.list, tols.list = list(0),
     }
   }
   else if (is_not_null(targets)) {
-    .wrn("{.arg targets} are not {.val NULL}; ignoring {.arg estimand}")
+    .wrn("{.arg targets} are not {.val {list(NULL)}}; ignoring {.arg estimand}")
     estimand <- NULL
   }
   else {
@@ -349,7 +349,7 @@ optweightMV.fit <- function(covs.list, treat.list, tols.list = list(0),
     estimand <- toupper(estimand)
 
     if (estimand != "ATE") {
-      .err('{.arg estimand} cannot be "{estimand}" with multivariate treatments')
+      .err('{.arg estimand} cannot be {.val {estimand}} with multivariate treatments')
     }
 
     targets <- NULL # calculated automatically for ATE

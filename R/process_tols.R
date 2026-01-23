@@ -138,8 +138,8 @@ process_tols <- function(formula, data = NULL, tols = 0) {
   user.tols[overlap] <- tols[overlap]
 
   if (!all(names(tols) %in% overlap)) {
-    bad_tols <- add_quotes(setdiff(names(tols), overlap))
-    .wrn("{bad_tols} {?was/were} named in {.arg {tols_arg}} but not present in {.arg {tols_found_in}} and so will be ignored")
+    bad_tols <- setdiff(names(tols), overlap)
+    .wrn("{.var {bad_tols}} {?was/were} named in {.arg {tols_arg}} but not present in {.arg {tols_found_in}} and so will be ignored")
   }
 
   if (is_not_null(formula.covs)) {
