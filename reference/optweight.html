@@ -13,7 +13,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">optweight</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0.9004</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -253,7 +253,7 @@ where \(\bar{x}^w_1\) and \(\bar{x}^w_0\) are the weighted means of covariate \(
 
 <p>Two types of constraints may be associated with each covariate: target constraints and balance constraints, controlled by <code>target.tols</code> and <code>tols</code>, respectively. In the <code>duals</code> component of the output, each covariate has a dual variable for each constraint placed on it. The dual variable for each constraint is the instantaneous rate of change of the objective function at the optimum corresponding to a change in the constraint. Because this relationship is not linear, large changes in the constraint will not exactly map onto corresponding changes in the objective function at the optimum, but will be close for small changes in the constraint. For example, for a covariate with a balance constraint of .01 and a corresponding dual variable of 40, increasing (i.e., relaxing) the constraint to .025 will decrease the value of the objective function at the optimum by approximately \((.025 - .01) * 40 = .6\).</p>
 <p>For factor variables, <code>optweight()</code> takes the sum of the absolute dual variables for the constraints for all levels and reports it as the the single dual variable for the variable itself. This summed dual variable works the same way as dual variables for continuous variables do.</p>
-<p>An addition dual variable is computed for the constraint on the range of the weights, controlled by <code>min.w</code>. A high dual variable for this constraint implies that decreasing <code>min.w</code> will decrease the value of the objective function at the optimum.</p>
+<p>An additional dual variable is computed for the constraint on the range of the weights, controlled by <code>min.w</code>. A high dual variable for this constraint implies that decreasing <code>min.w</code> will decrease the value of the objective function at the optimum.</p>
 </div>
 
 <div class="section">

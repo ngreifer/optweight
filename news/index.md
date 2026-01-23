@@ -1,6 +1,6 @@
 # Changelog
 
-## *optweight* (development version)
+## *optweight* 2.0.0
 
 - Specifying tolerances works slightly differently for binary and
   multi-category treatments with

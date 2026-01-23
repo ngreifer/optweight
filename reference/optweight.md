@@ -385,8 +385,8 @@ variables for the constraints for all levels and reports it as the the
 single dual variable for the variable itself. This summed dual variable
 works the same way as dual variables for continuous variables do.
 
-An addition dual variable is computed for the constraint on the range of
-the weights, controlled by `min.w`. A high dual variable for this
+An additional dual variable is computed for the constraint on the range
+of the weights, controlled by `min.w`. A high dual variable for this
 constraint implies that decreasing `min.w` will decrease the value of
 the objective function at the optimum.
 
