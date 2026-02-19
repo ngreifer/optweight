@@ -27,11 +27,11 @@ test_that("optweight works, binary", {
 
   expect_no_condition({
     ow <- optweight(A ~ X1 + X2 + X3 + X4 + X5 + X6,
-                     data = test_data,
-                     estimand = "ATE",
-                     tols = 0,
-                     norm = "l2",
-                     min.w = 1e-8)
+                    data = test_data,
+                    estimand = "ATE",
+                    tols = 0,
+                    norm = "l2",
+                    min.w = 1e-8)
   })
 
   expect_equal(ow$weights,
@@ -41,7 +41,7 @@ test_that("optweight works, binary", {
   # tols
   expect_no_condition({
     ow <- optweight(A ~ X1 + X2 + X3 + X4 + X5 + X6,
-                     data = test_data,
+                    data = test_data,
                     tols = .02,
                     std.binary = TRUE)
   })
@@ -82,10 +82,10 @@ test_that("optweight works, binary", {
 
   expect_no_condition({
     ow2 <- optweight(A ~ X1 + X2 + X3 + X4 + X5 + X6,
-                    data = test_data,
-                    norm = "linf",
-                    tols = tols,
-                    std.binary = TRUE)
+                     data = test_data,
+                     norm = "linf",
+                     tols = tols,
+                     std.binary = TRUE)
   })
 
   expect_true(all(abs(cobalt::col_w_smd(ow2$covs, ow2$treat, ow2$weights)) <= attr(tols, "internal.tols") + eps))
@@ -1175,72 +1175,97 @@ test_that("optweight works, binary, b.weights, solver: lpsolve", {
 
   expect_lt(mean_abs_dev(ow2$weights, bw),
             mean_abs_dev(ow2$weights))
+})
 
-  if (rlang::is_installed("scs")) {
-    expect_no_condition({
-      ow <- optweight(A ~ X1 + X2 + X3 + X4 + X5 + X6,
-                      data = test_data,
-                      b.weights = bw,
-                      norm = "entropy")
-    })
+test_that("optweight works, binary, b.weights, solver: clarabel", {
+  skip_if_not_installed("cobalt")
+  skip_if_not_installed("clarabel")
 
-    expect_true(all(abs(cobalt::col_w_smd(ow$covs, ow$treat, ow$weights)) <= eps))
+  rlang::local_options(optweight_solver_l2 = "osqp",
+                       optweight_solver_entropy = "clarabel",
+                       optweight_solver_log = "clarabel")
 
-    expect_lt(rms_dev(ow0$weights, bw),
-              rms_dev(ow$weights, bw))
+  eps <- if (capabilities("long.double")) 5e-5 else 1e-1
 
-    expect_gt(rel_ent(ow0$weights, bw),
-              rel_ent(ow$weights, bw))
+  test_data <- readRDS(test_path("fixtures", "test_data.rds"))
 
-    expect_lt(rel_ent(ow$weights, bw),
-              rel_ent(ow$weights))
+  set.seed(123)
+  bw <- runif(nrow(test_data))
 
-    expect_no_condition({
-      ow2 <- optweight(A ~ X1 + X2 + X3 + X4 + X5 + X6,
+  expect_no_condition({
+    ow0 <- optweight(A ~ X1 + X2 + X3 + X4 + X5 + X6,
+                     data = test_data,
+                     b.weights = bw)
+  })
+
+  tols <- process_tols(A ~ X1 + X2 + X3 + X4 + X5 + X6,
                        data = test_data,
-                       b.weights = bw,
-                       norm = "entropy",
-                       tols = tols,
-                       std.binary = TRUE)
-    })
+                       tols = seq(.01, .06, by = .01))
 
-    expect_true(all(abs(cobalt::col_w_smd(ow2$covs, ow2$treat, ow2$weights)) <= attr(tols, "internal.tols") + eps))
+  expect_no_condition({
+    ow <- optweight(A ~ X1 + X2 + X3 + X4 + X5 + X6,
+                    data = test_data,
+                    b.weights = bw,
+                    norm = "entropy")
+  })
 
-    expect_gt(rel_ent(ow$weights, bw),
-              rel_ent(ow2$weights, bw))
+  expect_true(all(abs(cobalt::col_w_smd(ow$covs, ow$treat, ow$weights)) <= eps))
 
-    expect_lt(rel_ent(ow2$weights, bw),
-              rel_ent(ow2$weights))
+  expect_lt(rms_dev(ow0$weights, bw),
+            rms_dev(ow$weights, bw))
 
-    expect_no_condition({
-      ow <- optweight(A ~ X1 + X2 + X3 + X4 + X5 + X6,
-                      data = test_data,
-                      b.weights = bw,
-                      norm = "log")
-    })
+  expect_gt(rel_ent(ow0$weights, bw),
+            rel_ent(ow$weights, bw))
 
-    expect_true(all(abs(cobalt::col_w_smd(ow$covs, ow$treat, ow$weights)) <= eps))
+  expect_lt(rel_ent(ow$weights, bw),
+            rel_ent(ow$weights))
 
-    expect_lt(rms_dev(ow0$weights, bw),
-              rms_dev(ow$weights, bw))
+  expect_no_condition({
+    ow2 <- optweight(A ~ X1 + X2 + X3 + X4 + X5 + X6,
+                     data = test_data,
+                     b.weights = bw,
+                     norm = "entropy",
+                     tols = tols,
+                     std.binary = TRUE)
+  })
 
-    expect_gt(sum(-log(ow0$weights / bw)),
-              sum(-log(ow$weights / bw)))
+  expect_true(all(abs(cobalt::col_w_smd(ow2$covs, ow2$treat, ow2$weights)) <= attr(tols, "internal.tols") + eps))
 
-    expect_no_condition({
-      ow2 <- optweight(A ~ X1 + X2 + X3 + X4 + X5 + X6,
-                       data = test_data,
-                       b.weights = bw,
-                       norm = "log",
-                       tols = tols,
-                       std.binary = TRUE)
-    })
+  expect_gt(rel_ent(ow$weights, bw),
+            rel_ent(ow2$weights, bw))
 
-    expect_true(all(abs(cobalt::col_w_smd(ow2$covs, ow2$treat, ow2$weights)) <= attr(tols, "internal.tols") + eps))
+  expect_lt(rel_ent(ow2$weights, bw),
+            rel_ent(ow2$weights))
 
-    expect_gt(sum(-log(ow$weights / bw)),
-              sum(-log(ow2$weights / bw)))
-  }
+  expect_no_condition({
+    ow <- optweight(A ~ X1 + X2 + X3 + X4 + X5 + X6,
+                    data = test_data,
+                    b.weights = bw,
+                    norm = "log")
+  })
+
+  expect_true(all(abs(cobalt::col_w_smd(ow$covs, ow$treat, ow$weights)) <= eps))
+
+  expect_lt(rms_dev(ow0$weights, bw),
+            rms_dev(ow$weights, bw))
+
+  expect_gt(sum(-log(ow0$weights / bw)),
+            sum(-log(ow$weights / bw)))
+
+  expect_no_condition({
+    ow2 <- optweight(A ~ X1 + X2 + X3 + X4 + X5 + X6,
+                     data = test_data,
+                     b.weights = bw,
+                     norm = "log",
+                     tols = tols,
+                     std.binary = TRUE)
+  })
+
+  expect_true(all(abs(cobalt::col_w_smd(ow2$covs, ow2$treat, ow2$weights)) <= attr(tols, "internal.tols") + eps))
+
+  expect_gt(sum(-log(ow$weights / bw)),
+            sum(-log(ow2$weights / bw)))
+
 })
 
 test_that("optweight works, continuous", {
@@ -1486,7 +1511,7 @@ test_that("optweight works, continuous, s.weights", {
   sw <- test_data$SW
 
   expect_true(all(abs(cobalt::col_w_corr(ow0$covs, ow0$treat, ow0$weights,
-                                        s.weights = sw)) <= eps))
+                                         s.weights = sw)) <= eps))
 
   expect_equal(cobalt::col_w_mean(cbind(ow0$covs, ow0$treat),
                                   s.weights = sw),
@@ -1519,7 +1544,7 @@ test_that("optweight works, continuous, s.weights", {
   })
 
   expect_true(all(abs(cobalt::col_w_corr(ow$covs, ow$treat, ow$weights,
-                                        s.weights = sw)) <= .02 + eps))
+                                         s.weights = sw)) <= .02 + eps))
 
   expect_equal(cobalt::col_w_mean(cbind(ow$covs, ow$treat),
                                   s.weights = sw),
@@ -1539,7 +1564,7 @@ test_that("optweight works, continuous, s.weights", {
   })
 
   expect_true(all(abs(cobalt::col_w_corr(ow$covs, ow$treat, ow$weights,
-                                        s.weights = sw)) <= attr(tols, "internal.tols") + eps))
+                                         s.weights = sw)) <= attr(tols, "internal.tols") + eps))
 
   expect_equal(cobalt::col_w_mean(cbind(ow$covs, ow$treat),
                                   s.weights = sw),
@@ -1574,7 +1599,7 @@ test_that("optweight works, continuous, s.weights", {
   })
 
   expect_true(all(abs(cobalt::col_w_corr(ow$covs, ow$treat, ow$weights,
-                                        s.weights = sw)) <= eps))
+                                         s.weights = sw)) <= eps))
 
   expect_equal(cobalt::col_w_mean(cbind(ow$covs, ow$treat),
                                   s.weights = sw),
@@ -1598,7 +1623,7 @@ test_that("optweight works, continuous, s.weights", {
 
   # Note: osqp fairly inaccurate with L1
   expect_true(all(abs(cobalt::col_w_corr(ow2$covs, ow2$treat, ow2$weights,
-                                        s.weights = sw)) <= attr(tols, "internal.tols") + 2 * eps))
+                                         s.weights = sw)) <= attr(tols, "internal.tols") + 2 * eps))
 
   expect_equal(cobalt::col_w_mean(cbind(ow2$covs, ow2$treat),
                                   s.weights = sw),
@@ -1618,7 +1643,7 @@ test_that("optweight works, continuous, s.weights", {
     })
 
     expect_true(all(abs(cobalt::col_w_corr(ow$covs, ow$treat, ow$weights,
-                                          s.weights = sw)) <= eps))
+                                           s.weights = sw)) <= eps))
 
     expect_equal(cobalt::col_w_mean(cbind(ow$covs, ow$treat),
                                     s.weights = sw),
@@ -1641,7 +1666,7 @@ test_that("optweight works, continuous, s.weights", {
     })
 
     expect_true(all(abs(cobalt::col_w_corr(ow2$covs, ow2$treat, ow2$weights,
-                                          s.weights = sw)) <= attr(tols, "internal.tols") + eps))
+                                           s.weights = sw)) <= attr(tols, "internal.tols") + eps))
 
     expect_equal(cobalt::col_w_mean(cbind(ow2$covs, ow2$treat),
                                     s.weights = sw),
@@ -1660,7 +1685,7 @@ test_that("optweight works, continuous, s.weights", {
     })
 
     expect_true(all(abs(cobalt::col_w_corr(ow$covs, ow$treat, ow$weights,
-                                          s.weights = sw)) <= eps))
+                                           s.weights = sw)) <= eps))
 
     expect_equal(cobalt::col_w_mean(cbind(ow$covs, ow$treat),
                                     s.weights = sw),
@@ -1683,7 +1708,7 @@ test_that("optweight works, continuous, s.weights", {
     })
 
     expect_true(all(abs(cobalt::col_w_corr(ow2$covs, ow2$treat, ow2$weights,
-                                          s.weights = sw)) <= attr(tols, "internal.tols") + eps))
+                                           s.weights = sw)) <= attr(tols, "internal.tols") + eps))
 
     expect_equal(cobalt::col_w_mean(cbind(ow2$covs, ow2$treat),
                                     s.weights = sw),
@@ -1975,7 +2000,7 @@ test_that("optweight works, continuous, s.weights + b.weights", {
   sw <- test_data$SW
 
   expect_true(all(abs(cobalt::col_w_corr(ow0$covs, ow0$treat, ow0$weights,
-                                        s.weights = sw)) <= eps))
+                                         s.weights = sw)) <= eps))
 
   expect_equal(cobalt::col_w_mean(cbind(ow0$covs, ow0$treat),
                                   s.weights = sw),
@@ -2013,7 +2038,7 @@ test_that("optweight works, continuous, s.weights + b.weights", {
   })
 
   expect_true(all(abs(cobalt::col_w_corr(ow$covs, ow$treat, ow$weights,
-                                        s.weights = sw)) <= .02 + eps))
+                                         s.weights = sw)) <= .02 + eps))
 
   expect_equal(cobalt::col_w_mean(cbind(ow$covs, ow$treat),
                                   s.weights = sw),
@@ -2037,7 +2062,7 @@ test_that("optweight works, continuous, s.weights + b.weights", {
   })
 
   expect_true(all(abs(cobalt::col_w_corr(ow$covs, ow$treat, ow$weights,
-                                        s.weights = sw)) <= attr(tols, "internal.tols") + eps))
+                                         s.weights = sw)) <= attr(tols, "internal.tols") + eps))
 
   expect_equal(cobalt::col_w_mean(cbind(ow$covs, ow$treat),
                                   s.weights = sw),
@@ -2079,7 +2104,7 @@ test_that("optweight works, continuous, s.weights + b.weights", {
   })
 
   expect_true(all(abs(cobalt::col_w_corr(ow$covs, ow$treat, ow$weights,
-                                        s.weights = sw)) <= eps))
+                                         s.weights = sw)) <= eps))
 
   expect_equal(cobalt::col_w_mean(cbind(ow$covs, ow$treat),
                                   s.weights = sw),
@@ -2106,7 +2131,7 @@ test_that("optweight works, continuous, s.weights + b.weights", {
   })
 
   expect_true(all(abs(cobalt::col_w_corr(ow2$covs, ow2$treat, ow2$weights,
-                                        s.weights = sw)) <= attr(tols, "internal.tols") + 2 * eps))
+                                         s.weights = sw)) <= attr(tols, "internal.tols") + 2 * eps))
 
   expect_equal(cobalt::col_w_mean(cbind(ow2$covs, ow2$treat),
                                   s.weights = sw),
@@ -2130,7 +2155,7 @@ test_that("optweight works, continuous, s.weights + b.weights", {
     })
 
     expect_true(all(abs(cobalt::col_w_corr(ow$covs, ow$treat, ow$weights,
-                                          s.weights = sw)) <= eps))
+                                           s.weights = sw)) <= eps))
 
     expect_equal(cobalt::col_w_mean(cbind(ow$covs, ow$treat),
                                     s.weights = sw),
@@ -2157,7 +2182,7 @@ test_that("optweight works, continuous, s.weights + b.weights", {
     })
 
     expect_true(all(abs(cobalt::col_w_corr(ow2$covs, ow2$treat, ow2$weights,
-                                          s.weights = sw)) <= attr(tols, "internal.tols") + eps))
+                                           s.weights = sw)) <= attr(tols, "internal.tols") + eps))
 
     expect_equal(cobalt::col_w_mean(cbind(ow2$covs, ow2$treat),
                                     s.weights = sw),
@@ -2180,7 +2205,7 @@ test_that("optweight works, continuous, s.weights + b.weights", {
     })
 
     expect_true(all(abs(cobalt::col_w_corr(ow$covs, ow$treat, ow$weights,
-                                          s.weights = sw)) <= eps))
+                                           s.weights = sw)) <= eps))
 
     expect_equal(cobalt::col_w_mean(cbind(ow$covs, ow$treat),
                                     s.weights = sw),
@@ -2204,7 +2229,7 @@ test_that("optweight works, continuous, s.weights + b.weights", {
     })
 
     expect_true(all(abs(cobalt::col_w_corr(ow2$covs, ow2$treat, ow2$weights,
-                                          s.weights = sw)) <= attr(tols, "internal.tols") + eps))
+                                           s.weights = sw)) <= attr(tols, "internal.tols") + eps))
 
     expect_equal(cobalt::col_w_mean(cbind(ow2$covs, ow2$treat),
                                     s.weights = sw),
@@ -2645,84 +2670,108 @@ test_that("optweight works, continuous, b.weights, solver: lpsolve", {
 
   expect_lt(mean_abs_dev(ow2$weights, bw),
             mean_abs_dev(ow2$weights))
+})
 
-  if (rlang::is_installed("scs")) {
-    expect_no_condition({
-      ow <- optweight(Ac ~ X1 + X2 + X3 + X4 + X5 + X6,
-                      data = test_data,
-                      b.weights = bw,
-                      norm = "entropy")
-    })
+test_that("optweight works, continuous, b.weights, solver: clarabel", {
+  skip_if_not_installed("cobalt")
+  skip_if_not_installed("clarabel")
 
-    expect_true(all(abs(cobalt::col_w_corr(ow$covs, ow$treat, ow$weights)) <= eps))
+  rlang::local_options(optweight_solver_l2 = "osqp",
+                       optweight_solver_entropy = "clarabel",
+                       optweight_solver_log = "clarabel")
 
-    expect_equal(cobalt::col_w_mean(cbind(ow$covs, ow$treat)),
-                 cobalt::col_w_mean(cbind(ow$covs, ow$treat), ow$weights),
-                 tolerance = eps)
+  eps <- if (capabilities("long.double")) 5e-5 else 1e-1
 
-    expect_lt(rms_dev(ow0$weights, bw),
-              rms_dev(ow$weights, bw))
+  test_data <- readRDS(test_path("fixtures", "test_data.rds"))
 
-    expect_gt(rel_ent(ow0$weights, bw),
-              rel_ent(ow$weights, bw))
+  set.seed(123)
+  bw <- runif(nrow(test_data))
 
-    expect_lt(rel_ent(ow$weights, bw),
-              rel_ent(ow$weights))
+  expect_no_condition({
+    ow0 <- optweight(Ac ~ X1 + X2 + X3 + X4 + X5 + X6,
+                     data = test_data,
+                     b.weights = bw)
+  })
 
-    expect_no_condition({
-      ow2 <- optweight(Ac ~ X1 + X2 + X3 + X4 + X5 + X6,
+  tols <- process_tols(Ac ~ X1 + X2 + X3 + X4 + X5 + X6,
                        data = test_data,
-                       b.weights = bw,
-                       norm = "entropy",
-                       tols = tols)
-    })
+                       tols = seq(.01, .06, by = .01))
 
-    expect_true(all(abs(cobalt::col_w_corr(ow2$covs, ow2$treat, ow2$weights)) <= attr(tols, "internal.tols") + eps))
+  expect_no_condition({
+    ow <- optweight(Ac ~ X1 + X2 + X3 + X4 + X5 + X6,
+                    data = test_data,
+                    b.weights = bw,
+                    norm = "entropy")
+  })
 
-    expect_equal(cobalt::col_w_mean(cbind(ow2$covs, ow2$treat)),
-                 cobalt::col_w_mean(cbind(ow2$covs, ow2$treat), ow2$weights),
-                 tolerance = eps)
+  expect_true(all(abs(cobalt::col_w_corr(ow$covs, ow$treat, ow$weights)) <= eps))
 
-    expect_gt(rel_ent(ow$weights, bw),
-              rel_ent(ow2$weights, bw))
+  expect_equal(cobalt::col_w_mean(cbind(ow$covs, ow$treat)),
+               cobalt::col_w_mean(cbind(ow$covs, ow$treat), ow$weights),
+               tolerance = eps)
 
-    expect_lt(rel_ent(ow2$weights, bw),
-              rel_ent(ow2$weights))
+  expect_lt(rms_dev(ow0$weights, bw),
+            rms_dev(ow$weights, bw))
 
-    expect_no_condition({
-      ow <- optweight(Ac ~ X1 + X2 + X3 + X4 + X5 + X6,
-                      data = test_data,
-                      b.weights = bw,
-                      norm = "log")
-    })
+  expect_gt(rel_ent(ow0$weights, bw),
+            rel_ent(ow$weights, bw))
 
-    expect_true(all(abs(cobalt::col_w_corr(ow$covs, ow$treat, ow$weights)) <= eps))
+  expect_lt(rel_ent(ow$weights, bw),
+            rel_ent(ow$weights))
 
-    expect_equal(cobalt::col_w_mean(cbind(ow$covs, ow$treat)),
-                 cobalt::col_w_mean(cbind(ow$covs, ow$treat), ow$weights),
-                 tolerance = eps)
+  expect_no_condition({
+    ow2 <- optweight(Ac ~ X1 + X2 + X3 + X4 + X5 + X6,
+                     data = test_data,
+                     b.weights = bw,
+                     norm = "entropy",
+                     tols = tols)
+  })
 
-    expect_lt(rms_dev(ow0$weights, bw),
-              rms_dev(ow$weights, bw))
+  expect_true(all(abs(cobalt::col_w_corr(ow2$covs, ow2$treat, ow2$weights)) <= attr(tols, "internal.tols") + eps))
 
-    expect_gt(sum(-log(ow0$weights / bw)),
-              sum(-log(ow$weights / bw)))
+  expect_equal(cobalt::col_w_mean(cbind(ow2$covs, ow2$treat)),
+               cobalt::col_w_mean(cbind(ow2$covs, ow2$treat), ow2$weights),
+               tolerance = eps)
 
-    expect_no_condition({
-      ow2 <- optweight(Ac ~ X1 + X2 + X3 + X4 + X5 + X6,
-                       data = test_data,
-                       b.weights = bw,
-                       norm = "log",
-                       tols = tols)
-    })
+  expect_gt(rel_ent(ow$weights, bw),
+            rel_ent(ow2$weights, bw))
 
-    expect_true(all(abs(cobalt::col_w_corr(ow2$covs, ow2$treat, ow2$weights)) <= attr(tols, "internal.tols") + eps))
+  expect_lt(rel_ent(ow2$weights, bw),
+            rel_ent(ow2$weights))
 
-    expect_equal(cobalt::col_w_mean(cbind(ow2$covs, ow2$treat)),
-                 cobalt::col_w_mean(cbind(ow2$covs, ow2$treat), ow2$weights),
-                 tolerance = eps)
+  expect_no_condition({
+    ow <- optweight(Ac ~ X1 + X2 + X3 + X4 + X5 + X6,
+                    data = test_data,
+                    b.weights = bw,
+                    norm = "log")
+  })
 
-    expect_gt(sum(-log(ow$weights / bw)),
-              sum(-log(ow2$weights / bw)))
-  }
+  expect_true(all(abs(cobalt::col_w_corr(ow$covs, ow$treat, ow$weights)) <= eps))
+
+  expect_equal(cobalt::col_w_mean(cbind(ow$covs, ow$treat)),
+               cobalt::col_w_mean(cbind(ow$covs, ow$treat), ow$weights),
+               tolerance = eps)
+
+  expect_lt(rms_dev(ow0$weights, bw),
+            rms_dev(ow$weights, bw))
+
+  expect_gt(sum(-log(ow0$weights / bw)),
+            sum(-log(ow$weights / bw)))
+
+  expect_no_condition({
+    ow2 <- optweight(Ac ~ X1 + X2 + X3 + X4 + X5 + X6,
+                     data = test_data,
+                     b.weights = bw,
+                     norm = "log",
+                     tols = tols)
+  })
+
+  expect_true(all(abs(cobalt::col_w_corr(ow2$covs, ow2$treat, ow2$weights)) <= attr(tols, "internal.tols") + eps))
+
+  expect_equal(cobalt::col_w_mean(cbind(ow2$covs, ow2$treat)),
+               cobalt::col_w_mean(cbind(ow2$covs, ow2$treat), ow2$weights),
+               tolerance = eps)
+
+  expect_gt(sum(-log(ow$weights / bw)),
+            sum(-log(ow2$weights / bw)))
 })
