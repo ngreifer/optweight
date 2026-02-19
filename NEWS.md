@@ -1,6 +1,12 @@
 *optweight* News and Updates
 ======
 
+# *optweight* (development version)
+
+* Added support for the new version of *osqp*, which changes some optional argument names and defaults. These should not impact results.
+
+* Added tests for *clarabel*.
+
 # *optweight* 2.0.0
 
 * Specifying tolerances works slightly differently for binary and multi-category treatments with `optweight()`. `tols` controls only how similar each pair of groups are to each other, and a new argument, `target.tols`, controls how similar the average of the group means are to the target mean. This means that group balance is separate from target balance. See `?optweight` for more information. Previously, `tols` only controlled target balance, and group balance came along for free. This slightly changes the weights estimated when setting `tols` to a value greater than 0 when `target.tols` is set to 0 (its default): now, the group means must be equidistant from the target means, whereas previously, it was only required that the group means each be with `tols/2` of the target mean.

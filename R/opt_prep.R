@@ -555,7 +555,6 @@ make_process_opt_args <- function(solver) {
       chk::chk_flag(verbose)
 
       args <- ...mget(rlang::fn_fmls_names(clarabel::clarabel_control))
-      eps <- ...get("eps", 1e-9)
 
       args[["max_iter"]] <- as.integer(...get("max_iter", 2e5))
 
@@ -593,12 +592,18 @@ make_process_opt_args <- function(solver) {
       args <- ...mget(rlang::fn_fmls_names(osqp::osqpSettings))
       eps <- ...get("eps", 1e-6)
 
-      args[["eps_rel"]] <- ...get("eps_rel", ...get("reltol", eps))
-      args[["eps_abs"]] <- ...get("eps_abs", ...get("abstol", eps))
-      args[["max_iter"]] <- ...get("max_iter", ...get("maxit", 2e5))
+      args[["eps_rel"]] <- ...get("eps_rel") %or% ...get("reltol") %or% eps
+      args[["eps_abs"]] <- ...get("eps_abs") %or% ...get("abstol") %or% eps
+      args[["max_iter"]] <- ...get("max_iter") %or% ...get("maxit") %or% 2e5
 
-      args[["adaptive_rho_interval"]] <- ...get("adaptive_rho_interval", 10L)
-      args[["polish"]] <- ...get("polish", TRUE)
+      args[["adaptive_rho_interval"]] <- ...get("adaptive_rho_interval", 50L)
+
+      if (packageVersion("osqp") >= "1.0.0") {
+        args[["polishing"]] <- ...get("polishing") %or% ...get("polish") %or% TRUE
+      }
+      else {
+        args[["polish"]] <- ...get("polish") %or% ...get("polishing") %or% TRUE
+      }
 
       args[["verbose"]] <- verbose
 
