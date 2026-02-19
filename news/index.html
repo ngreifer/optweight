@@ -13,7 +13,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">optweight</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.0.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.0.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -39,8 +39,14 @@
     </div>
 
     <div class="section level2">
+<h2 class="pkg-version" data-toc-text="development version" id="optweight-development-version">
+<em>optweight</em> (development version)<a class="anchor" aria-label="anchor" href="#optweight-development-version"></a></h2>
+<ul><li><p>Added support for the new version of <em>osqp</em>, which changes some optional argument names and defaults. These should not impact results.</p></li>
+<li><p>Added tests for <em>clarabel</em>.</p></li>
+</ul></div>
+    <div class="section level2">
 <h2 class="pkg-version" data-toc-text="2.0.0" id="optweight-200">
-<em>optweight</em> 2.0.0<a class="anchor" aria-label="anchor" href="#optweight-200"></a></h2>
+<em>optweight</em> 2.0.0<a class="anchor" aria-label="anchor" href="#optweight-200"></a></h2><p class="text-muted">CRAN release: 2026-01-23</p>
 <ul><li><p>Specifying tolerances works slightly differently for binary and multi-category treatments with <code><a href="../reference/optweight.html">optweight()</a></code>. <code>tols</code> controls only how similar each pair of groups are to each other, and a new argument, <code>target.tols</code>, controls how similar the average of the group means are to the target mean. This means that group balance is separate from target balance. See <code><a href="../reference/optweight.html">?optweight</a></code> for more information. Previously, <code>tols</code> only controlled target balance, and group balance came along for free. This slightly changes the weights estimated when setting <code>tols</code> to a value greater than 0 when <code>target.tols</code> is set to 0 (its default): now, the group means must be equidistant from the target means, whereas previously, it was only required that the group means each be with <code>tols/2</code> of the target mean.</p></li>
 <li><p>The <code>duals</code> output is slightly different: for multivariate treatments with <code><a href="../reference/optweightMV.html">optweightMV()</a></code>, the <code>duals</code> component of the output object is a single data frame with a new column, <code>component</code>, corresponding to the treatment each dual variable refers to. For all weighting functions, the dual variable corresponding to the constraint on the minimum of the weights (controlled by <code>min.w</code>) is now included in the output with <code>component</code> equal to 0.</p></li>
 <li><p>In <code><a href="../reference/plot.optweight.html">plot.optweight()</a></code>, a new argument, <code>type</code>, can be specified to select between two types of dual variable plots: <code>"variables"</code>, the default, displays a dual variable for each covariate; <code>"constraints"</code> displays a dual variable for each constraint type (weight range, balance, and target), computed as the sum of the dual variables for that constraint type.</p></li>

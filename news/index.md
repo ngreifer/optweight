@@ -1,6 +1,15 @@
 # Changelog
 
+## *optweight* (development version)
+
+- Added support for the new version of *osqp*, which changes some
+  optional argument names and defaults. These should not impact results.
+
+- Added tests for *clarabel*.
+
 ## *optweight* 2.0.0
+
+CRAN release: 2026-01-23
 
 - Specifying tolerances works slightly differently for binary and
   multi-category treatments with

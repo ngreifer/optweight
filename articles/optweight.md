@@ -476,10 +476,10 @@ norm minimized (columns).
 
 |         |    l2 |    l1 |  linf |    RE |
 |:--------|------:|------:|------:|------:|
-| L2      | 1.717 | 2.017 | 1.877 | 1.832 |
+| L2      | 1.717 | 1.984 | 1.877 | 1.832 |
 | L1      | 1.339 | 1.281 | 1.548 | 1.287 |
-| L∞      | 5.002 | 9.924 | 3.577 | 8.421 |
-| Rel Ent | 1.230 | 1.227 | 1.500 | 1.101 |
+| L∞      | 5.002 | 9.317 | 3.577 | 8.421 |
+| Rel Ent | 1.230 | 1.184 | 1.500 | 1.101 |
 
 We can see that minimizing the \\L_2\\ norm yields weights that have the
 lowest \\L_2\\ divergence, minimizing the \\L_1\\ norm yields weights

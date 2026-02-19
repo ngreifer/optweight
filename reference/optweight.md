@@ -513,7 +513,7 @@ implementation of entropy balancing.
 
 ``` r
 library("cobalt")
-#>  cobalt (Version 4.6.1, Build Date: 2025-08-20)
+#>  cobalt (Version 4.6.2, Build Date: 2026-01-29)
 data("lalonde", package = "cobalt")
 
 # Balancing covariates between treatment groups (binary)
