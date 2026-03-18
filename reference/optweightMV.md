@@ -380,11 +380,11 @@ bal.tab(ow1)
 #>  - - - Time: 2 - - - 
 #> Balance Measures
 #>                Type Corr.Adj Diff.Target.Adj
-#> age         Contin.       -0               0
+#> age         Contin.        0               0
 #> educ        Contin.       -0               0
-#> race_black   Binary       -0               0
+#> race_black   Binary        0               0
 #> race_hispan  Binary       -0              -0
-#> race_white   Binary        0              -0
+#> race_white   Binary       -0              -0
 #> re74        Contin.       -0               0
 #> 
 #> Effective sample sizes

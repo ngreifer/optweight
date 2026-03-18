@@ -31,7 +31,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">optweight</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.0.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.0.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -65,7 +65,7 @@
                         <h4 data-toc-skip class="author">Noah
 Greifer</h4>
             
-            <h4 data-toc-skip class="date">2026-02-19</h4>
+            <h4 data-toc-skip class="date">2026-03-18</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/ngreifer/optweight/blob/master/vignettes/optweight.Rmd" class="external-link"><code>vignettes/optweight.Rmd</code></a></small>
       <div class="d-none name"><code>optweight.Rmd</code></div>
@@ -658,15 +658,15 @@ sample:</p>
 <span><span class="fu">cobalt</span><span class="fu">::</span><span class="fu"><a href="https://ngreifer.github.io/cobalt/reference/bal.tab.html" class="external-link">bal.tab</a></span><span class="op">(</span><span class="va">ow_ate</span>, disp <span class="op">=</span> <span class="st">"m"</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## <span style="text-decoration: underline;">Balance Measures</span></span></span>
 <span><span class="co">##                Type  M.0.Adj  M.1.Adj Diff.Adj</span></span>
-<span><span class="co">## age         Contin.   27.363   27.363        0</span></span>
+<span><span class="co">## age         Contin.   27.363   27.363       -0</span></span>
 <span><span class="co">## educ        Contin.   10.269   10.269        0</span></span>
 <span><span class="co">## race_black   Binary    0.396    0.396        0</span></span>
 <span><span class="co">## race_hispan  Binary    0.117    0.117        0</span></span>
 <span><span class="co">## race_white   Binary    0.487    0.487       -0</span></span>
 <span><span class="co">## married      Binary    0.415    0.415        0</span></span>
-<span><span class="co">## nodegree     Binary    0.630    0.630        0</span></span>
+<span><span class="co">## nodegree     Binary    0.630    0.630       -0</span></span>
 <span><span class="co">## re74        Contin. 4557.547 4557.547        0</span></span>
-<span><span class="co">## re75        Contin. 2184.938 2184.938        0</span></span>
+<span><span class="co">## re75        Contin. 2184.938 2184.938       -0</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## <span style="text-decoration: underline;">Effective sample sizes</span></span></span>
 <span><span class="co">##            Control Treated</span></span>
@@ -775,7 +775,7 @@ to <code>NA</code>:</p>
 <span><span class="co">## educ        Contin.   10.269   10.269        0</span></span>
 <span><span class="co">## race_black   Binary    0.451    0.451        0</span></span>
 <span><span class="co">## race_hispan  Binary    0.164    0.164       -0</span></span>
-<span><span class="co">## race_white   Binary    0.386    0.386       -0</span></span>
+<span><span class="co">## race_white   Binary    0.386    0.386        0</span></span>
 <span><span class="co">## married      Binary    0.415    0.415        0</span></span>
 <span><span class="co">## nodegree     Binary    0.630    0.630        0</span></span>
 <span><span class="co">## re74        Contin. 4557.547 4557.547        0</span></span>
@@ -800,15 +800,15 @@ between-group balance by setting <code>targets = NA</code>.</p>
 <span><span class="fu">cobalt</span><span class="fu">::</span><span class="fu"><a href="https://ngreifer.github.io/cobalt/reference/bal.tab.html" class="external-link">bal.tab</a></span><span class="op">(</span><span class="va">ow_target3</span>, disp <span class="op">=</span> <span class="st">"m"</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## <span style="text-decoration: underline;">Balance Measures</span></span></span>
 <span><span class="co">##                Type  M.0.Adj  M.1.Adj Diff.Adj</span></span>
-<span><span class="co">## age         Contin.   25.877   25.877       -0</span></span>
+<span><span class="co">## age         Contin.   25.877   25.877        0</span></span>
 <span><span class="co">## educ        Contin.   10.318   10.318        0</span></span>
-<span><span class="co">## race_black   Binary    0.454    0.454       -0</span></span>
-<span><span class="co">## race_hispan  Binary    0.166    0.166        0</span></span>
-<span><span class="co">## race_white   Binary    0.380    0.380        0</span></span>
-<span><span class="co">## married      Binary    0.319    0.319       -0</span></span>
-<span><span class="co">## nodegree     Binary    0.626    0.626       -0</span></span>
+<span><span class="co">## race_black   Binary    0.454    0.454        0</span></span>
+<span><span class="co">## race_hispan  Binary    0.166    0.166       -0</span></span>
+<span><span class="co">## race_white   Binary    0.380    0.380       -0</span></span>
+<span><span class="co">## married      Binary    0.319    0.319        0</span></span>
+<span><span class="co">## nodegree     Binary    0.626    0.626        0</span></span>
 <span><span class="co">## re74        Contin. 3316.369 3316.369        0</span></span>
-<span><span class="co">## re75        Contin. 1994.888 1994.888        0</span></span>
+<span><span class="co">## re75        Contin. 1994.888 1994.888       -0</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## <span style="text-decoration: underline;">Effective sample sizes</span></span></span>
 <span><span class="co">##            Control Treated</span></span>
@@ -903,10 +903,10 @@ previously, or we can set its target balance tolerance to
 <pre><code><span><span class="co">## <span style="text-decoration: underline;">Balance Measures</span></span></span>
 <span><span class="co">##                Type  M.0.Adj  M.1.Adj Diff.Adj</span></span>
 <span><span class="co">## age         Contin.   26.495   26.495        0</span></span>
-<span><span class="co">## educ        Contin.   10.269   10.269       -0</span></span>
+<span><span class="co">## educ        Contin.   10.269   10.269        0</span></span>
 <span><span class="co">## race_black   Binary    0.500    0.500        0</span></span>
 <span><span class="co">## race_hispan  Binary    0.230    0.230       -0</span></span>
-<span><span class="co">## race_white   Binary    0.270    0.270       -0</span></span>
+<span><span class="co">## race_white   Binary    0.270    0.270        0</span></span>
 <span><span class="co">## married      Binary    0.415    0.415        0</span></span>
 <span><span class="co">## nodegree     Binary    0.630    0.630        0</span></span>
 <span><span class="co">## re74        Contin. 4557.547 4557.547        0</span></span>
@@ -1611,13 +1611,13 @@ bootstrap replication.</p>
 <p>To use a robust standard error, it’s easiest to use functions in the
 <a href="https://marginaleffects.com/" class="external-link"><em>marginaleffects</em></a>
 package. Supply the output of <code><a href="https://rdrr.io/r/stats/lm.html" class="external-link">lm()</a></code> to
-<code><a href="https://marginaleffects.com/man/r/comparisons.html" class="external-link">marginaleffects::avg_comparisons()</a></code> with
+<code><a href="https://rdrr.io/pkg/marginaleffects/man/comparisons.html" class="external-link">marginaleffects::avg_comparisons()</a></code> with
 <code>vcov = "HC3"</code> to request a robust standard error for the
 treatment effect estimate.</p>
 <div class="sourceCode" id="cb88"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://marginaleffects.com/" class="external-link">marginaleffects</a></span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu"><a href="https://marginaleffects.com/man/r/comparisons.html" class="external-link">avg_comparisons</a></span><span class="op">(</span><span class="va">fit</span>,</span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/marginaleffects/man/comparisons.html" class="external-link">avg_comparisons</a></span><span class="op">(</span><span class="va">fit</span>,</span>
 <span>                variables <span class="op">=</span> <span class="st">"treat"</span>,</span>
 <span>                vcov <span class="op">=</span> <span class="st">"HC3"</span>,</span>
 <span>                newdata <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">treat</span> <span class="op">==</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>

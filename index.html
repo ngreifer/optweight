@@ -34,7 +34,7 @@
 
     <a class="navbar-brand me-2" href="index.html">optweight</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.0.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.0.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -134,7 +134,7 @@
 <span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a><span class="co">#&gt; age         Contin.     0.01</span></span>
 <span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a><span class="co">#&gt; educ        Contin.     0.01</span></span>
 <span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a><span class="co">#&gt; race_black   Binary     0.01</span></span>
-<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a><span class="co">#&gt; race_hispan  Binary    -0.00</span></span>
+<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a><span class="co">#&gt; race_hispan  Binary     0.00</span></span>
 <span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a><span class="co">#&gt; race_white   Binary    -0.01</span></span>
 <span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a><span class="co">#&gt; nodegree     Binary     0.01</span></span>
 <span id="cb7-9"><a href="#cb7-9" tabindex="-1"></a><span class="co">#&gt; married      Binary    -0.01</span></span>
@@ -149,7 +149,7 @@
 <p>We can use <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> to examine the dual variables for each constraint, which represent how active that constraint is at the optimal point. Highly active constraints affect the objective function value the most when their tolerances are changed.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">ow</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/README-unnamed-chunk-4-1.png" style="display: block; margin: auto;"></p>
+<p><img src="reference/figures/README-unnamed-chunk-4-1.png" alt="" style="display: block; margin: auto;"></p>
 <p>We can see that <code>race</code> has the highest dual variable; relaxing the constraint on <code>race</code> would yield the biggest improvement in effective sample size, while tightening its constraint would yield the biggest decrease in effective sample size.</p>
 <p>The lower-level function <code><a href="reference/optweight.html">optweight.fit()</a></code> operates on the covariates and treatment variables directly. <code><a href="reference/optweightMV.html">optweightMV()</a></code> supports multivariate (i.e., multiple) treatments.</p>
 <p>In addition to estimating balancing weights for estimating treatment effects, <em>optweight</em> can estimate sampling weights for generalizing an estimate to a new target population defined by covariate moments using <code><a href="reference/optweight.svy.html">optweight.svy()</a></code>, which implements the methods described in Jackson, Rhodes, and Ouwens (<a href="#ref-jacksonAlternativeWeightingSchemes2021">2021</a>) for matching-adjusted indirect comparison (MAIC).</p>

@@ -541,15 +541,15 @@ cobalt::bal.tab(ow_ate, disp = "m")
 
     ## Balance Measures
     ##                Type  M.0.Adj  M.1.Adj Diff.Adj
-    ## age         Contin.   27.363   27.363        0
+    ## age         Contin.   27.363   27.363       -0
     ## educ        Contin.   10.269   10.269        0
     ## race_black   Binary    0.396    0.396        0
     ## race_hispan  Binary    0.117    0.117        0
     ## race_white   Binary    0.487    0.487       -0
     ## married      Binary    0.415    0.415        0
-    ## nodegree     Binary    0.630    0.630        0
+    ## nodegree     Binary    0.630    0.630       -0
     ## re74        Contin. 4557.547 4557.547        0
-    ## re75        Contin. 2184.938 2184.938        0
+    ## re75        Contin. 2184.938 2184.938       -0
     ## 
     ## Effective sample sizes
     ##            Control Treated
@@ -673,7 +673,7 @@ cobalt::bal.tab(ow_target2, disp = "m")
     ## educ        Contin.   10.269   10.269        0
     ## race_black   Binary    0.451    0.451        0
     ## race_hispan  Binary    0.164    0.164       -0
-    ## race_white   Binary    0.386    0.386       -0
+    ## race_white   Binary    0.386    0.386        0
     ## married      Binary    0.415    0.415        0
     ## nodegree     Binary    0.630    0.630        0
     ## re74        Contin. 4557.547 4557.547        0
@@ -702,15 +702,15 @@ cobalt::bal.tab(ow_target3, disp = "m")
 
     ## Balance Measures
     ##                Type  M.0.Adj  M.1.Adj Diff.Adj
-    ## age         Contin.   25.877   25.877       -0
+    ## age         Contin.   25.877   25.877        0
     ## educ        Contin.   10.318   10.318        0
-    ## race_black   Binary    0.454    0.454       -0
-    ## race_hispan  Binary    0.166    0.166        0
-    ## race_white   Binary    0.380    0.380        0
-    ## married      Binary    0.319    0.319       -0
-    ## nodegree     Binary    0.626    0.626       -0
+    ## race_black   Binary    0.454    0.454        0
+    ## race_hispan  Binary    0.166    0.166       -0
+    ## race_white   Binary    0.380    0.380       -0
+    ## married      Binary    0.319    0.319        0
+    ## nodegree     Binary    0.626    0.626        0
     ## re74        Contin. 3316.369 3316.369        0
-    ## re75        Contin. 1994.888 1994.888        0
+    ## re75        Contin. 1994.888 1994.888       -0
     ## 
     ## Effective sample sizes
     ##            Control Treated
@@ -819,10 +819,10 @@ cobalt::bal.tab(ow_target1c, disp = "m")
     ## Balance Measures
     ##                Type  M.0.Adj  M.1.Adj Diff.Adj
     ## age         Contin.   26.495   26.495        0
-    ## educ        Contin.   10.269   10.269       -0
+    ## educ        Contin.   10.269   10.269        0
     ## race_black   Binary    0.500    0.500        0
     ## race_hispan  Binary    0.230    0.230       -0
-    ## race_white   Binary    0.270    0.270       -0
+    ## race_white   Binary    0.270    0.270        0
     ## married      Binary    0.415    0.415        0
     ## nodegree     Binary    0.630    0.630        0
     ## re74        Contin. 4557.547 4557.547        0
@@ -1648,7 +1648,7 @@ summary(boot, ci.type = "wald", p.value = TRUE)
 To use a robust standard error, it’s easiest to use functions in the
 [*marginaleffects*](https://marginaleffects.com/) package. Supply the
 output of [`lm()`](https://rdrr.io/r/stats/lm.html) to
-[`marginaleffects::avg_comparisons()`](https://marginaleffects.com/man/r/comparisons.html)
+[`marginaleffects::avg_comparisons()`](https://rdrr.io/pkg/marginaleffects/man/comparisons.html)
 with `vcov = "HC3"` to request a robust standard error for the treatment
 effect estimate.
 

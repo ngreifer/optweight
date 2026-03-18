@@ -1,6 +1,6 @@
 # Changelog
 
-## *optweight* (development version)
+## *optweight* 2.0.1
 
 - Added support for the new version of *osqp*, which changes some
   optional argument names and defaults. These should not impact results.

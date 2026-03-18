@@ -665,8 +665,8 @@ bal.tab(ow3c, disp.means = TRUE)
 #> Balance Measures
 #>             Type   M.0.Adj   M.1.Adj Diff.Adj
 #> age      Contin.   26.4160   26.4160       -0
-#> educ     Contin.   10.3547   10.3547       -0
-#> married   Binary    0.3615    0.3615       -0
+#> educ     Contin.   10.3547   10.3547        0
+#> married   Binary    0.3615    0.3615        0
 #> nodegree  Binary    0.6305    0.6305       -0
 #> re74     Contin. 3908.9059 3908.9059       -0
 #> 

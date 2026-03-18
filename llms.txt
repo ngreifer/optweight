@@ -103,7 +103,7 @@ bal.tab(ow)
 #> age         Contin.     0.01
 #> educ        Contin.     0.01
 #> race_black   Binary     0.01
-#> race_hispan  Binary    -0.00
+#> race_hispan  Binary     0.00
 #> race_white   Binary    -0.01
 #> nodegree     Binary     0.01
 #> married      Binary    -0.01
