@@ -598,8 +598,9 @@ make_process_opt_args <- function(solver) {
 
       args[["adaptive_rho_interval"]] <- ...get("adaptive_rho_interval", 50L)
 
-      if (packageVersion("osqp") >= "1.0.0") {
+      if (utils::packageVersion("osqp") >= "1.0.0") {
         args[["polishing"]] <- ...get("polishing") %or% ...get("polish") %or% TRUE
+        args["polish"] <- list(NULL)
       }
       else {
         args[["polish"]] <- ...get("polish") %or% ...get("polishing") %or% TRUE

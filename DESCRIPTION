@@ -1,7 +1,7 @@
 Package: optweight
 Type: Package
 Title: Optimization-Based Stable Balancing Weights
-Version: 2.0.0.9000
+Version: 2.0.1
 Authors@R: c(
     person("Noah", "Greifer", role = c("aut", "cre"), 
            email = "noah.greifer@gmail.com",

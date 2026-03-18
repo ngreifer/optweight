@@ -100,7 +100,7 @@ bal.tab(ow)
     #> age         Contin.     0.01
     #> educ        Contin.     0.01
     #> race_black   Binary     0.01
-    #> race_hispan  Binary    -0.00
+    #> race_hispan  Binary     0.00
     #> race_white   Binary    -0.01
     #> nodegree     Binary     0.01
     #> married      Binary    -0.01
@@ -126,7 +126,7 @@ when their tolerances are changed.
 plot(ow)
 ```
 
-<img src="man/figures/README-unnamed-chunk-4-1.png" style="display: block; margin: auto;" />
+<img src="man/figures/README-unnamed-chunk-4-1.png" alt="" style="display: block; margin: auto;" />
 
 We can see that `race` has the highest dual variable; relaxing the
 constraint on `race` would yield the biggest improvement in effective
