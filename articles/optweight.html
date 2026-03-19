@@ -208,7 +208,8 @@ covariances are constrained to be balanced. This was explored in <span class="ci
 <span class="citation">Vegetabile et al. (<a href="#ref-vegetabileNonparametricEstimationPopulation2021">2021</a>)</span>.
 SBW can also be used to directly weight a sample to resemble a
 population, without needing to balance two treatment groups. This also
-known known as matching-adjusted indirect comparison <span class="citation">Signorovitch et al. (<a href="#ref-signorovitchComparativeEffectivenessHeadtoHead2010">2010</a>)</span>.</p>
+known known as matching-adjusted indirect comparison [MAIC; <span class="citation">Phillippo et al. (<a href="#ref-phillippoEquivalenceEntropyBalancing2020">2020</a>)</span>,
+<span class="citation">Signorovitch et al. (<a href="#ref-signorovitchComparativeEffectivenessHeadtoHead2010">2010</a>)</span>].</p>
 <p><em>optweight</em> contains functionality to perform these operations
 and assess their performance. It was designed to be user-friendly,
 compatible with the syntax used with <a href="https://ngreifer.github.io/WeightIt/" class="external-link"><em>WeightIt</em></a>, and
@@ -463,9 +464,9 @@ used. See the table below for the allowable values of <code>norm</code>,
 their names, and their formulas:</p>
 <table class="table">
 <colgroup>
-<col width="19%">
-<col width="26%">
-<col width="53%">
+<col width="33%">
+<col width="33%">
+<col width="33%">
 </colgroup>
 <thead><tr class="header">
 <th align="center"><code>norm</code></th>
@@ -1369,10 +1370,10 @@ sample generalizes to a population of interest with specific means.
 except that no treatment variable is specified and <code>targets</code>
 should be specified.</p>
 <p>This is useful in the context of matching-adjusted indirect
-comparison <span class="citation">(MAIC, <a href="#ref-signorovitchComparativeEffectivenessHeadtoHead2010">Signorovitch
-et al. 2010</a>)</span>, which involves weighting a given trial sample
-to resemble the covariate distribution of some other trial’s sample.
-MAIC as originally described is equivalent to entropy balancing <span class="citation">(<a href="#ref-phillippoEquivalenceEntropyBalancing2020">Phillippo et al.
+comparison [MAIC; <span class="citation">Signorovitch et al. (<a href="#ref-signorovitchComparativeEffectivenessHeadtoHead2010">2010</a>)</span>],
+which involves weighting a given trial sample to resemble the covariate
+distribution of some other trial’s sample. MAIC as originally described
+is equivalent to entropy balancing <span class="citation">(<a href="#ref-phillippoEquivalenceEntropyBalancing2020">Phillippo et al.
 2020</a>)</span>, which can be requested by setting
 <code>norm = "entropy"</code>.</p>
 <p>Below, we demonstrate weighting the control subset of

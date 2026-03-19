@@ -16,7 +16,7 @@ process_tols(formula, data = NULL, tols = 0)
 check.tols(...)
 
 # S3 method for class 'optweight.tols'
-print(x, internal = FALSE, digits = 5, ...)
+print(x, internal = FALSE, digits = 5L, ...)
 ```
 
 ## Arguments

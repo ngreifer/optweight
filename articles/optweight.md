@@ -110,8 +110,9 @@ are constrained to be balanced. This was explored in Greifer
 al. ([2021](#ref-vegetabileNonparametricEstimationPopulation2021)). SBW
 can also be used to directly weight a sample to resemble a population,
 without needing to balance two treatment groups. This also known known
-as matching-adjusted indirect comparison Signorovitch et al.
-([2010](#ref-signorovitchComparativeEffectivenessHeadtoHead2010)).
+as matching-adjusted indirect comparison \[MAIC; Phillippo et al.
+([2020](#ref-phillippoEquivalenceEntropyBalancing2020)), Signorovitch et
+al. ([2010](#ref-signorovitchComparativeEffectivenessHeadtoHead2010))\].
 
 *optweight* contains functionality to perform these operations and
 assess their performance. It was designed to be user-friendly,
@@ -1357,9 +1358,9 @@ except that no treatment variable is specified and `targets` should be
 specified.
 
 This is useful in the context of matching-adjusted indirect comparison
-(MAIC, [Signorovitch et al.
-2010](#ref-signorovitchComparativeEffectivenessHeadtoHead2010)), which
-involves weighting a given trial sample to resemble the covariate
+\[MAIC; Signorovitch et al.
+([2010](#ref-signorovitchComparativeEffectivenessHeadtoHead2010))\],
+which involves weighting a given trial sample to resemble the covariate
 distribution of some other trial’s sample. MAIC as originally described
 is equivalent to entropy balancing ([Phillippo et al.
 2020](#ref-phillippoEquivalenceEntropyBalancing2020)), which can be
