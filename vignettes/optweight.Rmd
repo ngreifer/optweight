@@ -99,7 +99,7 @@ Asymptotic properties of SBW are described in @wangMinimalDispersionApproximatel
 
 Often $\bar{x}_k^*$ are chosen to represent a known target group, like the full sample when targeting the ATE or the treated group when targeting the ATT. They can also be chosen to generalize the effect estimate to an arbitrary target population [@chattopadhyayOneStepWeightingGeneralize2024] or removed entirely to prioritize group balance over target balance [@barnardPartiallyRetargetedBalancing2025].
 
-SBW can be generalized to continuous treatments, in which case instead of balancing the covariate means, the treatment-covariate covariances are constrained to be balanced. This was explored in @greiferEstimatingBalancingWeights2020, @tubbickeEntropyBalancingContinuous2022, and @vegetabileNonparametricEstimationPopulation2021. SBW can also be used to directly weight a sample to resemble a population, without needing to balance two treatment groups. This also known known as matching-adjusted indirect comparison [MAIC, @phillippoEquivalenceEntropyBalancing2020, @signorovitchComparativeEffectivenessHeadtoHead2010].
+SBW can be generalized to continuous treatments, in which case instead of balancing the covariate means, the treatment-covariate covariances are constrained to be balanced. This was explored in @greiferEstimatingBalancingWeights2020, @tubbickeEntropyBalancingContinuous2022, and @vegetabileNonparametricEstimationPopulation2021. SBW can also be used to directly weight a sample to resemble a population, without needing to balance two treatment groups. This also known known as matching-adjusted indirect comparison [MAIC; @phillippoEquivalenceEntropyBalancing2020, @signorovitchComparativeEffectivenessHeadtoHead2010].
 
 *optweight* contains functionality to perform these operations and assess their performance. It was designed to be user-friendly, compatible with the syntax used with [*WeightIt*](https://ngreifer.github.io/WeightIt/), and supported by [*cobalt*](https://ngreifer.github.io/cobalt/) for balance assessment, at the possible expense of some flexibility. The [*sbw*](https://cran.r-project.org/package=sbw) package also implements some of these methods, prioritizing different aspects of the estimation. Entropy balancing is also implemented in *WeightIt*, which can also call *optweight* to provide a simpler interface to SBW.
 
@@ -208,7 +208,7 @@ We can see that for all covariates other than `race`, the mean differences are a
 The `norm` argument controls which objective function is used. See the table below for the allowable values of `norm`, their names, and their formulas:
 
 | `norm` | Name | $f\left(\mathbf{w}, \mathbf{b},\mathbf{s}\right)$ |
-|:--------:|:------------:|:---------------------------|
+|:----------------------:|:----------------------:|:-----------------------|
 | `"l2"` | $L_2$ norm | $\frac{1}{n}\sum_i{s_i(w_i-b_i)^2}$ |
 | `"l1"` | $L_1$ norm | $\frac{1}{n} \sum_i {s_i \vert w_i - b_i \vert}$ |
 | `"linf"` | $L_\infty$ norm | $\max_i {\vert w_i - b_i \vert}$ |
@@ -244,6 +244,7 @@ ow_linf <- optweight(treat ~ age + educ + race + married +
                      norm = "linf",
                      eps = 1e-5) # to improve convergence
 ```
+
 ```{r ow_re, eval = F, include = F}
 # Relative entropy
 ow_re <- optweight(treat ~ age + educ + race + married +
@@ -252,6 +253,7 @@ ow_re <- optweight(treat ~ age + educ + race + married +
                    estimand = "ATT",
                    norm = "entropy")
 ```
+
 ```{r, ref.label=c('ow','ow_re'[scs_ok]), eval=TRUE}
 ```
 
@@ -266,6 +268,7 @@ m <- cbind(l2 = .get_stats(ow_l2),
            l1 = .get_stats(ow_l1),
            linf = .get_stats(ow_linf))
 ```
+
 ```{r, eval = scs_ok, include = FALSE}
 m <- cbind(m, RE = .get_stats(ow_re))
 ```
@@ -434,9 +437,9 @@ Sampling weights and base weights are different forms of initially computed weig
 
 Sampling weights are used when attempting to generalize the estimates from a sample to a specific target population characterized by the sampling weights. Some datasets come with sampling weights in order for analyses using them to be valid. These weights can be supplied to the `s.weights` argument of `optweight()`. This has three effects:
 
-1. The balance and target constraints correspond to the product of the estimated and sampling weights
-2. The target values for the covariates are weighted by the sampling weights (if not supplied through `targets`)
-3. The contribution of the estimated weights to the objective function is weighted by the sampling weights
+1.  The balance and target constraints correspond to the product of the estimated and sampling weights
+2.  The target values for the covariates are weighted by the sampling weights (if not supplied through `targets`)
+3.  The contribution of the estimated weights to the objective function is weighted by the sampling weights
 
 Sampling weights are also used when bootstrapping using the fractional weighted bootstrap [@xuApplicationsFractionalRandomWeightBootstrap2020a], e.g., as implemented in the [*fwb*](https://ngreifer.github.io/fwb/) package; see section [Estimating Effects](#est-effects) below. By default, when `s.weights` is not specified, sampling weights are equal to 1.
 
@@ -635,7 +638,7 @@ One might be tempted to use `optweightMV()` to estimate balancing weights for lo
 
 When the goal is not to balance treatment groups to each other or to some target population but rather to balance one sample to a target distribution, one can use `optweight.svy()` instead of `optweight()`. The `.svy` suffix is an indication that can be used as a method to generate survey weights so that the sample generalizes to a population of interest with specific means. `optweight.svy()` works just like `optweight()` except that no treatment variable is specified and `targets` should be specified.
 
-This is useful in the context of matching-adjusted indirect comparison [MAIC, @signorovitchComparativeEffectivenessHeadtoHead2010], which involves weighting a given trial sample to resemble the covariate distribution of some other trial's sample. MAIC as originally described is equivalent to entropy balancing [@phillippoEquivalenceEntropyBalancing2020], which can be requested by setting `norm = "entropy"`.
+This is useful in the context of matching-adjusted indirect comparison [MAIC; @signorovitchComparativeEffectivenessHeadtoHead2010], which involves weighting a given trial sample to resemble the covariate distribution of some other trial's sample. MAIC as originally described is equivalent to entropy balancing [@phillippoEquivalenceEntropyBalancing2020], which can be requested by setting `norm = "entropy"`.
 
 Below, we demonstrate weighting the control subset of `lalonde` to resemble a specific target population. As with `optweightit()`, it can be helpful to use `process_targets()` to simplify specification of the covariates means. If all variables in the dataset are to be specified, the formula can be omitted (for both `process_targets()` and `optweight.svy()`).
 
