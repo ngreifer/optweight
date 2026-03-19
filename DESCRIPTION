@@ -11,7 +11,7 @@ Description: Use optimization to estimate weights that balance covariates for bi
 Depends:
     R (>= 4.1.0)
 Imports:
-    osqp (>= 0.6.3.3),
+    osqp (>= 1.0.0),
     chk (>= 0.10.0),
     rlang (>= 1.1.6),
     cli (>= 3.6.5),

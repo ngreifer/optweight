@@ -89,13 +89,13 @@ process_tols <- function(formula, data = NULL, tols = 0) {
 
   check_missing_covs(reported.covs)
 
-  .process_tols_internal(covs, tols, reported.covs,
-                         if (formula.present) "formula" else "data")
+  .process_tols_internal(covs, tols = tols, formula.covs = reported.covs,
+                         tols_found_in = if (formula.present) "formula" else "data")
 }
 
 .process_tols_internal <- function(model.covs, tols, formula.covs = NULL,
                                    tols_found_in = "formula",
-                                   tols_arg = "tols") {
+                                   tols_arg = rlang::caller_arg(tols)) {
 
   chk::chk_numeric(tols)
   chk::chk_not_any_na(tols)
@@ -167,7 +167,7 @@ check.tols <- function(...) {
 
 #' @exportS3Method print optweight.tols
 #' @rdname process_tols
-print.optweight.tols <- function(x, internal = FALSE, digits = 5, ...) {
+print.optweight.tols <- function(x, internal = FALSE, digits = 5L, ...) {
   tols <- x
   internal.tols <- .attr(tols, "internal.tols")
   attributes(tols) <- NULL

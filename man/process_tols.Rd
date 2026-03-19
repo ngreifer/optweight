@@ -10,7 +10,7 @@ process_tols(formula, data = NULL, tols = 0)
 
 check.tols(...)
 
-\method{print}{optweight.tols}(x, internal = FALSE, digits = 5, ...)
+\method{print}{optweight.tols}(x, internal = FALSE, digits = 5L, ...)
 }
 \arguments{
 \item{formula}{a formula with the covariates to be balanced on the right-hand side. Interactions and functions of covariates are allowed. Lists of formulas are not allowed; multiple formulas must be checked one at a time.}

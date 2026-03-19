@@ -279,12 +279,10 @@ optweight <- function(formula, data = NULL, tols = 0,
   bw <- process_b.weights(b.weights, data)
 
   #Process tols
-  tols <- .process_tols_internal(covs, tols, reported.covs,
-                                 tols_arg = "tols")
+  tols <- .process_tols_internal(covs, tols, reported.covs)
 
-  #Process tols
-  target.tols <- .process_tols_internal(covs, target.tols, reported.covs,
-                                        tols_arg = "target.tols")
+  #Process target.tols
+  target.tols <- .process_tols_internal(covs, target.tols, reported.covs)
 
   #Process targets
   if (is_null(estimand) || is_not_null(targets)) {
