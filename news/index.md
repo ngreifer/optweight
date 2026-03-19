@@ -2,6 +2,8 @@
 
 ## *optweight* 2.0.1
 
+CRAN release: 2026-03-19
+
 - Added support for the new version of *osqp*, which changes some
   optional argument names and defaults. These should not impact results.
 
