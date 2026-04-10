@@ -552,7 +552,7 @@ make_process_opt_args <- function(solver) {
     f <- function(..., verbose = FALSE) {
       rlang::check_installed("clarabel")
 
-      chk::chk_flag(verbose)
+      arg::arg_flag(verbose)
 
       args <- ...mget(rlang::fn_fmls_names(clarabel::clarabel_control))
 
@@ -567,7 +567,7 @@ make_process_opt_args <- function(solver) {
     f <- function(..., verbose = FALSE) {
       rlang::check_installed("scs")
 
-      chk::chk_flag(verbose)
+      arg::arg_flag(verbose)
 
       args <- ...mget(rlang::fn_fmls_names(scs::scs_control))
       eps <- ...get("eps", 1e-6)
@@ -587,7 +587,7 @@ make_process_opt_args <- function(solver) {
     f <- function(..., verbose = FALSE) {
       rlang::check_installed("osqp")
 
-      chk::chk_flag(verbose)
+      arg::arg_flag(verbose)
 
       args <- ...mget(rlang::fn_fmls_names(osqp::osqpSettings))
       eps <- ...get("eps", 1e-6)
@@ -615,7 +615,7 @@ make_process_opt_args <- function(solver) {
     f <- function(..., verbose = FALSE) {
       rlang::check_installed("highs")
 
-      chk::chk_flag(verbose)
+      arg::arg_flag(verbose)
 
       args <- ...mget(highs::highs_available_solver_options()[["option"]])
       eps <- ...get("eps", 1e-7)
@@ -636,7 +636,7 @@ make_process_opt_args <- function(solver) {
     }
   }
   else {
-    .err("invalid {.arg solver}")
+    arg::err("invalid {.arg solver}")
   }
 
   f
@@ -681,12 +681,12 @@ opt_fit <- function(constraint_df, objective, args, N, solver = "osqp") {
     info_out <- out[-(1:3)]
 
     status_val <- info_out$status
-    if (is_not_null(status_val) && chk::vld_number(status_val)) {
+    if (is_not_null(status_val) && is_number(status_val)) {
       if (status_val == 8) {
-        .wrn("the optimization failed to find a solution after {info_out$iterations} iterations. The problem may be infeasible or more iterations may be required. Check the dual variables to see which constraints are likely causing this issue", immediate = FALSE)
+        arg::wrn("the optimization failed to find a solution after {info_out$iterations} iterations. The problem may be infeasible or more iterations may be required. Check the dual variables to see which constraints are likely causing this issue", immediate = FALSE)
       }
       else if (status_val != 2) {
-        .wrn("the optimization failed to find a stable solution", immediate = FALSE)
+        arg::wrn("the optimization failed to find a stable solution", immediate = FALSE)
       }
     }
   }
@@ -728,12 +728,12 @@ opt_fit <- function(constraint_df, objective, args, N, solver = "osqp") {
     info_out <- out[["info"]]
 
     status_val <- info_out$status_val
-    if (is_not_null(status_val) && chk::vld_number(status_val)) {
+    if (is_not_null(status_val) && is_number(status_val)) {
       if (status_val == 2) {
-        .wrn("the optimization failed to find a solution after {info_out$iter} iterations. The problem may be infeasible or more iterations may be required. Check the dual variables to see which constraints are likely causing this issue", immediate = FALSE)
+        arg::wrn("the optimization failed to find a solution after {info_out$iter} iterations. The problem may be infeasible or more iterations may be required. Check the dual variables to see which constraints are likely causing this issue", immediate = FALSE)
       }
       else if (status_val != 1) {
-        .wrn("the optimization failed to find a stable solution", immediate = FALSE)
+        arg::wrn("the optimization failed to find a stable solution", immediate = FALSE)
       }
     }
   }
@@ -753,12 +753,12 @@ opt_fit <- function(constraint_df, objective, args, N, solver = "osqp") {
     info_out[["U"]] <- combine_constraints("U", constraint_df[["constraint"]])
 
     status_val <- info_out$status_val
-    if (is_not_null(status_val) && chk::vld_number(status_val)) {
+    if (is_not_null(status_val) && is_number(status_val)) {
       if (status_val == -2) {
-        .wrn("the optimization failed to find a solution after {info_out$iter} iterations. The problem may be infeasible or more iterations may be required. Check the dual variables to see which constraints are likely causing this issue", immediate = FALSE)
+        arg::wrn("the optimization failed to find a solution after {info_out$iter} iterations. The problem may be infeasible or more iterations may be required. Check the dual variables to see which constraints are likely causing this issue", immediate = FALSE)
       }
       else if (status_val != 1) {
-        .wrn("the optimization failed to find a stable solution", immediate = FALSE)
+        arg::wrn("the optimization failed to find a stable solution", immediate = FALSE)
       }
     }
   }
@@ -796,9 +796,9 @@ opt_fit <- function(constraint_df, objective, args, N, solver = "osqp") {
     info_out <- out[-1L]
 
     status_val <- info_out$status
-    if (is_not_null(status_val) && chk::vld_number(status_val)) {
+    if (is_not_null(status_val) && is_number(status_val)) {
       if (status_val != 7) {
-        .wrn("the optimization failed to find a stable solution", immediate = FALSE)
+        arg::wrn("the optimization failed to find a stable solution", immediate = FALSE)
       }
     }
   }
@@ -828,9 +828,9 @@ opt_fit <- function(constraint_df, objective, args, N, solver = "osqp") {
     info_out <- out[-c(5L, 9L)]
 
     status_val <- info_out$status
-    if (is_not_null(status_val) && chk::vld_number(status_val)) {
+    if (is_not_null(status_val) && is_number(status_val)) {
       if (status_val != 0) {
-        .wrn("the optimization failed to find a stable solution", immediate = FALSE)
+        arg::wrn("the optimization failed to find a stable solution", immediate = FALSE)
       }
     }
   }

@@ -87,7 +87,7 @@ optweight.svy <- function(formula, data = NULL, tols = 0, targets = NULL, s.weig
   formula.present <- FALSE
 
   if (missing(formula) && is_not_null(data)) {
-    chk::chk_data(data)
+    arg::arg_data.frame(data)
     formula <- reformulate(names(data))
   }
   else if (is.data.frame(formula) && is_null(data)) {
@@ -98,7 +98,7 @@ optweight.svy <- function(formula, data = NULL, tols = 0, targets = NULL, s.weig
     formula.present <- TRUE
   }
   else {
-    .err("the argument to {.arg formula} must a single formula with the covariates on the right side")
+    arg::err("{.arg formula} must a single formula with the covariates on the right side")
   }
 
   #Process treat and covs from formula and data
@@ -107,11 +107,11 @@ optweight.svy <- function(formula, data = NULL, tols = 0, targets = NULL, s.weig
   covs <- t.c[["model.covs"]]
 
   if (is_null(covs)) {
-    .err("no covariates were specified")
+    arg::err("no covariates were specified")
   }
 
   if (is_not_null(t.c[["treat"]])) {
-    .wrn("the variable on the left side of the formula will be ignored")
+    arg::wrn("the variable on the left side of the formula will be ignored")
   }
 
   check_missing_covs(reported.covs)
@@ -148,7 +148,7 @@ optweight.svy <- function(formula, data = NULL, tols = 0, targets = NULL, s.weig
   }
 
   if (anyNA(test.w)) {
-    .err("some weights are {.val {NA}}, which means something went wrong")
+    arg::err("some weights are {.val {NA}}, which means something went wrong")
   }
 
   #Process duals
@@ -176,36 +176,28 @@ optweight.svy.fit <- function(covs, targets, tols = 0, s.weights = NULL, b.weigh
                               norm = "l2", std.binary = FALSE, std.cont = TRUE,
                               min.w = 1e-8, verbose = FALSE, solver = NULL, ...) {
 
-  chk::chk_not_missing(covs, "`covs`")
-  chk::chk_not_missing(targets, "`targets`")
+  arg::arg_supplied(covs)
+  arg::arg_supplied(targets)
 
   if (!is.numeric(covs) && (!is.data.frame(covs) || !all(apply(covs, 2L, is.numeric)))) {
-    .err("all covariates must be numeric")
+    arg::err("all covariates must be numeric")
   }
 
   covs <- as.matrix(covs)
 
   N <- nrow(covs)
 
-  if (is_null(s.weights)) {
-    sw <- alloc(1, N)
-  }
-  else {
-    chk::chk_numeric(s.weights)
-    chk::chk_length(s.weights, N)
+  arg::when_not_null(s.weights,
+                     arg::arg_numeric,
+                     arg::arg_length(N))
 
-    sw <- s.weights
-  }
+  sw <- s.weights %or% alloc(1, N)
 
-  if (is_null(b.weights)) {
-    bw <- alloc(1, N)
-  }
-  else {
-    chk::chk_numeric(b.weights)
-    chk::chk_length(b.weights, N)
+  arg::when_not_null(b.weights,
+                     arg::arg_numeric,
+                     arg::arg_length(N))
 
-    bw <- b.weights
-  }
+  bw <- b.weights %or% alloc(1, N)
 
   #Process targets
   if (!inherits(tols, "optweight.targets")) {

@@ -85,7 +85,7 @@ optweightMV <- function(formula.list, data = NULL, tols.list = list(0),
     estimand <- toupper(estimand)
 
     if (estimand != "ATE") {
-      .err("the only estimand allowed with multivariate treatments is the ATE")
+      arg::err("the only estimand allowed with multivariate treatments is the ATE")
     }
   }
 
@@ -108,17 +108,17 @@ optweightMV <- function(formula.list, data = NULL, tols.list = list(0),
     treat.list[[i]] <- assign_treat_type(treat.list[[i]])
 
     if (is_null(covs.list[[i]])) {
-      .err("no covariates were specified in the {ordinal(i)} formula")
+      arg::err("no covariates were specified in the {ordinal(i)} formula")
     }
 
     if (is_null(treat.list[[i]])) {
-      .err("no treatment variable was specified in the {ordinal(i)} formula")
+      arg::err("no treatment variable was specified in the {ordinal(i)} formula")
     }
 
     treat.names[i] <- .attr(treat.list[[i]], "treat.name") %or% sprintf("treatment %s", i)
 
     if (anyNA(treat.list[[i]]) || !all(is.finite(treat.list[[i]]))) {
-      .err("no missing or non-finite values are allowed in the treatment variable. Missing or non-finite values were found in {.var {treat.names[i]}}")
+      arg::err("no missing or non-finite values are allowed in the treatment variable. Missing or non-finite values were found in {.var {treat.names[i]}}")
     }
 
     check_missing_covs(reported.covs.list[[i]])
@@ -127,7 +127,7 @@ optweightMV <- function(formula.list, data = NULL, tols.list = list(0),
   }
 
   if (!all_the_same(n)) {
-    .err("the same number of units must be present for each treatment")
+    arg::err("the same number of units must be present for each treatment")
   }
 
   #Process s.weights
@@ -166,7 +166,7 @@ optweightMV <- function(formula.list, data = NULL, tols.list = list(0),
                                                       tols_arg = "target.tols.list")
     },
     error = function(e) {
-      .err("For {.var {treat.names[i]}}, {conditionMessage(e)}", tidy = FALSE)
+      arg::err("for {.var {treat.names[i]}}, {conditionMessage(e)}")
     })
   }
 
@@ -176,15 +176,15 @@ optweightMV <- function(formula.list, data = NULL, tols.list = list(0),
       targets <- NA_real_
     }
     else if (is_not_null(estimand) && is_not_null(targets)) {
-      .wrn("{.arg targets} are not {.val {list(NULL)}}; ignoring {.arg estimand}")
+      arg::wrn("{.arg targets} are not {.val {list(NULL)}}; ignoring {.arg estimand}")
       estimand <- NULL
     }
     else {
-      chk::chk_string(estimand)
+      arg::arg_string(estimand)
       estimand <- toupper(estimand)
 
       if (estimand != "ATE") {
-        .err("{.arg estimand} cannot be {.val {estimand}} with multivariate treatments")
+        arg::err("{.arg estimand} cannot be {.val {estimand}} with multivariate treatments")
       }
     }
 
@@ -214,7 +214,7 @@ optweightMV <- function(formula.list, data = NULL, tols.list = list(0),
   }
 
   if (anyNA(test.w)) {
-    .err("some weights are {.val {NA}}, which means something went wrong")
+    arg::err("some weights are {.val {NA}}, which means something went wrong")
   }
 
   #Process duals
@@ -246,11 +246,11 @@ optweightMV.fit <- function(covs.list, treat.list, tols.list = list(0),
                             norm = "l2", std.binary = FALSE, std.cont = TRUE,
                             min.w = 1e-8, verbose = FALSE, solver = NULL, ...) {
 
-  chk::chk_not_missing(treat.list, "`treat.list`")
-  chk::chk_not_missing(covs.list, "`covs.list`")
+  arg::arg_supplied(treat.list)
+  arg::arg_supplied(covs.list)
 
-  chk::chk_list(treat.list)
-  chk::chk_list(covs.list)
+  arg::arg_list(treat.list)
+  arg::arg_list(covs.list)
 
   times <- seq_along(covs.list)
 
@@ -258,13 +258,13 @@ optweightMV.fit <- function(covs.list, treat.list, tols.list = list(0),
 
   for (i in times) {
     if (!is.numeric(covs.list[[i]]) && (!is.data.frame(covs.list[[i]]) || !all(apply(covs.list[[i]], 2L, is.numeric)))) {
-      .err("all covariates must be numeric")
+      arg::err("all covariates must be numeric")
     }
 
     covs.list[[i]] <- as.matrix(covs.list[[i]])
 
     treat.types[i] <- {
-      if (chk::vld_character_or_factor(treat.list[[i]]) || is_binary(treat.list[[i]])) "cat"
+      if (is.factor(treat.list[[i]]) || is.character(treat.list[[i]]) || is_binary(treat.list[[i]])) "cat"
       else "cont"
     }
 
@@ -275,32 +275,24 @@ optweightMV.fit <- function(covs.list, treat.list, tols.list = list(0),
 
   N <- length(treat.list[[1L]])
 
-  if (is_null(s.weights)) {
-    sw <- alloc(1, N)
-  }
-  else {
-    chk::chk_numeric(s.weights)
-    chk::chk_length(s.weights, N)
+  arg::when_not_null(s.weights,
+                     arg::arg_numeric,
+                     arg::arg_length(N))
 
-    sw <- s.weights
-  }
+  sw <- s.weights %or% alloc(1, N)
 
-  if (is_null(b.weights)) {
-    bw <- alloc(1, N)
-  }
-  else {
-    chk::chk_numeric(b.weights)
-    chk::chk_length(b.weights, N)
+  arg::when_not_null(b.weights,
+                     arg::arg_numeric,
+                     arg::arg_length(N))
 
-    bw <- b.weights
-  }
+  bw <- b.weights %or% alloc(1, N)
 
   #Process tols and target.tols
-  chk::chk_not_missing(tols.list, "`tols.list`")
-  chk::chk_list(tols.list)
+  arg::arg_supplied(tols.list)
+  arg::arg_list(tols.list)
 
-  chk::chk_not_missing(target.tols.list, "`target.tols.list`")
-  chk::chk_list(target.tols.list)
+  arg::arg_supplied(target.tols.list)
+  arg::arg_list(target.tols.list)
 
   if (length(tols.list) == 1L) {
     tols.list <- tols.list[rep_with(1, times)]
@@ -341,15 +333,15 @@ optweightMV.fit <- function(covs.list, treat.list, tols.list = list(0),
     }
   }
   else if (is_not_null(targets)) {
-    .wrn("{.arg targets} are not {.val {list(NULL)}}; ignoring {.arg estimand}")
+    arg::wrn("{.arg targets} are not {.val {list(NULL)}}; ignoring {.arg estimand}")
     estimand <- NULL
   }
   else {
-    chk::chk_string(estimand)
+    arg::arg_string(estimand)
     estimand <- toupper(estimand)
 
     if (estimand != "ATE") {
-      .err('{.arg estimand} cannot be {.val {estimand}} with multivariate treatments')
+      arg::err('{.arg estimand} cannot be {.val {estimand}} with multivariate treatments')
     }
 
     targets <- NULL # calculated automatically for ATE
@@ -363,13 +355,13 @@ optweightMV.fit <- function(covs.list, treat.list, tols.list = list(0),
   if (any_apply(whichv(treat.types, "cont"), function(i) {
     anyNA(targets[colnames(covs.list[[i]])])
   })) {
-    .err("all covariates associated with a continuous treatment must have a target")
+    arg::err("all covariates associated with a continuous treatment must have a target")
   }
 
   if (any_apply(whichv(treat.types, "cont"), function(i) {
     !all(target.tols.list[[i]] == 0)
   })) {
-    .wrn("nonzero values of {.arg target.tols.list} are ignored for continuous treatments. Setting all such values of {.arg target.tols.list} to 0")
+    arg::wrn("nonzero values of {.arg target.tols.list} are ignored for continuous treatments. Setting all such values of {.arg target.tols.list} to 0")
     for (i in whichv(treat.types, "cont")) {
       target.tols.list[[i]][] <- 0
     }

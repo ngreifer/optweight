@@ -53,7 +53,7 @@ process_targets <- function(formula, data = NULL, targets = NULL, s.weights = NU
   formula.present <- FALSE
 
   if (missing(formula) && is_not_null(data)) {
-    chk::chk_data(data)
+    arg::arg_data.frame(data)
     formula <- reformulate(names(data))
   }
   else if (is.data.frame(formula) && is_null(data)) {
@@ -64,7 +64,7 @@ process_targets <- function(formula, data = NULL, targets = NULL, s.weights = NU
     formula.present <- TRUE
   }
   else {
-    .err("the argument to {.arg formula} must a single formula with the covariates on the right side")
+    arg::err("{.arg formula} must be a single formula with the covariates on the right side")
   }
 
   #Process treat and covs from formula and data
@@ -77,7 +77,7 @@ process_targets <- function(formula, data = NULL, targets = NULL, s.weights = NU
   covs <- t.c[["model.covs"]]
 
   if (is_null(covs)) {
-    .err("no covariates were specified")
+    arg::err("no covariates were specified")
   }
 
   check_missing_covs(reported.covs)
@@ -104,18 +104,18 @@ process_targets <- function(formula, data = NULL, targets = NULL, s.weights = NU
     ATE <- FALSE
   }
   else {
-    chk::chk_numeric(targets)
+    arg::arg_numeric(targets)
 
     if (is_null(names(targets)) || !all(nzchar(names(targets)))) {
       if (length(targets) != length(model.vars)) {
-        .err("{.arg targets} must contain {length(model.vars)} value{?s}, but {length(targets)} {?was/were} included")
+        arg::err("{.arg targets} must contain {length(model.vars)} value{?s}, but {length(targets)} {?was/were} included")
       }
 
       names(targets) <- model.vars
     }
 
     if (!all(names(targets) %in% model.vars)) {
-      .err("all variables named in {.arg targets} must be present in {.arg {targets_found_in}}")
+      arg::err("all variables named in {.arg targets} must be present in {.arg {targets_found_in}}")
     }
 
     model.covs.means <- fmean(model.covs, w = sw)
@@ -143,7 +143,7 @@ process_targets <- function(formula, data = NULL, targets = NULL, s.weights = NU
           .attr(terms(formula.covs), "dataClasses")[formula.vars == v] == "factor" &&
           !anyNA(internal.targets[original.variables == v]) &&
           !check_if_zero(sum(internal.targets[original.variables == v]) - 1)) {
-        .err("the target values for {.var {v}} must add up to 1")
+        arg::err("the target values for {.var {v}} must add up to 1")
       }
     }
 
@@ -156,7 +156,7 @@ process_targets <- function(formula, data = NULL, targets = NULL, s.weights = NU
 
       sum(.attr(terms(formula.covs), "dataClasses")[vars.in.interaction] == "factor") > 1
     })) {
-      .wrn("interactions between factor variables were entered, but {.fun process_targets} cannot verify whether the target values are suitable. See {.fun process_targets} for details")
+      arg::wrn("interactions between factor variables were entered, but {.fun process_targets} cannot verify whether the target values are suitable. See {.fun process_targets} for details")
     }
 
     attr(internal.targets, "original.vars") <- formula.vars[.attr(model.covs, "assign")] |> setNames(model.vars)

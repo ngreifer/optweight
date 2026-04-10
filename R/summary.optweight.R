@@ -58,11 +58,11 @@
 #' @exportS3Method summary optweight
 summary.optweight <- function(object, top = 5L, ignore.s.weights = FALSE, weight.range = TRUE, ...) {
 
-  chk::chk_flag(ignore.s.weights)
-  chk::chk_flag(weight.range)
+  arg::arg_flag(ignore.s.weights)
+  arg::arg_flag(weight.range)
 
   if (weight.range) {
-    chk::chk_count(top)
+    arg::arg_count(top)
   }
 
   sw <- {
@@ -93,11 +93,11 @@ summary.optweight <- function(object, top = 5L, ignore.s.weights = FALSE, weight
 #' @rdname summary.optweight
 #' @exportS3Method summary optweightMV
 summary.optweightMV <- function(object, top = 5L, ignore.s.weights = FALSE, weight.range = TRUE, ...) {
-  chk::chk_flag(ignore.s.weights)
-  chk::chk_flag(weight.range)
+  arg::arg_flag(ignore.s.weights)
+  arg::arg_flag(weight.range)
 
   if (weight.range) {
-    chk::chk_count(top)
+    arg::arg_count(top)
   }
 
   sw <- {
@@ -123,11 +123,11 @@ summary.optweightMV <- function(object, top = 5L, ignore.s.weights = FALSE, weig
 #' @rdname summary.optweight
 #' @exportS3Method summary optweight.svy
 summary.optweight.svy <- function(object, top = 5L, ignore.s.weights = FALSE, weight.range = TRUE, ...) {
-  chk::chk_flag(ignore.s.weights)
-  chk::chk_flag(weight.range)
+  arg::arg_flag(ignore.s.weights)
+  arg::arg_flag(weight.range)
 
   if (weight.range) {
-    chk::chk_count(top)
+    arg::arg_count(top)
   }
 
   sw <- {
@@ -148,7 +148,7 @@ summary.optweight.svy <- function(object, top = 5L, ignore.s.weights = FALSE, we
 
 #' @exportS3Method print summary.optweight
 print.summary.optweight <- function(x, digits = 3L, ...) {
-  chk::chk_whole_number(digits)
+  arg::arg_whole_number(digits)
 
   cat0(space(18L), .ul("Summary of weights"), "\n")
 
@@ -159,7 +159,7 @@ print.summary.optweight <- function(x, digits = 3L, ...) {
 
 #' @exportS3Method print summary.optweightMV
 print.summary.optweightMV <- function(x, digits = 3L, ...) {
-  chk::chk_whole_number(digits)
+  arg::arg_whole_number(digits)
 
   only.one <- length(x) == 1L || all_apply(x, function(y) isTRUE(all.equal(x[[1L]], y)))
 

@@ -78,8 +78,7 @@
 
 #' @exportS3Method plot optweight
 plot.optweight <- function(x, type = "variables", ...) {
-  chk::chk_string(type)
-  type <- match_arg(type, c("variables", "constraints"))
+  type <- arg::match_arg(type, c("variables", "constraints"))
 
   title <- "Dual Variables for Constraints"
 
@@ -89,14 +88,13 @@ plot.optweight <- function(x, type = "variables", ...) {
 #' @rdname plot.optweight
 #' @exportS3Method plot optweightMV
 plot.optweightMV <- function(x, which.treat = 1L, type = "variables", ...) {
-  chk::chk_count(which.treat)
+  arg::arg_count(which.treat)
 
   if (which.treat %nin% seq_len(max(x$duals$component))) {
-    .err("{.arg which.treat} must correspond to an available treatment")
+    arg::err("{.arg which.treat} must correspond to an available treatment")
   }
 
-  chk::chk_string(type)
-  type <- match_arg(type, c("variables", "constraints"))
+  type <- arg::match_arg(type, c("variables", "constraints"))
 
   title <- sprintf("Dual Variables for Constraints for Treatment %s",
                    which.treat)

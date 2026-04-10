@@ -1,7 +1,7 @@
 Package: optweight
 Type: Package
 Title: Optimization-Based Stable Balancing Weights
-Version: 2.0.1
+Version: 2.0.1.9000
 Authors@R: c(
     person("Noah", "Greifer", role = c("aut", "cre"), 
            email = "noah.greifer@gmail.com",
@@ -12,7 +12,7 @@ Depends:
     R (>= 4.1.0)
 Imports:
     osqp (>= 1.0.0),
-    chk (>= 0.10.0),
+    arg (>= 0.1.0.9000),
     rlang (>= 1.1.6),
     cli (>= 3.6.5),
     Matrix (>= 1.2-13),

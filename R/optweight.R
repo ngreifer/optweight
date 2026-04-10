@@ -253,15 +253,15 @@ optweight <- function(formula, data = NULL, tols = 0,
   treat.type <- .attr(treat, "treat.type")
 
   if (is_null(covs)) {
-    .err("no covariates were specified")
+    arg::err("no covariates were specified")
   }
 
   if (is_null(treat)) {
-    .err("no treatment variable was specified")
+    arg::err("no treatment variable was specified")
   }
 
   if (anyNA(treat) || !all(is.finite(treat))) {
-    .err("no missing or non-finite values are allowed in the treatment variable")
+    arg::err("no missing or non-finite values are allowed in the treatment variable")
   }
 
   #Process estimand and focal
@@ -290,7 +290,7 @@ optweight <- function(formula, data = NULL, tols = 0,
       targets <- NA_real_
     }
     else if (is_not_null(estimand) && is_not_null(targets)) {
-      .wrn("{.arg targets} are not {.val {list(NULL)}}; ignoring {.arg estimand}")
+      arg::wrn("{.arg targets} are not {.val {list(NULL)}}; ignoring {.arg estimand}")
       estimand <- NULL
     }
 
@@ -318,7 +318,7 @@ optweight <- function(formula, data = NULL, tols = 0,
   }
 
   if (anyNA(test.w)) {
-    .err("some weights are {.val {NA}}, which means something went wrong")
+    arg::err("some weights are {.val {NA}}, which means something went wrong")
   }
 
   #Process duals
@@ -354,14 +354,14 @@ optweight.fit <- function(covs, treat, tols = 0,
 
   if ((!missing(covs) && is.list(covs) && !is.data.frame(covs)) || is_not_null(...get("covs.list")) ||
       (!missing(treat) && is.list(treat)) || is_not_null(...get("treat.list"))) {
-    .err("{.fun optweight.fit} was called with list arguments; perhaps you meant to call {.fun optweightMV.fit}")
+    arg::err("{.fun optweight.fit} was called with list arguments; perhaps you meant to call {.fun optweightMV.fit}")
   }
 
-  chk::chk_not_missing(covs, "`covs`")
-  chk::chk_not_missing(treat, "`treat`")
+  arg::arg_supplied(covs)
+  arg::arg_supplied(treat)
 
   if (!is.numeric(covs) && (!is.data.frame(covs) || !all(apply(covs, 2L, is.numeric)))) {
-    .err("all covariates must be numeric")
+    arg::err("all covariates must be numeric")
   }
 
   covs <- as.matrix(covs)
@@ -369,31 +369,23 @@ optweight.fit <- function(covs, treat, tols = 0,
   treat.name <- .attr(treat, "treat.name") %or% "treat"
 
   treat.type <- {
-    if (chk::vld_character_or_factor(treat) || is_binary(treat)) "cat"
+    if (is.factor(treat) || is.character(treat) || is_binary(treat)) "cat"
     else "cont"
   }
 
   N <- length(treat)
 
-  if (is_null(s.weights)) {
-    sw <- alloc(1, N)
-  }
-  else {
-    chk::chk_numeric(s.weights)
-    chk::chk_length(s.weights, N)
+  arg::when_not_null(s.weights,
+                     arg::arg_numeric,
+                     arg::arg_length(N))
 
-    sw <- s.weights
-  }
+  sw <- s.weights %or% alloc(1, N)
 
-  if (is_null(b.weights)) {
-    bw <- alloc(1, N)
-  }
-  else {
-    chk::chk_numeric(b.weights)
-    chk::chk_length(b.weights, N)
+  arg::when_not_null(b.weights,
+                     arg::arg_numeric,
+                     arg::arg_length(N))
 
-    bw <- b.weights
-  }
+  bw <- b.weights %or% alloc(1, N)
 
   #Process tols and target.tols
   if (!inherits(tols, "optweight.tols") || is_null(.attr(tols, "internal.tols"))) {
@@ -424,18 +416,15 @@ optweight.fit <- function(covs, treat, tols = 0,
       }
     }
     else if (is_not_null(targets)) {
-      .wrn("{.arg targets} are not {.val {list(NULL)}}; ignoring {.arg estimand}")
+      arg::wrn("{.arg targets} are not {.val {list(NULL)}}; ignoring {.arg estimand}")
       estimand <- focal <- NULL
     }
     else {
-      chk::chk_string(estimand)
-      estimand <- toupper(estimand)
-
-      chk::chk_subset(estimand, c("ATE", "ATT", "ATC"))
+      estimand <- arg::match_arg(estimand, c("ATE", "ATT", "ATC"))
 
       if (estimand %in% c("ATT", "ATC")) {
         if (is_null(focal)) {
-          .err('{.arg focal} must be supplied when {.code estimand = "{estimand}"}')
+          arg::err('{.arg focal} must be supplied when {.code estimand = "{estimand}"}')
         }
 
         focal <- as.character(focal)
@@ -443,13 +432,13 @@ optweight.fit <- function(covs, treat, tols = 0,
         in_focal <- whichv(treat, focal)
 
         if (is_null(in_focal)) {
-          .err("{.arg focal} must be the name of a level of treatment")
+          arg::err("{.arg focal} must be the name of a level of treatment ({.or {.val unique.vals}})")
         }
 
         targets <- fmean(ss(covs, in_focal), w = sw[in_focal])
 
         if (!all(target.tols == 0) && !all(target.tols == Inf)) {
-          .wrn('{.arg target.tols} is ignored when {.code estimand = "{estimand}"}')
+          arg::wrn('{.arg target.tols} is ignored when {.code estimand = "{estimand}"}')
         }
 
         target.tols[] <- tols
@@ -474,22 +463,22 @@ optweight.fit <- function(covs, treat, tols = 0,
       }
     }
     else if (is_not_null(targets)) {
-      .wrn("{.arg targets} are not {.val {list(NULL)}}; ignoring {.arg estimand}")
+      arg::wrn("{.arg targets} are not {.val {list(NULL)}}; ignoring {.arg estimand}")
       estimand <- NULL
     }
     else {
-      chk::chk_string(estimand)
+      arg::arg_string(estimand)
       estimand <- toupper(estimand)
 
       if (estimand != "ATE") {
-        .err('{.arg estimand} cannot be {.val {estimand}} with continuous treatments')
+        arg::err('{.arg estimand} cannot be {.val {estimand}} with continuous treatments')
       }
 
       targets <- NULL # calculated automatically for ATE
     }
 
     if (!allv(target.tols, 0)) {
-      .wrn("{.arg target.tols} is ignored for continuous treatments. Setting all {.arg target.tols} to 0")
+      arg::wrn("{.arg target.tols} is ignored for continuous treatments. Setting all {.arg target.tols} to 0")
     }
 
     target.tols[] <- 0
@@ -500,7 +489,7 @@ optweight.fit <- function(covs, treat, tols = 0,
     }
 
     if (anyNA(targets)) {
-      .err("all covariates must have a target when continuous treatments are used")
+      arg::err("all covariates must have a target when continuous treatments are used")
     }
 
     focal <- NULL
@@ -619,39 +608,39 @@ print.optweight <- function(x, ...) {
     treat.type[treat.type == "multinomial"] <- "multi-category"
   }
 
-  cat(sprintf("An %s object\n", .it(class(x)[1L])))
+  cli::cat_line(sprintf("An %s object", .it(class(x)[1L])))
 
-  cat(sprintf(" - number of obs.: %s\n",
-              length(x[["weights"]])))
+  cli::cat_line(sprintf(" - number of obs.: %s",
+                        length(x[["weights"]])))
 
-  cat(sprintf(" - norm minimized: %s\n",
-              add_quotes(x[["norm"]])))
+  cli::cat_line(sprintf(" - norm minimized: %s",
+                        add_quotes(x[["norm"]])))
 
-  cat(sprintf(" - sampling weights: %s\n",
-              if (is_not_null(x[["s.weights"]]) && all_the_same(x[["s.weights"]])) "none" else "present"))
+  cli::cat_line(sprintf(" - sampling weights: %s",
+                        if (is_not_null(x[["s.weights"]]) && all_the_same(x[["s.weights"]])) "none" else "present"))
 
-  cat(sprintf(" - base weights: %s\n",
-              if (is_not_null(x[["b.weights"]]) && all_the_same(x[["b.weights"]])) "none" else "present"))
+  cli::cat_line(sprintf(" - base weights: %s",
+                        if (is_not_null(x[["b.weights"]]) && all_the_same(x[["b.weights"]])) "none" else "present"))
 
   if (is_not_null(x[["treat"]])) {
-    cat(sprintf(" - treatment: %s\n",
-                switch(treat.type,
-                       continuous = "continuous",
-                       binary = "2-category",
-                       sprintf("%s-category (%s)",
-                               fnunique(x[["treat"]]),
-                               toString(levels(x[["treat"]]))))))
+    cli::cat_line(sprintf(" - treatment: %s",
+                          switch(treat.type,
+                                 continuous = "continuous",
+                                 binary = "2-category",
+                                 sprintf("%s-category (%s)",
+                                         fnunique(x[["treat"]]),
+                                         toString(levels(x[["treat"]]))))))
   }
 
   if (is_not_null(x[["estimand"]])) {
-    cat(sprintf(" - estimand: %s%s\n",
-                x[["estimand"]],
-                if (is_not_null(x[["focal"]])) sprintf(" (focal: %s)", x[["focal"]]) else ""))
+    cli::cat_line(sprintf(" - estimand: %s%s",
+                          x[["estimand"]],
+                          if (is_not_null(x[["focal"]])) sprintf(" (focal: %s)", x[["focal"]]) else ""))
   }
 
-  cat(sprintf(" - covariates: %s\n",
-              if (length(names(x[["covs"]])) > 60L) "too many to name"
-              else toString(names(x[["covs"]]))))
+  cli::cat_line(sprintf(" - covariates: %s",
+                        if (length(names(x[["covs"]])) > 60L) "too many to name"
+                        else toString(names(x[["covs"]]))))
 
   invisible(x)
 }

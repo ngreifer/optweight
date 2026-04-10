@@ -10,20 +10,20 @@ add_quotes <- function(x, quotes = 2L) {
     quotes <- '"'
   }
 
-  if (chk::vld_string(quotes)) {
+  if (rlang::is_string(quotes)) {
     return(paste0(quotes, x, str_rev(quotes)))
   }
 
-  if (!chk::vld_count(quotes) || quotes > 2L) {
+  if (!rlang::is_scalar_integerish(quotes) || quotes > 2 || quotes < 0) {
     stop("`quotes` must be boolean, 1, 2, or a string.")
   }
 
-  if (quotes == 0L) {
+  if (quotes == 0) {
     return(x)
   }
 
   x <- {
-    if (quotes == 1L) sprintf("'%s'", x)
+    if (quotes == 1) sprintf("'%s'", x)
     else sprintf('"%s"', x)
   }
 
@@ -202,9 +202,11 @@ ESS <- function(w) {
 col.w.v <- function(mat, g = NULL, w = NULL, bin.vars = NULL) {
   if (!is.matrix(mat)) {
     if (is.data.frame(mat)) {
-      if (any_apply(mat, chk::vld_character_or_factor)) {
+      if (any_apply(mat, function(z) is.character(z) || is.factor(z))) {
         stop("'mat' must be a numeric matrix.")
       }
+
+      mat <- data.matrix(mat)
     }
     else if (is.numeric(mat)) {
       mat <- matrix(mat, ncol = 1L)
@@ -248,7 +250,7 @@ col.w.sd <- function(mat, g = NULL, w = NULL, bin.vars = NULL) {
 col.w.cov <- function(mat, y, g = NULL, w = NULL) {
   if (!is.matrix(mat)) {
     if (is.data.frame(mat)) {
-      if (any_apply(mat, chk::vld_character_or_factor)) {
+      if (any_apply(mat, function(z) is.character(z) || is.factor(z))) {
         stop("'mat' must be a numeric matrix.")
       }
     }
@@ -353,11 +355,8 @@ get_varnames <- function(expr) {
 #treat/covs
 get_covs_and_treat_from_formula2 <- function(f, data = NULL, sep = "", ...) {
 
-  if (!rlang::is_formula(f)) {
-    .err("{.arg formula} must be a formula")
-  }
-
-  chk::chk_string(sep)
+  arg::arg_formula(f, .arg = "formula")
+  arg::arg_string(sep)
 
   env <- environment(f)
 
@@ -370,22 +369,21 @@ get_covs_and_treat_from_formula2 <- function(f, data = NULL, sep = "", ...) {
     data.specified <- TRUE
   }
   else {
-    .wrn("the argument supplied to {.arg data} is not a data frame object. This may causes errors or unexpected results")
+    arg::wrn("the argument supplied to {.arg data} is not a data frame object. This may causes errors or unexpected results")
     data <- env
     data.specified <- FALSE
   }
 
   tryCatch({
-    tt <- terms(f, data = data)
+    tt <- terms(f, data = data) |>
+      update(~ .) |>
+      terms(data = data)
   },
   error = function(e) {
-    msg <- {
-      if (identical(conditionMessage(e), "'.' in formula and no 'data' argument"))
-        "`.` is not allowed in formulas"
-      else
-        conditionMessage(e)
-    }
-    .err(msg, tidy = FALSE, cli = FALSE)
+    if (identical(conditionMessage(e), "'.' in formula and no 'data' argument"))
+      arg::err("`.` is not allowed in formulas without {.arg data}")
+    else
+      arg::err("{conditionMessage(e)}")
   })
 
   treat <- ...get("treat")
@@ -394,7 +392,7 @@ get_covs_and_treat_from_formula2 <- function(f, data = NULL, sep = "", ...) {
 
   #Check if response exists
   if (rlang::is_formula(tt, lhs = TRUE)) {
-    resp.var.mentioned <- attr(tt, "variables")[[2L]]
+    resp.var.mentioned <- .attr(tt, "variables")[[2L]]
     resp.var.mentioned.char <- deparse1(resp.var.mentioned)
 
     test <- tryCatch(eval(resp.var.mentioned, data, env),
@@ -403,7 +401,7 @@ get_covs_and_treat_from_formula2 <- function(f, data = NULL, sep = "", ...) {
     if (inherits(test, "simpleError")) {
       m <- conditionMessage(test)
       if (!startsWith(m, "object '") || !endsWith(m, "' not found")) {
-        .err(m, tidy = FALSE)
+        arg::err("{m}")
       }
 
       resp.var.failed <- TRUE
@@ -420,16 +418,16 @@ get_covs_and_treat_from_formula2 <- function(f, data = NULL, sep = "", ...) {
       tt <- delete.response(tt)
     }
     else {
-      var_name <- utils::strcapture("object '(.*)' not found", m, character(1L))[[1L]]
-      env_name <- c("the supplied dataset"[data.specified], "the global environment")
-      .err("the given response variable, {.var {var_name}}, is not a variable in {.or {env_name}}")
+      resp <- utils::strcapture("object '(.*)' not found", m, character(1L))[[1L]]
+
+      arg::err('the given response variable, {.var {resp}}, is not a variable in {.or {c("data", "the global environment")[c(data.specified, TRUE)]}}')
     }
   }
 
   #Check if RHS variables exist
   tt.covs <- delete.response(tt)
 
-  rhs.term.labels <- attr(tt.covs, "term.labels")
+  rhs.term.labels <- .attr(tt.covs, "term.labels")
 
   if (is_null(rhs.term.labels)) {
     new.form <- as.formula("~ 0")
@@ -453,8 +451,8 @@ get_covs_and_treat_from_formula2 <- function(f, data = NULL, sep = "", ...) {
                 treat = treat))
   }
 
-  rhs.term.orders <- attr(tt.covs, "order")
-  rhs.vars.mentioned <- attr(tt.covs, "variables")[-1L]
+  rhs.term.orders <- .attr(tt.covs, "order")
+  rhs.vars.mentioned <- .attr(tt.covs, "variables")[-1L]
   rhs.vars.mentioned.char <- vapply(rhs.vars.mentioned, deparse1, character(1L))
 
   simple.covs <- rhs.vars.mentioned |>
@@ -471,7 +469,7 @@ get_covs_and_treat_from_formula2 <- function(f, data = NULL, sep = "", ...) {
         m <- conditionMessage(test)
 
         if (!startsWith(m, "object '") || !endsWith(m, "' not found")) {
-          .err(m, tidy = FALSE, cli = FALSE)
+          arg::err("{m}")
         }
 
         return(NULL)
@@ -504,7 +502,7 @@ get_covs_and_treat_from_formula2 <- function(f, data = NULL, sep = "", ...) {
     if (inherits(test, "simpleError")) {
       m <- conditionMessage(test)
       if (!startsWith(m, "object '") || !endsWith(m, "' not found")) {
-        .err(m, tidy = FALSE, cli = FALSE)
+        arg::err("{m}")
       }
 
       rhs.vars.failed[i] <- TRUE
@@ -521,19 +519,18 @@ get_covs_and_treat_from_formula2 <- function(f, data = NULL, sep = "", ...) {
       rhs.df[i] <- TRUE
 
       if (rhs.vars.mentioned.char[i] %in% terms.with.interactions) {
-        .err("interactions with data frames are not allowed in the input formula")
+        arg::err("interactions with data frames are not allowed in the input formula")
       }
 
       if (inherits(test, "rms")) {
         class(test) <- "matrix"
         test <- setNames(as.data.frame(as.matrix(test)),
-                         attr(test, "colnames"))
-      }
-      else if (is_not_null(colnames(test))) {
-        colnames(test) <- paste(rhs.vars.mentioned.char[i], colnames(test), sep = sep)
+                         .attr(test, "colnames"))
       }
       else {
-        colnames(test) <- paste(rhs.vars.mentioned.char[i], seq_col(test), sep = sep)
+        colnames(test) <- paste(rhs.vars.mentioned.char[i],
+                                colnames(test) %or% seq_col(test),
+                                sep = sep)
       }
 
       addl.dfs[[i]] <- as.data.frame(test)
@@ -541,9 +538,7 @@ get_covs_and_treat_from_formula2 <- function(f, data = NULL, sep = "", ...) {
   }
 
   if (any(rhs.vars.failed)) {
-    .err("all variables in {.arg formula} must be variables in {.arg data} or objects in the global environment.\n
-          Missing variables: {.var {rhs.vars.mentioned.char[rhs.vars.failed]}}")
-
+    arg::err("all variables in {.arg formula} must be variables in {.arg data} or objects in the global environment.\nMissing variables: {rhs.vars.mentioned.char[rhs.vars.failed]}")
   }
 
   rhs.term.labels.list <- setNames(as.list(rhs.term.labels), rhs.term.labels)
@@ -578,11 +573,11 @@ get_covs_and_treat_from_formula2 <- function(f, data = NULL, sep = "", ...) {
 
   covs <- tryCatch(eval(mf.covs),
                    error = function(e) {
-                     .err(conditionMessage(e), tidy = FALSE, cli = FALSE)
+                     arg::err("{conditionMessage(e)}")
                    })
 
   if (is_not_null(treat.name) && utils::hasName(covs, treat.name)) {
-    .err("the variable on the left side of the formula appears on the right side too")
+    arg::err("the variable on the left side of the formula appears on the right side too")
   }
 
   s <- nzchar(sep)
@@ -634,15 +629,18 @@ assign_treat_type <- function(treat, use.multi = FALSE) {
   nunique.treat <- fnunique(treat)
 
   if (nunique.treat < 2L) {
-    .err("the treatment must have at least two unique values")
+    arg::err("the treatment must have at least two unique values")
   }
 
   if (!use.multi && nunique.treat == 2L) {
     treat.type <- "binary"
   }
-  else if (use.multi || chk::vld_character_or_factor(treat)) {
+  else if (use.multi || is.factor(treat) || is.character(factor)) {
     treat.type <- "multi-category"
-    if (!inherits(treat, "processed.treat")) treat <- factor(treat)
+
+    if (!inherits(treat, "processed.treat")) {
+      treat <- factor(treat)
+    }
   }
   else {
     treat.type <- "continuous"
@@ -653,7 +651,7 @@ assign_treat_type <- function(treat, use.multi = FALSE) {
   treat
 }
 get_treat_type <- function(treat) {
-  attr(treat, "treat.type")
+  .attr(treat, "treat.type")
 }
 has_treat_type <- function(treat) {
   is_not_null(get_treat_type(treat))
@@ -779,6 +777,9 @@ null_or_error <- function(x) {is_null(x) || inherits(x, "try-error")}
 .attr <- function(x, which, exact = TRUE) {
   attr(x, which, exact = exact)
 }
+is_number <- function(x) {
+  is.numeric(x) && length(x) == 1L && !anyNA(x)
+}
 
 # Needed to be able to use collapse::ss() on Matrix objects
 ss <- function(x, i, j, check = TRUE) {
@@ -789,55 +790,6 @@ ss <- function(x, i, j, check = TRUE) {
   }
 
   collapse::ss(x, i, j, check)
-}
-
-#More informative and cleaner version of base::match.arg(). Uses chk and cli.
-match_arg <- function(arg, choices, several.ok = FALSE, context = NULL) {
-  #Replaces match.arg() but gives cleaner error message and processing
-  #of arg.
-  if (missing(arg)) {
-    .err("no argument was supplied to {.fn match_arg} (this is a bug)")
-  }
-
-  arg.name <- deparse1(substitute(arg), width.cutoff = 500L)
-
-  if (missing(choices)) {
-    sysP <- sys.parent()
-    formal.args <- formals(sys.function(sysP))
-    choices <- eval(formal.args[[as.character(substitute(arg))]],
-                    envir = sys.frame(sysP))
-  }
-
-  if (is_null(arg)) {
-    return(choices[1L])
-  }
-
-  if (several.ok) {
-    chk::chk_character(arg, x_name = add_quotes(arg.name, "`"))
-  }
-  else {
-    chk::chk_string(arg, x_name = add_quotes(arg.name, "`"))
-
-    if (identical(arg, choices)) {
-      return(arg[1L])
-    }
-  }
-
-  i <- pmatch(arg, choices, nomatch = 0L, duplicates.ok = TRUE)
-
-  if (allv(i, 0L)) {
-    one_of <- {
-      if (length(choices) <= 1L) NULL
-      else if (several.ok) "at least one of"
-      else "one of"
-    }
-
-    .err("{context} the argument to {.arg {arg.name}} should be {one_of} {.or {.val {choices}}}")
-  }
-
-  i <- i[i > 0L]
-
-  choices[i]
 }
 
 grab <- function(x, what) {

@@ -60,7 +60,7 @@ process_tols <- function(formula, data = NULL, tols = 0) {
   formula.present <- FALSE
 
   if (missing(formula) && is_not_null(data)) {
-    chk::chk_data(data)
+    arg::arg_data.frame(data)
     formula <- reformulate(names(data))
   }
   else if (is.data.frame(formula) && is_null(data)) {
@@ -71,7 +71,7 @@ process_tols <- function(formula, data = NULL, tols = 0) {
     formula.present <- TRUE
   }
   else {
-    .err("the argument to {.arg formula} must a single formula with the covariates on the right side")
+    arg::err("{.arg formula} must be a single formula with the covariates on the right side")
   }
 
   #Process treat and covs from formula and data
@@ -84,7 +84,7 @@ process_tols <- function(formula, data = NULL, tols = 0) {
   covs <- t.c[["model.covs"]]
 
   if (is_null(covs)) {
-    .err("no covariates were specified")
+    arg::err("no covariates were specified")
   }
 
   check_missing_covs(reported.covs)
@@ -97,8 +97,8 @@ process_tols <- function(formula, data = NULL, tols = 0) {
                                    tols_found_in = "formula",
                                    tols_arg = rlang::caller_arg(tols)) {
 
-  chk::chk_numeric(tols)
-  chk::chk_not_any_na(tols)
+  arg::arg_numeric(tols)
+  arg::arg_no_NA(tols)
 
   model.vars <- colnames(model.covs)
 
@@ -122,13 +122,13 @@ process_tols <- function(formula, data = NULL, tols = 0) {
       names(tols) <- formula.vars
     }
     else {
-      .err("{.arg {tols_arg}} must contain {.or {unique(c(1, length(formula.vars)))}}
+      arg::err("{.arg {tols_arg}} must contain {.or {unique(c(1, length(formula.vars)))}}
             {cli::qty(max(1, length(formula.vars)))} value{?s}, but {length(tols)} {?was/were} included")
     }
   }
 
   if (!any(names(tols) %in% formula.vars)) {
-    .err("no variables named in {.arg {tols_arg}} are present in {.arg {tols_found_in}}")
+    arg::err("no variables named in {.arg {tols_arg}} are present in {.arg {tols_found_in}}")
   }
 
   overlap <- intersect(names(tols), formula.vars)
@@ -139,7 +139,7 @@ process_tols <- function(formula, data = NULL, tols = 0) {
 
   if (!all(names(tols) %in% overlap)) {
     bad_tols <- setdiff(names(tols), overlap)
-    .wrn("{.var {bad_tols}} {?was/were} named in {.arg {tols_arg}} but not present in {.arg {tols_found_in}} and so will be ignored")
+    arg::wrn("{.var {bad_tols}} {?was/were} named in {.arg {tols_arg}} but not present in {.arg {tols_found_in}} and so will be ignored")
   }
 
   if (is_not_null(formula.covs)) {
