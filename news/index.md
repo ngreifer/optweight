@@ -1,5 +1,9 @@
 # Changelog
 
+## *optweight* (development version)
+
+- Replaced *chk* dependency with *arg*.
+
 ## *optweight* 2.0.1
 
 CRAN release: 2026-03-19
