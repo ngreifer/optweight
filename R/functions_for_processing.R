@@ -223,7 +223,7 @@ process_s.weights <- function(s.weights, data = NULL) {
     arg::err("{.arg s.weights} was specified as a string but there was no argument to {.arg data}")
   }
 
-  if (s.weights %nin% names(data)) {
+  if (!utils::hasName(data, s.weights)) {
     arg::err("the value supplied to {.arg s.weights} is not the name of a variable in {.arg data}")
   }
 

@@ -7,7 +7,7 @@ add_quotes <- function(x, quotes = 2L) {
   }
 
   if (isTRUE(quotes)) {
-    quotes <- '"'
+    quotes <- 2L
   }
 
   if (rlang::is_string(quotes)) {
@@ -30,24 +30,33 @@ add_quotes <- function(x, quotes = 2L) {
   x
 }
 ordinal <- function(x) {
-  if (is_null(x) || !is.numeric(x)) {
-    stop("'x' must be a numeric vector.")
+  if (is_null(x)) {
+    return(x)
   }
 
-  if (length(x) > 1L) {
-    out <- setNames(vapply(x, ordinal, character(1L)), names(x))
-    return(out)
-  }
+  arg::arg_whole_numeric(x)
 
-  x0 <- abs(x)
-  out <- paste0(x0, switch(substring(x0, nchar(x0), nchar(x0)),
-                           "1" = "st",
-                           "2" = "nd",
-                           "3" = "rd",
-                           "th"))
-  if (x < 0) out <- sprintf("-%s", out)
+  vapply(x, function(.x) {
+    x0 <- abs(.x) |> as.character()
 
-  setNames(out, names(x))
+    if (any(endsWith(x0, c("11", "12", "13")))) {
+      out <- paste0(x0, "th")
+    }
+    else {
+      out <- paste0(x0, switch(substring(x0, nchar(x0), nchar(x0)),
+                               "1" = "st",
+                               "2" = "nd",
+                               "3" = "rd",
+                               "th"))
+    }
+
+    if (.x < 0) {
+      out <- sprintf("-%s", out)
+    }
+
+    out
+  }, character(1L)) |>
+    setNames(names(x))
 }
 round_df_char <- function(df, digits, pad = "0", na_vals = "") {
   if (NROW(df) == 0L || NCOL(df) == 0L) {
@@ -762,7 +771,7 @@ rep_with <- function(x, y) {
   rep.int(x, length(y)) |>
     setNames(names(y))
 }
-is_null <- function(x) {length(x) == 0L}
+is_null <- function(x) {identical(length(x), 0L)}
 is_not_null <- function(x) {!is_null(x)}
 clear_null <- function(x) {
   x[lengths(x) == 0L] <- NULL

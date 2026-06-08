@@ -230,12 +230,7 @@ plot.summary.optweight <- function(x, ...) {
     out$weight.range <- lapply(tx, function(ti) frange(ww[ti])) |>
       setNames(names(tx))
 
-    top.weights <- lapply(tx, function(ti) sort(ww[ti], decreasing = TRUE)[seq_len(top)]) |>
-      setNames(names(tx))
-
-    out$weight.top <- lapply(names(tx), function(i) {
-      sort(setNames(top.weights[[i]], which(ww[tx[[i]]] %in% top.weights[[i]])[seq_len(top)]))
-    }) |>
+    out$weight.top <- lapply(tx, function(ti) rev(sort(ww[ti], decreasing = TRUE)[seq_len(top)])) |>
       setNames(names(tx))
   }
 
